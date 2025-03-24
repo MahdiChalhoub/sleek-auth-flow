@@ -1,0 +1,124 @@
+
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { 
+  SidebarMenuItem, 
+  SidebarMenuButton, 
+  SidebarMenuSub, 
+  SidebarMenuSubItem, 
+  SidebarMenuSubButton,
+} from "@/components/ui/sidebar";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useTabs } from "@/contexts/TabsContext";
+import { NavItem as NavItemType } from "../nav";
+
+interface NavItemProps {
+  item: NavItemType;
+  isActive: (path: string) => boolean;
+}
+
+const NavItem: React.FC<NavItemProps> = ({ item, isActive }) => {
+  const navigate = useNavigate();
+  const { openTab } = useTabs();
+  const [isGroupOpen, setIsGroupOpen] = useState(false);
+  
+  const hasChildren = item.children && item.children.length > 0;
+  const isCurrentActive = isActive(item.path) || 
+    (hasChildren && item.children?.some(child => isActive(child.path)));
+  const Icon = item.icon;
+  
+  const handleNavigation = () => {
+    if (hasChildren) {
+      // Toggle the group open/closed
+      setIsGroupOpen(!isGroupOpen);
+    } else {
+      // Navigate and open tab
+      navigate(item.path);
+      openTab({
+        title: item.title,
+        path: item.path,
+        icon: item.icon
+      });
+    }
+  };
+  
+  return (
+    <SidebarMenuItem>
+      {hasChildren ? (
+        <Collapsible 
+          open={isGroupOpen} 
+          onOpenChange={() => setIsGroupOpen(!isGroupOpen)}
+        >
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton 
+              className="w-full justify-between"
+              isActive={isCurrentActive}
+              tooltip={item.title}
+            >
+              <div className="flex items-center">
+                {Icon && <Icon className="h-5 w-5 mr-2" />}
+                <span>{item.title}</span>
+              </div>
+              {isGroupOpen ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <SubNavItems items={item.children || []} isActive={isActive} />
+          </CollapsibleContent>
+        </Collapsible>
+      ) : (
+        <SidebarMenuButton
+          isActive={isCurrentActive}
+          tooltip={item.title}
+          onClick={handleNavigation}
+        >
+          {Icon && <Icon className="h-5 w-5" />}
+          <span>{item.title}</span>
+        </SidebarMenuButton>
+      )}
+    </SidebarMenuItem>
+  );
+};
+
+export default NavItem;
+
+interface SubNavItemsProps {
+  items: NavItemType[];
+  isActive: (path: string) => boolean;
+}
+
+const SubNavItems: React.FC<SubNavItemsProps> = ({ items, isActive }) => {
+  const navigate = useNavigate();
+  const { openTab } = useTabs();
+
+  return (
+    <SidebarMenuSub>
+      {items.map(child => {
+        const ChildIcon = child.icon;
+        return (
+          <SidebarMenuSubItem key={child.path}>
+            <SidebarMenuSubButton
+              onClick={() => {
+                navigate(child.path);
+                openTab({
+                  title: child.title,
+                  path: child.path,
+                  icon: child.icon
+                });
+              }}
+              isActive={isActive(child.path)}
+            >
+              {ChildIcon && <ChildIcon className="h-4 w-4 mr-2" />}
+              <span>{child.title}</span>
+            </SidebarMenuSubButton>
+          </SidebarMenuSubItem>
+        );
+      })}
+    </SidebarMenuSub>
+  );
+};
