@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Menu, Bell, UserCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import MobileDrawerMenu from "./MobileDrawerMenu";
 
 const getPageTitle = (pathname: string): string => {
   const routes: Record<string, string> = {
@@ -38,12 +39,21 @@ const getPageTitle = (pathname: string): string => {
 const AppTopbar: React.FC = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const pageTitle = getPageTitle(location.pathname);
+  
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
   
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex items-center gap-2">
-        <SidebarTrigger className="md:hidden" />
+        <MobileDrawerMenu>
+          <Button variant="ghost" size="icon" className="md:hidden">
+            <Menu className="h-5 w-5" />
+          </Button>
+        </MobileDrawerMenu>
         <h1 className="text-xl font-semibold">{pageTitle}</h1>
       </div>
       
@@ -71,8 +81,8 @@ const AppTopbar: React.FC = () => {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Settings</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleNavigate("/profile")}>Profile</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleNavigate("/settings")}>Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={logout} className="text-destructive">
               Logout

@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   ShoppingCart, 
@@ -78,10 +78,19 @@ const AppSidebar: React.FC = () => {
   const location = useLocation();
   const { isMobile } = useScreenSize();
   const { state, toggleSidebar } = useSidebar();
+  const navigate = useNavigate();
   
   const filteredNavItems = navItems.filter(
     item => !item.roles || (user && item.roles.includes(user.role))
   );
+  
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+  
+  const handleLogout = () => {
+    logout();
+  };
   
   return (
     <Sidebar>
@@ -112,11 +121,12 @@ const AppSidebar: React.FC = () => {
                 asChild
                 isActive={location.pathname === item.path}
                 tooltip={item.title}
+                onClick={() => handleNavigation(item.path)}
               >
-                <Link to={item.path} className="w-full">
+                <div className="w-full">
                   <item.icon className="h-5 w-5" />
                   <span>{item.title}</span>
-                </Link>
+                </div>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
@@ -128,7 +138,7 @@ const AppSidebar: React.FC = () => {
           <SidebarMenuItem>
             <SidebarMenuButton
               tooltip="Logout"
-              onClick={logout}
+              onClick={handleLogout}
               className="text-destructive hover:text-destructive"
             >
               <LogOut className="h-5 w-5" />
