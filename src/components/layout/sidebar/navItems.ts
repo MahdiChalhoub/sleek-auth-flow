@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -30,6 +31,7 @@ import {
   ArrowUpCircle,
   UserCog
 } from "lucide-react";
+import React from "react";
 
 export interface NavItem {
   title: string;

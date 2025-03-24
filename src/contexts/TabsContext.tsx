@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -48,7 +49,7 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('activeTabId');
       }
     }
-  }, []);
+  }, [location.pathname, navigate]);
 
   // Save tabs to localStorage when they change
   useEffect(() => {

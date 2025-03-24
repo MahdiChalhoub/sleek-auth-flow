@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { useTabs, Tab } from "@/contexts/TabsContext";
@@ -24,7 +25,7 @@ const TabNavigation: React.FC = () => {
         icon: matchingNavItem.icon
       });
     }
-  }, [location.pathname]);
+  }, [location.pathname, openTab, tabs]);
 
   useEffect(() => {
     if (activeTabRef.current && scrollContainerRef.current) {
