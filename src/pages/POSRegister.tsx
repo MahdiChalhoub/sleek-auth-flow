@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ const POSRegister = () => {
     bank: 0,
     wave: 0,
     mobile: 0,
+    not_specified: 0
   });
   const [closingBalances, setClosingBalances] = useState<Record<PaymentMethod, number>>({
     cash: register.currentBalance.cash,
@@ -46,6 +48,7 @@ const POSRegister = () => {
     bank: register.currentBalance.bank,
     wave: register.currentBalance.wave,
     mobile: register.currentBalance.mobile,
+    not_specified: 0
   });
   
   // Track resolution for discrepancies
@@ -72,6 +75,7 @@ const POSRegister = () => {
       bank: closingBalances.bank - register.expectedBalance.bank,
       wave: closingBalances.wave - register.expectedBalance.wave,
       mobile: closingBalances.mobile - register.expectedBalance.mobile,
+      not_specified: 0
     };
     
     setDiscrepancies(newDiscrepancies);

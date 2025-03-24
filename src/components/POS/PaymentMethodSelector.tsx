@@ -23,7 +23,8 @@ const PaymentMethodSelector = ({
     card: 0,
     bank: 0,
     wave: 0,
-    mobile: 0
+    mobile: 0,
+    not_specified: 0
   });
   
   const [activeTab, setActiveTab] = useState<PaymentMethod>('cash');
@@ -37,7 +38,8 @@ const PaymentMethodSelector = ({
         card: 0,
         bank: 0,
         wave: 0,
-        mobile: 0
+        mobile: 0,
+        not_specified: 0
       });
       setActiveTab('cash');
       setUseCredit(false);
