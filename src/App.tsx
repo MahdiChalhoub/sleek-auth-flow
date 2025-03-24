@@ -26,6 +26,7 @@ import RoleManagement from './pages/RoleManagement';
 import Categories from './pages/Categories';
 import ShiftReports from './pages/ShiftReports';
 import AuditTrail from './pages/AuditTrail';
+import Users from './pages/Users'; // Import the new Users page
 
 // Add PrivateRoute component
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -61,6 +62,7 @@ const App = () => {
               <Route path="/categories" element={<Categories />} />
               <Route path="/shift-reports" element={<ShiftReports />} />
               <Route path="/audit-trail" element={<AuditTrail />} />
+              <Route path="/users" element={<Users />} /> {/* Add the new Users route */}
             </Route>
           </Routes>
           
