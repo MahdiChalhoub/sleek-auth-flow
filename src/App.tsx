@@ -10,6 +10,9 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
 import RoleManagement from "./pages/RoleManagement";
+import POSRegister from "./pages/POSRegister";
+import Transactions from "./pages/Transactions";
+import TransactionPermissions from "./pages/TransactionPermissions";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +29,9 @@ const App = () => (
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/home" element={<Index />} />
           <Route path="/roles" element={<RoleManagement />} />
+          <Route path="/register" element={<POSRegister />} />
+          <Route path="/transactions" element={<Transactions />} />
+          <Route path="/transaction-permissions" element={<TransactionPermissions />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
