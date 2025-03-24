@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -46,7 +45,6 @@ const Transactions = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [branchFilter, setBranchFilter] = useState<string>("all");
   
-  // New states for ledger preview and offline mode
   const [showLedgerPreview, setShowLedgerPreview] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isOfflineMode, setIsOfflineMode] = useState(false);
@@ -77,13 +75,11 @@ const Transactions = () => {
     });
   };
   
-  // Handle opening ledger preview
   const handleShowLedger = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setShowLedgerPreview(true);
   };
   
-  // Handle toggle offline mode
   const handleToggleOfflineMode = () => {
     setIsOfflineMode(!isOfflineMode);
     
@@ -102,32 +98,27 @@ const Transactions = () => {
     }
   };
   
-  // Get ledger entries for a transaction
   const getLedgerEntries = (transactionId: string): LedgerEntry[] => {
     return mockLedgerEntries.filter(entry => entry.transactionId === transactionId);
   };
   
-  // Handle backup data
   const handleBackupData = () => {
     setShowBackupDialog(true);
   };
   
-  // Generate backup file (mock functionality)
   const generateBackupFile = (type: 'json' | 'sql') => {
-    // In a real app, this would create an actual backup file
     setTimeout(() => {
       setShowBackupDialog(false);
       toastUI({
         title: "Backup Created Successfully",
         description: `Your ${type.toUpperCase()} backup is ready to download.`,
-        variant: "success",
+        variant: "default",
       });
     }, 1500);
   };
 
   const filteredTransactions = transactions
     .filter(transaction => {
-      // Filter by search query
       const searchLower = searchQuery.toLowerCase();
       return (
         transaction.id.toLowerCase().includes(searchLower) ||
@@ -137,17 +128,14 @@ const Transactions = () => {
       );
     })
     .filter(transaction => {
-      // Filter by status
       if (statusFilter === "all") return true;
       return transaction.status === statusFilter;
     })
     .filter(transaction => {
-      // Filter by branch
       if (branchFilter === "all") return true;
       return transaction.branchId === branchFilter;
     })
     .sort((a, b) => {
-      // Sort by date
       const dateA = new Date(a.updatedAt).getTime();
       const dateB = new Date(b.updatedAt).getTime();
       return sortDirection === "asc" ? dateA - dateB : dateB - dateA;
@@ -165,7 +153,6 @@ const Transactions = () => {
             </Button>
             <h1 className="text-2xl font-semibold">Transactions</h1>
             
-            {/* Offline Mode Indicator */}
             {isOfflineMode && (
               <Badge variant="outline" className="ml-2 bg-amber-100 text-amber-800 border-amber-200">
                 Offline Mode
@@ -174,7 +161,6 @@ const Transactions = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            {/* Offline Mode Toggle */}
             <div className="flex items-center mr-4">
               <span className="text-sm mr-2">Offline Mode</span>
               <Switch 
@@ -183,7 +169,6 @@ const Transactions = () => {
               />
             </div>
             
-            {/* Backup Button */}
             <Button variant="outline" onClick={handleBackupData} className="mr-2">
               <DownloadCloud className="h-4 w-4 mr-2" />
               Backup
@@ -234,7 +219,6 @@ const Transactions = () => {
                   </SelectContent>
                 </Select>
                 
-                {/* Branch Filter */}
                 <Select
                   value={branchFilter}
                   onValueChange={(value) => setBranchFilter(value)}
@@ -304,7 +288,6 @@ const Transactions = () => {
                         <TableCell>{transaction.createdBy}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end items-center gap-1">
-                            {/* Ledger Preview Button */}
                             <Button 
                               variant="ghost" 
                               size="icon"
@@ -400,7 +383,6 @@ const Transactions = () => {
         </Card>
       </div>
       
-      {/* Ledger Preview Dialog */}
       {selectedTransaction && (
         <Dialog open={showLedgerPreview} onOpenChange={setShowLedgerPreview}>
           <DialogContent className="sm:max-w-md">
@@ -473,7 +455,6 @@ const Transactions = () => {
         </Dialog>
       )}
       
-      {/* Backup Dialog */}
       <Dialog open={showBackupDialog} onOpenChange={setShowBackupDialog}>
         <DialogContent>
           <DialogHeader>

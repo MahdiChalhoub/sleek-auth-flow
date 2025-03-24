@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { PaymentMethod } from "@/models/transaction";
 import { Client } from "@/models/client";
+import { formatCurrency } from "@/lib/utils";
 
 interface PaymentMethodSelectorProps {
   isOpen: boolean;
