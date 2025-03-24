@@ -1,6 +1,5 @@
 
-import React from "react";
-import { mockRegister } from "@/models/transaction";
+import React, { useEffect } from "react";
 import { useRegister } from "@/components/register/useRegister";
 import RegisterHeader from "@/components/register/RegisterHeader";
 import RegisterMetaCard from "@/components/RegisterMetaCard";
@@ -13,10 +12,15 @@ import {
   DiscrepancyDialog 
 } from "@/components/register/RegisterDialogs";
 import ClosingSummary from "@/components/register/ClosingSummary";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRegisterSessions } from "@/hooks/useRegisterSessions";
 
 const POSRegister = () => {
+  const { registers, isLoading: registersLoading } = useRegisterSessions();
+  
   const {
     register,
+    isLoading,
     isOpenRegisterDialogOpen,
     setIsOpenRegisterDialogOpen,
     isCloseRegisterDialogOpen,
@@ -34,7 +38,24 @@ const POSRegister = () => {
     handleResolutionChange,
     handleDiscrepancyApproval,
     getTotalDiscrepancy
-  } = useRegister(mockRegister);
+  } = useRegister();
+
+  if (isLoading || registersLoading || !register) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto glass-card rounded-2xl p-6 animate-fade-in">
+          <div className="flex items-center justify-between mb-6">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-40 w-full lg:col-span-2" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
@@ -102,6 +123,15 @@ const POSRegister = () => {
                     status="info"
                     showTooltip={true}
                     tooltipContent="Other mobile money transactions"
+                  />
+                  <RegisterBalanceCard 
+                    title="Other" 
+                    value={register.currentBalance.not_specified} 
+                    icon={<Wallet className="h-5 w-5 text-gray-500" />}
+                    className="border-l-4 border-gray-500"
+                    status="info"
+                    showTooltip={true}
+                    tooltipContent="Other payment methods"
                   />
                 </div>
               </CardContent>

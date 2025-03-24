@@ -373,6 +373,66 @@ export type Database = {
           },
         ]
       }
+      register_sessions: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          current_balance: Json
+          discrepancies: Json | null
+          discrepancy_approved_at: string | null
+          discrepancy_approved_by: string | null
+          discrepancy_notes: string | null
+          discrepancy_resolution: string | null
+          expected_balance: Json
+          id: string
+          is_open: boolean
+          name: string
+          opened_at: string | null
+          opened_by: string | null
+          opening_balance: Json
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          current_balance?: Json
+          discrepancies?: Json | null
+          discrepancy_approved_at?: string | null
+          discrepancy_approved_by?: string | null
+          discrepancy_notes?: string | null
+          discrepancy_resolution?: string | null
+          expected_balance?: Json
+          id?: string
+          is_open?: boolean
+          name: string
+          opened_at?: string | null
+          opened_by?: string | null
+          opening_balance?: Json
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          current_balance?: Json
+          discrepancies?: Json | null
+          discrepancy_approved_at?: string | null
+          discrepancy_approved_by?: string | null
+          discrepancy_notes?: string | null
+          discrepancy_resolution?: string | null
+          expected_balance?: Json
+          id?: string
+          is_open?: boolean
+          name?: string
+          opened_at?: string | null
+          opened_by?: string | null
+          opening_balance?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       return_items: {
         Row: {
           created_at: string | null
