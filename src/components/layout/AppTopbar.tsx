@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import MobileDrawerMenu from "./MobileDrawerMenu";
-import {
+import { 
   Dialog,
   DialogContent,
   DialogDescription,
@@ -24,8 +24,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLocationContext } from "@/contexts/LocationContext";
+import NotificationsPanel from "../notifications/NotificationsPanel";
 
 const getPageTitle = (pathname: string): string => {
   const routes: Record<string, string> = {
@@ -43,6 +49,9 @@ const getPageTitle = (pathname: string): string => {
     "/stock-transfers": "Stock Transfers",
     "/staff-finance": "Staff Finance",
     "/loyalty": "Loyalty & Rewards",
+    "/categories": "Category Management",
+    "/shift-reports": "Shift Reports",
+    "/audit-trail": "Audit Trail",
   };
   
   return routes[pathname] || "POS System";
@@ -56,6 +65,7 @@ const AppTopbar: React.FC = () => {
   const pageTitle = getPageTitle(location.pathname);
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
   const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -204,12 +214,19 @@ const AppTopbar: React.FC = () => {
           </div>
         )}
         
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
-            3
-          </span>
-        </Button>
+        <Popover open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative">
+              <Bell className="h-5 w-5" />
+              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
+                3
+              </span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0 w-auto" align="end">
+            <NotificationsPanel />
+          </PopoverContent>
+        </Popover>
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

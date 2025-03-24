@@ -23,6 +23,9 @@ import StaffFinance from './pages/StaffFinance';
 import Loyalty from './pages/Loyalty';
 import Returns from './pages/Returns';
 import RoleManagement from './pages/RoleManagement';
+import Categories from './pages/Categories';
+import ShiftReports from './pages/ShiftReports';
+import AuditTrail from './pages/AuditTrail';
 
 // Add PrivateRoute component
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -55,6 +58,9 @@ const App = () => {
               <Route path="/loyalty" element={<Loyalty />} />
               <Route path="/returns" element={<Returns />} />
               <Route path="/roles" element={<RoleManagement />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/shift-reports" element={<ShiftReports />} />
+              <Route path="/audit-trail" element={<AuditTrail />} />
             </Route>
           </Routes>
           

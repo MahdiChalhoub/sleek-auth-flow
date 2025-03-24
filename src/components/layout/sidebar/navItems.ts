@@ -14,7 +14,11 @@ import {
   BarChart3,
   DollarSign,
   Gift,
-  Briefcase
+  Briefcase,
+  Bell,
+  Clock,
+  History,
+  Tag
 } from "lucide-react";
 
 export interface NavItem {
@@ -56,6 +60,12 @@ export const navItems: NavItem[] = [
     roles: ["admin", "manager"]
   },
   {
+    title: "Shift Reports",
+    path: "/shift-reports",
+    icon: Clock,
+    roles: ["admin", "manager"]
+  },
+  {
     title: "Transactions",
     path: "/transactions",
     icon: Repeat,
@@ -86,6 +96,12 @@ export const navItems: NavItem[] = [
     roles: ["admin", "manager"]
   },
   {
+    title: "Categories",
+    path: "/categories",
+    icon: Tag,
+    roles: ["admin", "manager"]
+  },
+  {
     title: "Suppliers",
     path: "/suppliers",
     icon: Users,
@@ -108,6 +124,12 @@ export const navItems: NavItem[] = [
     path: "/returns",
     icon: RotateCcw,
     roles: ["admin", "cashier", "manager"]
+  },
+  {
+    title: "Audit Trail",
+    path: "/audit-trail",
+    icon: History,
+    roles: ["admin"]
   },
   {
     title: "Role Management",

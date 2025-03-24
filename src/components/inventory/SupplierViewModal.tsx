@@ -1,9 +1,11 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { FileText } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockProducts } from "@/models/product";
+import SupplierCreditLedger from "./supplier/SupplierCreditLedger";
 
 interface SupplierViewModalProps {
   supplier: any;
@@ -11,6 +13,8 @@ interface SupplierViewModalProps {
 }
 
 const SupplierViewModal: React.FC<SupplierViewModalProps> = ({ supplier, onClose }) => {
+  const [activeTab, setActiveTab] = useState("details");
+  
   if (!supplier) return null;
 
   // Get products supplied by this supplier
@@ -19,54 +23,63 @@ const SupplierViewModal: React.FC<SupplierViewModalProps> = ({ supplier, onClose
   );
 
   return (
-    <DialogContent className="sm:max-w-[600px]">
+    <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-auto">
       <DialogHeader>
         <DialogTitle>Supplier Details</DialogTitle>
         <DialogDescription>View detailed information about this supplier.</DialogDescription>
       </DialogHeader>
 
-      <div className="grid gap-6 py-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm font-medium">Supplier Name</p>
-            <p className="text-base">{supplier.name}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Contact Person</p>
-            <p className="text-base">{supplier.contactPerson}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Email</p>
-            <p className="text-base">{supplier.email}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Phone</p>
-            <p className="text-base">{supplier.phone}</p>
-          </div>
-          <div className="sm:col-span-2">
-            <p className="text-sm font-medium">Address</p>
-            <p className="text-base">{supplier.address}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Tax ID / VAT Number</p>
-            <p className="text-base">{supplier.taxId || "N/A"}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">Payment Terms</p>
-            <p className="text-base">{supplier.paymentTerms || "N/A"}</p>
-          </div>
-          {supplier.notes && (
-            <div className="sm:col-span-2">
-              <p className="text-sm font-medium">Notes</p>
-              <p className="text-base">{supplier.notes}</p>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="details">Details</TabsTrigger>
+          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="purchases">Purchase History</TabsTrigger>
+          <TabsTrigger value="ledger">Credit Ledger</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="details">
+          <div className="grid gap-6 py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium">Supplier Name</p>
+                <p className="text-base">{supplier.name}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Contact Person</p>
+                <p className="text-base">{supplier.contactPerson}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Email</p>
+                <p className="text-base">{supplier.email}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Phone</p>
+                <p className="text-base">{supplier.phone}</p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="text-sm font-medium">Address</p>
+                <p className="text-base">{supplier.address}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Tax ID / VAT Number</p>
+                <p className="text-base">{supplier.taxId || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Payment Terms</p>
+                <p className="text-base">{supplier.paymentTerms || "N/A"}</p>
+              </div>
+              {supplier.notes && (
+                <div className="sm:col-span-2">
+                  <p className="text-sm font-medium">Notes</p>
+                  <p className="text-base">{supplier.notes}</p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Supplied Products */}
-        <div>
-          <p className="text-sm font-medium mb-2">Products Supplied ({suppliedProducts.length})</p>
-          <div className="rounded-md border overflow-hidden max-h-48 overflow-y-auto">
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="products">
+          <div className="rounded-md border overflow-hidden max-h-96 overflow-y-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted">
                 <tr>
@@ -91,17 +104,9 @@ const SupplierViewModal: React.FC<SupplierViewModalProps> = ({ supplier, onClose
               </tbody>
             </table>
           </div>
-        </div>
-
-        {/* Purchase History */}
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <p className="text-sm font-medium">Purchase History</p>
-            <Button variant="outline" size="sm" className="h-8">
-              <FileText className="h-3.5 w-3.5 mr-1" />
-              View All
-            </Button>
-          </div>
+        </TabsContent>
+        
+        <TabsContent value="purchases">
           <div className="rounded-md border overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-muted">
@@ -132,10 +137,14 @@ const SupplierViewModal: React.FC<SupplierViewModalProps> = ({ supplier, onClose
               </tbody>
             </table>
           </div>
-        </div>
-      </div>
+        </TabsContent>
+        
+        <TabsContent value="ledger">
+          <SupplierCreditLedger supplierId={supplier.id} supplierName={supplier.name} />
+        </TabsContent>
+      </Tabs>
 
-      <DialogFooter>
+      <DialogFooter className="mt-6">
         <Button variant="outline" onClick={onClose}>Close</Button>
       </DialogFooter>
     </DialogContent>
