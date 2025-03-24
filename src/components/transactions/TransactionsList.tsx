@@ -11,14 +11,29 @@ interface TransactionsListProps {
   onViewLedger: (transaction: Transaction) => void;
   onChangeStatus: (transactionId: string, newStatus: "open" | "locked" | "verified" | "secure") => void;
   onDeleteTransaction: (transactionId: string) => void;
+  isLoading?: boolean;
 }
 
 const TransactionsList: React.FC<TransactionsListProps> = ({
   transactions,
   onViewLedger,
   onChangeStatus,
-  onDeleteTransaction
+  onDeleteTransaction,
+  isLoading = false
 }) => {
+  if (isLoading) {
+    return (
+      <div className="rounded-md border overflow-hidden">
+        <div className="flex justify-center items-center py-16">
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-6 w-32 bg-muted rounded mb-4"></div>
+            <div className="text-sm text-muted-foreground">Loading transactions...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-md border overflow-hidden">
       <Table>
