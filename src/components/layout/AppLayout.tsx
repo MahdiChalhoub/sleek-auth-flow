@@ -6,6 +6,7 @@ import AppSidebar from "./AppSidebar";
 import AppTopbar from "./AppTopbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useScreenSize } from "@/hooks/use-mobile";
+import { Toaster } from "@/components/ui/sonner";
 
 const AppLayout: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -34,6 +35,7 @@ const AppLayout: React.FC = () => {
           </main>
         </div>
       </div>
+      <Toaster />
     </SidebarProvider>
   );
 };

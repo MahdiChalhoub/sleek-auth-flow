@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   LayoutDashboard, 
   ShoppingCart, 
@@ -76,10 +76,19 @@ interface MobileDrawerMenuProps {
 const MobileDrawerMenu: React.FC<MobileDrawerMenuProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   
   const filteredNavItems = navItems.filter(
     item => !item.roles || (user && item.roles.includes(user.role))
   );
+  
+  const handleNavigation = (path: string) => {
+    navigate(path);
+  };
+  
+  const handleLogout = () => {
+    logout();
+  };
   
   return (
     <Drawer direction="left">
@@ -106,31 +115,34 @@ const MobileDrawerMenu: React.FC<MobileDrawerMenuProps> = ({ children }) => {
         <div className="flex flex-col p-2">
           {filteredNavItems.map((item) => (
             <DrawerClose asChild key={item.path}>
-              <Link 
-                to={item.path}
+              <Button
+                variant="ghost"
                 className={`
-                  flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors
+                  justify-start w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors
                   ${location.pathname === item.path 
                     ? 'bg-accent text-accent-foreground' 
                     : 'hover:bg-accent/50'}
                 `}
+                onClick={() => handleNavigation(item.path)}
               >
                 <item.icon className="h-5 w-5" />
                 <span>{item.title}</span>
-              </Link>
+              </Button>
             </DrawerClose>
           ))}
         </div>
         
         <DrawerFooter className="border-t p-0">
-          <Button
-            variant="ghost"
-            className="flex w-full items-center justify-start gap-3 rounded-none px-6 py-3 text-sm font-medium text-destructive hover:bg-destructive/10"
-            onClick={logout}
-          >
-            <LogOut className="h-5 w-5" />
-            <span>Logout</span>
-          </Button>
+          <DrawerClose asChild>
+            <Button
+              variant="ghost"
+              className="flex w-full items-center justify-start gap-3 rounded-none px-6 py-3 text-sm font-medium text-destructive hover:bg-destructive/10"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Logout</span>
+            </Button>
+          </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
