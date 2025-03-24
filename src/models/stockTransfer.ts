@@ -11,13 +11,17 @@ export interface StockTransfer {
   id: string;
   date: string;
   source: string;
+  sourceLocationId?: string;
   destination: string;
+  destinationLocationId?: string;
   reason: string;
   status: "draft" | "sent" | "verified" | "cancelled";
   items: TransferItem[];
   notes?: string;
   createdBy: string;
+  createdById?: string;
   verifiedBy?: string;
+  verifiedById?: string;
   verifiedDate?: string;
 }
 
@@ -27,7 +31,9 @@ export const mockStockTransfers: StockTransfer[] = [
     id: "TR-2023-001",
     date: "2023-11-15",
     source: "Main Warehouse",
+    sourceLocationId: "branch-3",
     destination: "Store Front",
+    destinationLocationId: "branch-1",
     reason: "Regular Restock",
     status: "verified",
     items: [
@@ -48,14 +54,18 @@ export const mockStockTransfers: StockTransfer[] = [
     ],
     notes: "Weekly store restock",
     createdBy: "John Admin",
+    createdById: "user-admin",
     verifiedBy: "Mike Manager",
+    verifiedById: "user-manager",
     verifiedDate: "2023-11-16"
   },
   {
     id: "TR-2023-002",
     date: "2023-11-20",
     source: "Main Warehouse",
+    sourceLocationId: "branch-3",
     destination: "Store Front",
+    destinationLocationId: "branch-1",
     reason: "Display Units",
     status: "sent",
     items: [
@@ -75,12 +85,14 @@ export const mockStockTransfers: StockTransfer[] = [
       }
     ],
     notes: "Display units for front showcase",
-    createdBy: "Mike Manager"
+    createdBy: "Mike Manager",
+    createdById: "user-manager"
   },
   {
     id: "TR-2023-003",
     date: "2023-11-25",
     source: "Store Front",
+    sourceLocationId: "branch-1",
     destination: "N/A",
     reason: "Damage",
     status: "verified",
@@ -95,13 +107,16 @@ export const mockStockTransfers: StockTransfer[] = [
     ],
     notes: "Unit damaged during unpacking",
     createdBy: "Cathy Cashier",
+    createdById: "user-cashier",
     verifiedBy: "Mike Manager",
+    verifiedById: "user-manager",
     verifiedDate: "2023-11-26"
   },
   {
     id: "TR-2023-004",
     date: "2023-12-01",
     source: "Main Warehouse",
+    sourceLocationId: "branch-3",
     destination: "Online Fulfillment",
     reason: "Regular Restock",
     status: "draft",
@@ -118,6 +133,7 @@ export const mockStockTransfers: StockTransfer[] = [
       }
     ],
     notes: "Stock for online orders - holiday season",
-    createdBy: "John Admin"
+    createdBy: "John Admin",
+    createdById: "user-admin"
   }
 ];

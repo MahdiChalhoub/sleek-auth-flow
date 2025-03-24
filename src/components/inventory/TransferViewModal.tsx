@@ -3,11 +3,13 @@ import React from "react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Printer, FileText } from "lucide-react";
+import { Printer, FileText, MapPin } from "lucide-react";
+import { Branch } from "@/models/interfaces/businessInterfaces";
 
 interface TransferViewModalProps {
   transfer: any;
   onClose: () => void;
+  currentLocation: Branch | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -17,8 +19,16 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-100 text-red-800"
 };
 
-const TransferViewModal: React.FC<TransferViewModalProps> = ({ transfer, onClose }) => {
+const TransferViewModal: React.FC<TransferViewModalProps> = ({ 
+  transfer, 
+  onClose,
+  currentLocation 
+}) => {
   if (!transfer) return null;
+
+  // Check if current location is source or destination
+  const isSource = currentLocation && transfer.source === currentLocation.name;
+  const isDestination = currentLocation && transfer.destination === currentLocation.name;
 
   return (
     <DialogContent className="sm:max-w-[700px]">
@@ -39,113 +49,111 @@ const TransferViewModal: React.FC<TransferViewModalProps> = ({ transfer, onClose
       <div className="grid gap-6 py-4">
         {/* Transfer Details */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm font-medium">Source Location</p>
-            <p className="text-base">{transfer.source}</p>
+          <div className="flex items-start gap-2">
+            <div className={`p-2 rounded-full ${isSource ? 'bg-blue-100' : 'bg-gray-100'}`}>
+              <MapPin className={`h-4 w-4 ${isSource ? 'text-blue-600' : 'text-gray-600'}`} />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Source Location</p>
+              <p className={`text-base ${isSource ? 'font-medium text-blue-700' : ''}`}>
+                {transfer.source}
+                {isSource && <span className="ml-2 text-xs bg-blue-50 px-2 py-0.5 rounded">Current</span>}
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium">Destination</p>
-            <p className="text-base">{transfer.destination}</p>
+          
+          <div className="flex items-start gap-2">
+            <div className={`p-2 rounded-full ${isDestination ? 'bg-green-100' : 'bg-gray-100'}`}>
+              <MapPin className={`h-4 w-4 ${isDestination ? 'text-green-600' : 'text-gray-600'}`} />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Destination</p>
+              <p className={`text-base ${isDestination ? 'font-medium text-green-700' : ''}`}>
+                {transfer.destination}
+                {isDestination && <span className="ml-2 text-xs bg-green-50 px-2 py-0.5 rounded">Current</span>}
+              </p>
+            </div>
           </div>
+          
           <div>
             <p className="text-sm font-medium">Reason</p>
             <p className="text-base">{transfer.reason}</p>
           </div>
+          
           <div>
-            <p className="text-sm font-medium">Transfer Date</p>
-            <p className="text-base">{transfer.date}</p>
+            <p className="text-sm font-medium">Notes</p>
+            <p className="text-base">{transfer.notes || "No notes provided"}</p>
           </div>
         </div>
 
         {/* Transfer Items */}
         <div>
-          <p className="text-sm font-medium mb-2">Transfer Items</p>
+          <h3 className="text-lg font-medium mb-3">Transfer Items</h3>
           <div className="rounded-md border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted">
+            <table className="w-full">
+              <thead className="bg-muted text-xs">
                 <tr>
-                  <th className="h-10 px-4 text-left font-medium">Product</th>
-                  <th className="h-10 px-4 text-center font-medium">Transfer Qty</th>
-                  <th className="h-10 px-4 text-center font-medium">System Qty</th>
-                  <th className="h-10 px-4 text-center font-medium">Difference</th>
+                  <th className="px-4 py-2 text-left">Product</th>
+                  <th className="px-4 py-2 text-center">Quantity</th>
+                  {transfer.status === "verified" && (
+                    <>
+                      <th className="px-4 py-2 text-center">System Quantity</th>
+                      <th className="px-4 py-2 text-center">Difference</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody>
-                {transfer.items.map((item: any, index: number) => {
-                  const hasDifference = item.systemQuantity !== undefined && 
-                                        item.difference !== undefined && 
-                                        item.difference !== 0;
-                  
-                  return (
-                    <tr key={index} className="border-t">
-                      <td className="p-2 pl-4 font-medium">{item.productName}</td>
-                      <td className="p-2 text-center">{item.quantity}</td>
-                      <td className="p-2 text-center">{item.systemQuantity ?? "N/A"}</td>
-                      <td className={`p-2 text-center font-medium ${
-                        hasDifference 
-                          ? item.difference > 0 
-                            ? "text-green-600" 
-                            : "text-red-600" 
-                          : ""
-                      }`}>
-                        {item.difference !== undefined 
-                          ? item.difference > 0 
-                            ? `+${item.difference}` 
-                            : item.difference 
-                          : "N/A"}
-                      </td>
-                    </tr>
-                  );
-                })}
+                {transfer.items.map((item: any, index: number) => (
+                  <tr key={index} className="border-t">
+                    <td className="px-4 py-3">{item.productName}</td>
+                    <td className="px-4 py-3 text-center">{item.quantity}</td>
+                    {transfer.status === "verified" && (
+                      <>
+                        <td className="px-4 py-3 text-center">{item.systemQuantity}</td>
+                        <td className="px-4 py-3 text-center">
+                          {typeof item.difference === 'number' && (
+                            <span className={
+                              item.difference < 0 ? "text-red-600" : 
+                              item.difference > 0 ? "text-green-600" : ""
+                            }>
+                              {item.difference > 0 ? `+${item.difference}` : item.difference}
+                            </span>
+                          )}
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Notes */}
-        {transfer.notes && (
-          <div>
-            <p className="text-sm font-medium">Notes</p>
-            <p className="text-sm p-2 border rounded-md bg-muted/20">{transfer.notes}</p>
+        {/* Verification Details */}
+        {transfer.status === "verified" && (
+          <div className="p-4 bg-green-50 rounded-lg">
+            <h3 className="text-sm font-medium text-green-800 mb-2">Verification Details</h3>
+            <p className="text-sm text-green-700">
+              Verified by: {transfer.verifiedBy} on {transfer.verifiedDate}
+            </p>
           </div>
         )}
 
-        {/* Verification Info */}
-        {transfer.status === "verified" && transfer.verifiedBy && (
-          <div className="p-4 border rounded-md bg-green-50">
-            <p className="text-sm font-medium mb-1">Verification Information</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-              <div>
-                <p className="font-medium">Verified By</p>
-                <p>{transfer.verifiedBy}</p>
-              </div>
-              <div>
-                <p className="font-medium">Verification Date</p>
-                <p>{transfer.verifiedDate}</p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <DialogFooter>
-        <div className="flex flex-col-reverse sm:flex-row sm:justify-between w-full gap-2">
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button variant="outline">
-              <FileText className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-            <Button>
-              <Printer className="h-4 w-4 mr-2" />
-              Print
-            </Button>
-          </div>
-        </div>
-      </DialogFooter>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Printer className="h-4 w-4" />
+            Print Transfer
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Export
+          </Button>
+        </DialogFooter>
+      </div>
     </DialogContent>
   );
 };

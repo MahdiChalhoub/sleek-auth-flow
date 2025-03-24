@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Menu, Bell, UserCircle, Building, ChevronDown } from "lucide-react";
+import { Menu, Bell, UserCircle, Building, ChevronDown, MapPin } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,6 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useLocationContext } from "@/contexts/LocationContext";
 
 const getPageTitle = (pathname: string): string => {
   const routes: Record<string, string> = {
@@ -49,10 +50,12 @@ const getPageTitle = (pathname: string): string => {
 
 const AppTopbar: React.FC = () => {
   const { user, logout, currentBusiness, userBusinesses, switchBusiness } = useAuth();
+  const { currentLocation, availableLocations, switchLocation } = useLocationContext();
   const location = useLocation();
   const navigate = useNavigate();
   const pageTitle = getPageTitle(location.pathname);
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
+  const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false);
   
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -61,6 +64,11 @@ const AppTopbar: React.FC = () => {
   const handleSwitchBusiness = (businessId: string) => {
     switchBusiness(businessId);
     setIsBusinessDialogOpen(false);
+  };
+
+  const handleSwitchLocation = (locationId: string) => {
+    switchLocation(locationId);
+    setIsLocationDialogOpen(false);
   };
   
   return (
@@ -75,67 +83,125 @@ const AppTopbar: React.FC = () => {
       </div>
       
       <div className="flex items-center gap-4">
-        {currentBusiness && user?.isGlobalAdmin && (
-          <Dialog open={isBusinessDialogOpen} onOpenChange={setIsBusinessDialogOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="hidden sm:flex items-center gap-2" 
-              >
-                {currentBusiness.logoUrl ? (
-                  <img 
-                    src={currentBusiness.logoUrl} 
-                    alt={currentBusiness.name} 
-                    className="h-4 w-4 rounded-full"
-                  />
-                ) : (
-                  <Building className="h-4 w-4" />
-                )}
-                {currentBusiness.name}
-                <ChevronDown className="h-3 w-3 opacity-50" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Switch Business</DialogTitle>
-                <DialogDescription>
-                  Select a business to switch to
-                </DialogDescription>
-              </DialogHeader>
-              <ScrollArea className="max-h-[50vh]">
-                <div className="grid gap-4 py-4">
-                  {userBusinesses.map((business) => (
-                    <Button
-                      key={business.id}
-                      variant={business.id === currentBusiness.id ? "default" : "outline"}
-                      className="flex items-center justify-start gap-2 w-full"
-                      onClick={() => handleSwitchBusiness(business.id)}
-                    >
-                      {business.logoUrl ? (
-                        <img 
-                          src={business.logoUrl} 
-                          alt={business.name} 
-                          className="h-6 w-6 rounded-full"
-                        />
-                      ) : (
-                        <Building className="h-6 w-6" />
-                      )}
-                      <div className="flex flex-col items-start">
-                        <span>{business.name}</span>
-                        {business.description && (
-                          <span className="text-xs text-muted-foreground">{business.description}</span>
+        {currentBusiness && currentLocation && (
+          <div className="flex items-center gap-2">
+            <Dialog open={isLocationDialogOpen} onOpenChange={setIsLocationDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="hidden sm:flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border-slate-200" 
+                >
+                  <MapPin className="h-4 w-4 text-blue-600" />
+                  <span>{currentLocation.name}</span>
+                  <Badge variant="secondary" className="ml-1 text-xs">
+                    {currentLocation.type}
+                  </Badge>
+                  <ChevronDown className="h-3 w-3 opacity-50" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Switch Location</DialogTitle>
+                  <DialogDescription>
+                    Select a location to switch to
+                  </DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="max-h-[50vh]">
+                  <div className="grid gap-4 py-4">
+                    {availableLocations.map((loc) => (
+                      <Button
+                        key={loc.id}
+                        variant={loc.id === currentLocation.id ? "default" : "outline"}
+                        className="flex items-center justify-start gap-2 w-full"
+                        onClick={() => handleSwitchLocation(loc.id)}
+                      >
+                        <div className={`p-2 rounded-full ${
+                          loc.type === 'store' ? 'bg-blue-100' : 
+                          loc.type === 'warehouse' ? 'bg-amber-100' : 'bg-green-100'
+                        }`}>
+                          <MapPin className={`h-4 w-4 ${
+                            loc.type === 'store' ? 'text-blue-600' : 
+                            loc.type === 'warehouse' ? 'text-amber-600' : 'text-green-600'
+                          }`} />
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <span>{loc.name}</span>
+                          <span className="text-xs text-muted-foreground">{loc.address}</span>
+                        </div>
+                        {loc.id === currentLocation.id && (
+                          <Badge className="ml-auto">Active</Badge>
                         )}
-                      </div>
-                      {business.id === currentBusiness.id && (
-                        <Badge className="ml-auto">Active</Badge>
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              </ScrollArea>
-            </DialogContent>
-          </Dialog>
+                      </Button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </DialogContent>
+            </Dialog>
+
+            {currentBusiness && user?.isGlobalAdmin && (
+              <Dialog open={isBusinessDialogOpen} onOpenChange={setIsBusinessDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="hidden sm:flex items-center gap-2" 
+                  >
+                    {currentBusiness.logoUrl ? (
+                      <img 
+                        src={currentBusiness.logoUrl} 
+                        alt={currentBusiness.name} 
+                        className="h-4 w-4 rounded-full"
+                      />
+                    ) : (
+                      <Building className="h-4 w-4" />
+                    )}
+                    {currentBusiness.name}
+                    <ChevronDown className="h-3 w-3 opacity-50" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Switch Business</DialogTitle>
+                    <DialogDescription>
+                      Select a business to switch to
+                    </DialogDescription>
+                  </DialogHeader>
+                  <ScrollArea className="max-h-[50vh]">
+                    <div className="grid gap-4 py-4">
+                      {userBusinesses.map((business) => (
+                        <Button
+                          key={business.id}
+                          variant={business.id === currentBusiness.id ? "default" : "outline"}
+                          className="flex items-center justify-start gap-2 w-full"
+                          onClick={() => handleSwitchBusiness(business.id)}
+                        >
+                          {business.logoUrl ? (
+                            <img 
+                              src={business.logoUrl} 
+                              alt={business.name} 
+                              className="h-6 w-6 rounded-full"
+                            />
+                          ) : (
+                            <Building className="h-6 w-6" />
+                          )}
+                          <div className="flex flex-col items-start">
+                            <span>{business.name}</span>
+                            {business.description && (
+                              <span className="text-xs text-muted-foreground">{business.description}</span>
+                            )}
+                          </div>
+                          {business.id === currentBusiness.id && (
+                            <Badge className="ml-auto">Active</Badge>
+                          )}
+                        </Button>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
         )}
         
         <Button variant="ghost" size="icon" className="relative">
@@ -170,6 +236,16 @@ const AppTopbar: React.FC = () => {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => handleNavigate("/profile")}>Profile</DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleNavigate("/settings")}>Settings</DropdownMenuItem>
+            {currentLocation && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Locations</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setIsLocationDialogOpen(true)}>
+                  <MapPin className="mr-2 h-4 w-4" />
+                  Switch Location
+                </DropdownMenuItem>
+              </>
+            )}
             {currentBusiness && user?.isGlobalAdmin && (
               <>
                 <DropdownMenuSeparator />

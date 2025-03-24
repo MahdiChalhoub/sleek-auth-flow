@@ -1,18 +1,26 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, MapPin } from "lucide-react";
 import { mockProducts } from "@/models/product";
+import { Branch } from "@/models/interfaces/businessInterfaces";
+import { toast } from "sonner";
 
 interface CreateTransferModalProps {
   onClose?: () => void;
+  currentLocation: Branch | null;
+  availableLocations: Branch[];
 }
 
-const CreateTransferModal: React.FC<CreateTransferModalProps> = ({ onClose }) => {
+const CreateTransferModal: React.FC<CreateTransferModalProps> = ({ 
+  onClose,
+  currentLocation,
+  availableLocations 
+}) => {
   const [formData, setFormData] = useState({
     source: "",
     destination: "",
@@ -23,6 +31,16 @@ const CreateTransferModal: React.FC<CreateTransferModalProps> = ({ onClose }) =>
   const [items, setItems] = useState<any[]>([
     { productId: "", quantity: 1 }
   ]);
+
+  // Set the current location as the default source
+  useEffect(() => {
+    if (currentLocation) {
+      setFormData(prev => ({
+        ...prev,
+        source: currentLocation.name
+      }));
+    }
+  }, [currentLocation]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -50,17 +68,22 @@ const CreateTransferModal: React.FC<CreateTransferModalProps> = ({ onClose }) =>
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that source and destination are different
+    if (formData.source === formData.destination && formData.destination !== "N/A") {
+      toast.error("Source and destination cannot be the same");
+      return;
+    }
+    
     console.log("Transfer data:", { ...formData, items });
+    toast.success("Stock transfer created successfully");
     onClose && onClose();
   };
 
-  const locations = [
-    "Main Warehouse",
-    "Store Front",
-    "Online Fulfillment",
-    "Secondary Warehouse",
-    "Returns Department"
-  ];
+  // Filter out the current location from destination options
+  const destinationLocations = availableLocations
+    .filter(loc => loc.name !== formData.source)
+    .map(loc => loc.name);
 
   const reasons = [
     "Regular Restock",
@@ -94,8 +117,14 @@ const CreateTransferModal: React.FC<CreateTransferModalProps> = ({ onClose }) =>
               required
             >
               <option value="">Select Source Location</option>
-              {locations.map(location => (
-                <option key={location} value={location}>{location}</option>
+              {availableLocations.map(location => (
+                <option 
+                  key={location.id} 
+                  value={location.name}
+                  disabled={currentLocation && location.name !== currentLocation.name}
+                >
+                  {location.name} {location.name === currentLocation?.name ? "(Current)" : ""}
+                </option>
               ))}
             </select>
           </div>
@@ -111,8 +140,10 @@ const CreateTransferModal: React.FC<CreateTransferModalProps> = ({ onClose }) =>
               required
             >
               <option value="">Select Destination</option>
-              {locations.map(location => (
-                <option key={location} value={location}>{location}</option>
+              {destinationLocations.map(locationName => (
+                <option key={locationName} value={locationName}>
+                  {locationName}
+                </option>
               ))}
               <option value="N/A">N/A (For adjustments, damage, etc.)</option>
             </select>
