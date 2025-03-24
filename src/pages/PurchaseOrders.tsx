@@ -21,7 +21,8 @@ const statusColors: Record<string, string> = {
   sent: "bg-blue-100 text-blue-800",
   received: "bg-orange-100 text-orange-800",
   completed: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800"
+  cancelled: "bg-red-100 text-red-800",
+  ordered: "bg-blue-100 text-blue-800" // Adding ordered status to match CreatePurchaseOrderModal
 };
 
 const PurchaseOrders: React.FC = () => {
@@ -86,7 +87,7 @@ const PurchaseOrders: React.FC = () => {
             variant="outline" 
             size="icon" 
             onClick={() => setScannerOpen(true)}
-            className="relative"
+            className="relative bg-white/80 border-slate-200"
             title="Scan Barcode (Alt+B)"
           >
             <ScanLine size={18} />
@@ -95,12 +96,15 @@ const PurchaseOrders: React.FC = () => {
           <ExportMenu />
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
+              <Button className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                 <Plus size={16} />
                 Create PO
               </Button>
             </DialogTrigger>
-            <CreatePurchaseOrderModal onClose={() => setCreateOpen(false)} />
+            <CreatePurchaseOrderModal 
+              onClose={() => setCreateOpen(false)} 
+              onScan={() => setScannerOpen(true)}
+            />
           </Dialog>
         </div>
       </div>
@@ -127,7 +131,7 @@ const PurchaseOrders: React.FC = () => {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by PO number or supplier name..."
-                className="pl-8"
+                className="pl-8 bg-white/90 border-slate-200"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -135,7 +139,7 @@ const PurchaseOrders: React.FC = () => {
             <div className="flex gap-2 items-center w-full md:w-1/3">
               <Filter size={16} className="text-muted-foreground" />
               <select 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="flex h-10 w-full rounded-md border border-slate-200 bg-white/90 backdrop-blur-sm px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
               >
@@ -148,11 +152,11 @@ const PurchaseOrders: React.FC = () => {
             </div>
           </div>
 
-          <Card className="bg-card/60 backdrop-blur-sm border border-slate-200/50 dark:border-slate-800/50">
+          <Card className="bg-white/90 backdrop-blur-md border-slate-200/50 shadow-sm rounded-xl">
             <CardContent className="p-0">
               <div className="rounded-md">
                 <Table>
-                  <TableHeader>
+                  <TableHeader className="bg-slate-50/80">
                     <TableRow>
                       <TableHead>PO Number</TableHead>
                       <TableHead>Supplier</TableHead>
@@ -172,7 +176,7 @@ const PurchaseOrders: React.FC = () => {
                       </TableRow>
                     ) : (
                       filteredPOs.map((po) => (
-                        <TableRow key={po.id} className="hover:bg-muted/50 transition-colors">
+                        <TableRow key={po.id} className="hover:bg-slate-50/50 transition-colors">
                           <TableCell className="font-medium">{po.id}</TableCell>
                           <TableCell>{po.supplier.name}</TableCell>
                           <TableCell>{po.dateCreated}</TableCell>
@@ -213,8 +217,8 @@ const PurchaseOrders: React.FC = () => {
               Showing {filteredPOs.length} of {mockPurchaseOrders.length} purchase orders
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled>Previous</Button>
-              <Button variant="outline" size="sm" disabled>Next</Button>
+              <Button variant="outline" size="sm" disabled className="bg-white/80">Previous</Button>
+              <Button variant="outline" size="sm" disabled className="bg-white/80">Next</Button>
             </div>
           </div>
         </TabsContent>
@@ -224,7 +228,7 @@ const PurchaseOrders: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="recent">
-          <Card>
+          <Card className="bg-white/90 backdrop-blur-md border-slate-200/50 shadow-sm rounded-xl">
             <CardHeader>
               <CardTitle>Recent Purchase Order Activity</CardTitle>
               <CardDescription>View the latest changes to purchase orders</CardDescription>
@@ -232,7 +236,7 @@ const PurchaseOrders: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 {mockPurchaseOrders.slice(0, 3).map((po) => (
-                  <div key={po.id} className="flex items-start gap-4 p-3 rounded-lg border">
+                  <div key={po.id} className="flex items-start gap-4 p-3 rounded-lg border border-slate-200/50 hover:bg-slate-50/50 transition-all">
                     <div className={`rounded-full p-2 ${po.status === 'completed' ? 'bg-green-100' : 'bg-blue-100'}`}>
                       {po.status === 'completed' ? (
                         <FileText className="h-4 w-4 text-green-700" />
@@ -282,7 +286,7 @@ const PurchaseOrders: React.FC = () => {
         <Button 
           onClick={() => setCreateOpen(true)}
           size="lg" 
-          className="rounded-full w-14 h-14 shadow-lg animate-pulse-soft"
+          className="rounded-full w-14 h-14 shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
         >
           <Plus className="h-6 w-6" />
         </Button>
