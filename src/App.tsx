@@ -24,6 +24,7 @@ import PurchaseOrders from "./pages/PurchaseOrders";
 import StockTransfers from "./pages/StockTransfers";
 import Settings from "./pages/Settings";
 import Returns from "./pages/Returns";
+import Dashboard from "./pages/Dashboard";
 
 // Layout
 import AppLayout from "./components/layout/AppLayout";
@@ -46,6 +47,7 @@ const App = () => (
             {/* Protected routes - wrapped in AppLayout */}
             <Route element={<AppLayout />}>
               <Route path="/home" element={<Index />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/roles" element={<RoleManagement />} />
               <Route path="/register" element={<POSRegister />} />
               <Route path="/register-sessions" element={<RegisterSessions />} />

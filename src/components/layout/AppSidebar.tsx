@@ -15,7 +15,8 @@ import {
   CreditCard,
   Repeat,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  BarChart3
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,12 @@ interface NavItem {
 const navItems: NavItem[] = [
   {
     title: "Dashboard",
+    path: "/dashboard",
+    icon: BarChart3,
+    roles: ["admin", "manager", "cashier"]
+  },
+  {
+    title: "Home",
     path: "/home",
     icon: LayoutDashboard,
     roles: ["admin", "manager", "cashier"]
