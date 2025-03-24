@@ -614,20 +614,20 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
       </form>
 
       {/* Security Code Dialog */}
-      <SecurityCodeDialog
-        title={securityAction === "enableCombo" ? "Enable Combo Product" : "Manual Price Override"}
-        description={securityAction === "enableCombo" 
-          ? "Enter security code to create a combo product" 
-          : "Enter security code to manually set combo price"
-        }
-        isOpen={isSecurityDialogOpen}
-        onClose={() => setIsSecurityDialogOpen(false)}
-        onConfirm={handleSecurityConfirm}
-        onCancel={() => {
-          setIsSecurityDialogOpen(false);
-          setSecurityAction(null);
-        }}
-      />
+      <Dialog open={isSecurityDialogOpen} onOpenChange={setIsSecurityDialogOpen}>
+        <SecurityCodeDialog
+          title={securityAction === "enableCombo" ? "Enable Combo Product" : "Manual Price Override"}
+          description={securityAction === "enableCombo" 
+            ? "Enter security code to create a combo product" 
+            : "Enter security code to manually set combo price"
+          }
+          onConfirm={handleSecurityConfirm}
+          onCancel={() => {
+            setIsSecurityDialogOpen(false);
+            setSecurityAction(null);
+          }}
+        />
+      </Dialog>
     </DialogContent>
   );
 };
