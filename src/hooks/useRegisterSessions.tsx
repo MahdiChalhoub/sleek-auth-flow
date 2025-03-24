@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -103,9 +104,15 @@ export const useRegisterSessions = () => {
     mutationFn: async (register: Omit<Register, 'id'>) => {
       const dbModel = mapToDbModel(register as Register);
       
+      // Fix: Ensure the required 'name' property is included in the insert
+      if (!dbModel.name) {
+        // If name is missing, add a default name or use a value from register
+        dbModel.name = register.name || 'New Register';
+      }
+      
       const { data, error } = await supabase
         .from('register_sessions')
-        .insert([dbModel])
+        .insert(dbModel)  // Pass a single object, not an array
         .select()
         .single();
       

@@ -1,4 +1,6 @@
-import { Register, RegisterSession, DiscrepancyResolution } from '../types/transactionTypes';
+
+import { Register, RegisterSession } from '../interfaces/registerInterfaces';
+import { PaymentMethod, DiscrepancyResolution } from '../types/transactionTypes';
 
 export const mockRegisters: Register[] = [
   {
