@@ -430,8 +430,8 @@ const CategoryManagement: React.FC = () => {
                     <FormLabel>Parent Category (Optional)</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
-                      value={field.value || ""} 
-                      defaultValue={field.value || ""}
+                      value={field.value || "null"} 
+                      defaultValue={field.value || "null"}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -439,7 +439,7 @@ const CategoryManagement: React.FC = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">None (Top-level Category)</SelectItem>
+                        <SelectItem value="null">None (Top-level Category)</SelectItem>
                         {categories.map(cat => (
                           <SelectItem key={cat.id} value={cat.id}>
                             {getCategoryPath(cat)}
@@ -514,8 +514,8 @@ const CategoryManagement: React.FC = () => {
                     <FormLabel>Parent Category (Optional)</FormLabel>
                     <Select 
                       onValueChange={field.onChange} 
-                      value={field.value || ""} 
-                      defaultValue={field.value || ""}
+                      value={field.value || "null"} 
+                      defaultValue={field.value || "null"}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -523,7 +523,7 @@ const CategoryManagement: React.FC = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">None (Top-level Category)</SelectItem>
+                        <SelectItem value="null">None (Top-level Category)</SelectItem>
                         {categories
                           .filter(cat => cat.id !== selectedCategory?.id && 
                                          !getSubcategories(selectedCategory?.id || "").some(s => s.id === cat.id))
