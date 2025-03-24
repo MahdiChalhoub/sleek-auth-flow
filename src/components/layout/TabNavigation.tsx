@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useMemo } from "react";
+import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { useTabs, Tab } from "@/contexts/TabsContext";
 import { useLocation } from "react-router-dom";
@@ -18,7 +18,10 @@ const TabNavigation: React.FC = () => {
   
   // Effect to open a tab when navigating to a new route
   useEffect(() => {
-    if (location.pathname === '/') return;
+    // Only process routes under the app layout (skip login, etc)
+    if (location.pathname === '/' || location.pathname.startsWith('/login') || location.pathname.startsWith('/signup')) {
+      return;
+    }
     
     // Check if we already have a tab for this path
     const existingTab = findTabByPath(location.pathname);
@@ -30,21 +33,7 @@ const TabNavigation: React.FC = () => {
     }
     
     // Find matching nav item for the current path
-    const matchingNavItem = navItems.find(item => {
-      // Exact path match
-      if (item.path === location.pathname) return true;
-      
-      // Check pattern matching for dynamic routes
-      const pathSegments = location.pathname.split('/').filter(Boolean);
-      const itemSegments = item.path.split('/').filter(Boolean);
-      
-      if (pathSegments.length !== itemSegments.length) return false;
-      
-      return itemSegments.every((segment, i) => {
-        if (segment.startsWith(':')) return true;
-        return segment === pathSegments[i];
-      });
-    });
+    const matchingNavItem = findMatchingNavItem(location.pathname);
     
     if (matchingNavItem) {
       openTab({
@@ -55,6 +44,49 @@ const TabNavigation: React.FC = () => {
     }
   }, [location.pathname, openTab, activateTab, findTabByPath, activeTabId]);
 
+  // Function to find matching nav item for a path, supporting dynamic routes
+  const findMatchingNavItem = (path: string) => {
+    // Check all nav items and their children
+    const allItems = getAllNavItems();
+    
+    // First check for exact path match
+    const exactMatch = allItems.find(item => item.path === path);
+    if (exactMatch) return exactMatch;
+    
+    // Then check for dynamic path matches (e.g., /products/view/123 matching /products/view/:id)
+    const pathSegments = path.split('/').filter(Boolean);
+    
+    return allItems.find(item => {
+      const itemSegments = item.path.split('/').filter(Boolean);
+      
+      // Skip if segment count doesn't match
+      if (pathSegments.length !== itemSegments.length) return false;
+      
+      // Check each segment for match or pattern
+      return itemSegments.every((segment, i) => {
+        if (segment.startsWith(':')) return true; // Dynamic segment always matches
+        return segment === pathSegments[i];
+      });
+    });
+  };
+  
+  // Helper to flatten all nav items (including children)
+  const getAllNavItems = () => {
+    const flattenItems: NavItemType[] = [];
+    
+    const processItems = (items: NavItemType[]) => {
+      items.forEach(item => {
+        flattenItems.push(item);
+        if (item.children && item.children.length > 0) {
+          processItems(item.children);
+        }
+      });
+    };
+    
+    processItems(navItems);
+    return flattenItems;
+  };
+  
   // Scroll to active tab when it changes
   useEffect(() => {
     if (activeTabRef.current && scrollContainerRef.current) {
@@ -104,6 +136,14 @@ interface TabButtonProps {
   onClick: () => void;
   onClose: () => void;
 }
+
+// Extracting needed type for TypeScript
+type NavItemType = {
+  title: string;
+  path: string;
+  icon?: React.ElementType;
+  children?: NavItemType[];
+};
 
 const TabButton = React.forwardRef<HTMLDivElement, TabButtonProps>(
   ({ tab, isActive, onClick, onClose }, ref) => {

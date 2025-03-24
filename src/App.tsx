@@ -28,6 +28,7 @@ import ShiftReports from './pages/ShiftReports';
 import AuditTrail from './pages/AuditTrail';
 import Users from './pages/Users';
 import Contacts from './pages/Contacts';
+import NotificationsPage from './pages/Notifications';
 
 // Add PrivateRoute component
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -44,28 +45,29 @@ const App = () => {
             <Route path="/signup" element={<Signup />} />
             <Route path="/" element={<Navigate to="/home" replace />} />
             
-            <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
-              {/* Preserve all routes as children of AppLayout */}
-              <Route path="/home" element={<HomePage />} />
-              <Route path="/inventory" element={<InventoryPage />} />
-              <Route path="/pos-sales" element={<POSSales />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/suppliers" element={<Suppliers />} />
-              <Route path="/purchase-orders" element={<PurchaseOrders />} />
-              <Route path="/stock-transfers" element={<StockTransfers />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/register-sessions" element={<RegisterSessions />} />
-              <Route path="/transaction-permissions" element={<TransactionPermissions />} />
-              <Route path="/staff-finance" element={<StaffFinance />} />
-              <Route path="/loyalty" element={<Loyalty />} />
-              <Route path="/returns" element={<Returns />} />
-              <Route path="/roles" element={<RoleManagement />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/shift-reports" element={<ShiftReports />} />
-              <Route path="/audit-trail" element={<AuditTrail />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="/contacts" element={<Contacts />} />
+            <Route path="/*" element={<PrivateRoute><AppLayout /></PrivateRoute>}>
+              {/* These routes are used when no tabs are active */}
+              <Route path="home" element={<HomePage />} />
+              <Route path="inventory" element={<InventoryPage />} />
+              <Route path="pos-sales" element={<POSSales />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="suppliers" element={<Suppliers />} />
+              <Route path="purchase-orders" element={<PurchaseOrders />} />
+              <Route path="stock-transfers" element={<StockTransfers />} />
+              <Route path="transactions" element={<Transactions />} />
+              <Route path="register" element={<RegisterPage />} />
+              <Route path="register-sessions" element={<RegisterSessions />} />
+              <Route path="transaction-permissions" element={<TransactionPermissions />} />
+              <Route path="staff-finance" element={<StaffFinance />} />
+              <Route path="loyalty" element={<Loyalty />} />
+              <Route path="returns" element={<Returns />} />
+              <Route path="roles" element={<RoleManagement />} />
+              <Route path="categories" element={<Categories />} />
+              <Route path="shift-reports" element={<ShiftReports />} />
+              <Route path="audit-trail" element={<AuditTrail />} />
+              <Route path="users" element={<Users />} />
+              <Route path="contacts" element={<Contacts />} />
+              <Route path="notifications" element={<NotificationsPage />} />
             </Route>
           </Routes>
           

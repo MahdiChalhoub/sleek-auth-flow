@@ -1,5 +1,5 @@
 
-import React, { Suspense, lazy, useEffect, useState } from "react";
+import React, { Suspense, lazy } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Tab } from "@/contexts/TabsContext";
 
@@ -19,7 +19,7 @@ const TabContent: React.FC<TabContentProps> = ({
   const activeTab = tabs.find(tab => tab.id === activeTabId);
   
   // If the active tab doesn't match the current route, synchronize them
-  useEffect(() => {
+  React.useEffect(() => {
     if (activeTab && activeTab.path !== currentPath) {
       // Navigate to the correct path without adding to browser history
       navigate(activeTab.path, { replace: true });
@@ -39,27 +39,63 @@ const TabContent: React.FC<TabContentProps> = ({
   return (
     <main className="flex-1 overflow-auto p-4 md:p-6">
       <Suspense fallback={<div className="animate-pulse">Loading tab content...</div>}>
-        {/* We render the Outlet which will handle the routing for the active tab */}
-        <Routes location={location}>
-          <Route path="*" element={<Outlet />} />
+        {/* We render Routes here to match the current location */}
+        <Routes>
+          {/* This catch-all route will render the app's main routes */}
+          <Route path="/*" element={<AppRoutes />} />
         </Routes>
       </Suspense>
     </main>
   );
 };
 
-// This is a placeholder component that renders the appropriate route's component
-const Outlet: React.FC = () => {
-  const location = useLocation();
-  
+// This component renders the app's routes
+const AppRoutes: React.FC = () => {
   return (
-    <>
-      {/* It may seem redundant, but by using this wrapper
-          we ensure each tab has its own render context and state */}
-      <Routes location={location}>
-        <Route path="*" element={null} />
-      </Routes>
-    </>
+    <Routes>
+      <Route path="/home" element={<DynamicComponent componentPath="Dashboard" />} />
+      <Route path="/inventory" element={<DynamicComponent componentPath="Inventory" />} />
+      <Route path="/pos-sales" element={<DynamicComponent componentPath="POSSales" />} />
+      <Route path="/settings" element={<DynamicComponent componentPath="Settings" />} />
+      <Route path="/suppliers" element={<DynamicComponent componentPath="Suppliers" />} />
+      <Route path="/purchase-orders" element={<DynamicComponent componentPath="PurchaseOrders" />} />
+      <Route path="/stock-transfers" element={<DynamicComponent componentPath="StockTransfers" />} />
+      <Route path="/transactions" element={<DynamicComponent componentPath="Transactions" />} />
+      <Route path="/register" element={<DynamicComponent componentPath="POSRegister" />} />
+      <Route path="/register-sessions" element={<DynamicComponent componentPath="RegisterSessions" />} />
+      <Route path="/transaction-permissions" element={<DynamicComponent componentPath="TransactionPermissions" />} />
+      <Route path="/staff-finance" element={<DynamicComponent componentPath="StaffFinance" />} />
+      <Route path="/loyalty" element={<DynamicComponent componentPath="Loyalty" />} />
+      <Route path="/returns" element={<DynamicComponent componentPath="Returns" />} />
+      <Route path="/roles" element={<DynamicComponent componentPath="RoleManagement" />} />
+      <Route path="/categories" element={<DynamicComponent componentPath="Categories" />} />
+      <Route path="/shift-reports" element={<DynamicComponent componentPath="ShiftReports" />} />
+      <Route path="/audit-trail" element={<DynamicComponent componentPath="AuditTrail" />} />
+      <Route path="/users" element={<DynamicComponent componentPath="Users" />} />
+      <Route path="/contacts" element={<DynamicComponent componentPath="Contacts" />} />
+      {/* Fallback route */}
+      <Route path="*" element={<div>Page not found</div>} />
+    </Routes>
+  );
+};
+
+// This is a dynamic component loader that will load the component based on the path
+const DynamicComponent = ({ componentPath }: { componentPath: string }) => {
+  // Using React.lazy for code splitting
+  const Component = React.useMemo(() => {
+    try {
+      // Dynamic import of the component
+      return lazy(() => import(`@/pages/${componentPath}`));
+    } catch (error) {
+      console.error(`Failed to load component: ${componentPath}`, error);
+      return () => <div>Error loading component</div>;
+    }
+  }, [componentPath]);
+
+  return (
+    <Suspense fallback={<div className="animate-pulse">Loading component...</div>}>
+      <Component />
+    </Suspense>
   );
 };
 
