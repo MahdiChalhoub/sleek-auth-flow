@@ -2,8 +2,13 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { BusinessManagementTab } from "@/components/settings/BusinessManagementTab";
 
 const Settings: React.FC = () => {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.isGlobalAdmin;
+  
   return (
     <div className="container mx-auto space-y-6">
       <div className="flex flex-col gap-2">
@@ -12,11 +17,14 @@ const Settings: React.FC = () => {
       </div>
       
       <Tabs defaultValue="general">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          {isSuperAdmin && (
+            <TabsTrigger value="business">Businesses</TabsTrigger>
+          )}
         </TabsList>
         
         <TabsContent value="general" className="space-y-4 pt-4">
@@ -84,6 +92,12 @@ const Settings: React.FC = () => {
             </CardContent>
           </Card>
         </TabsContent>
+        
+        {isSuperAdmin && (
+          <TabsContent value="business" className="space-y-4 pt-4">
+            <BusinessManagementTab />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
