@@ -10,7 +10,7 @@ import {
   OpenRegisterDialog, 
   CloseRegisterDialog, 
   DiscrepancyDialog 
-} from "@/components/register/RegisterDialogs";
+} from "@/components/register/dialogs";
 import ClosingSummary from "@/components/register/ClosingSummary";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRegisterSessions } from "@/hooks/useRegisterSessions";

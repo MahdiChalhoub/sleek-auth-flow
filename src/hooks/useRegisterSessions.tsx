@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,7 +23,6 @@ export interface DatabaseRegister {
   updated_at: string;
 }
 
-// Convert database model to application model
 const mapToAppModel = (dbRegister: DatabaseRegister): Register => {
   return {
     id: dbRegister.id,
@@ -45,7 +43,6 @@ const mapToAppModel = (dbRegister: DatabaseRegister): Register => {
   };
 };
 
-// Convert application model to database model
 const mapToDbModel = (register: Register): Partial<DatabaseRegister> => {
   return {
     name: register.name,
@@ -68,7 +65,6 @@ const mapToDbModel = (register: Register): Partial<DatabaseRegister> => {
 export const useRegisterSessions = () => {
   const queryClient = useQueryClient();
 
-  // Fetch all register sessions
   const { data: registers = [], isLoading, error } = useQuery({
     queryKey: ['registerSessions'],
     queryFn: async () => {
@@ -86,7 +82,6 @@ export const useRegisterSessions = () => {
     }
   });
 
-  // Get a single register by ID
   const getRegisterById = async (id: string): Promise<Register | null> => {
     const { data, error } = await supabase
       .from('register_sessions')
@@ -95,7 +90,7 @@ export const useRegisterSessions = () => {
       .single();
     
     if (error) {
-      if (error.code !== 'PGRST116') { // PGRST116 is the "no rows returned" error
+      if (error.code !== 'PGRST116') {
         toast.error(`Error fetching register: ${error.message}`);
       }
       return null;
@@ -104,14 +99,13 @@ export const useRegisterSessions = () => {
     return mapToAppModel(data as DatabaseRegister);
   };
 
-  // Create a new register
   const createRegister = useMutation({
     mutationFn: async (register: Omit<Register, 'id'>) => {
       const dbModel = mapToDbModel(register as Register);
       
       const { data, error } = await supabase
         .from('register_sessions')
-        .insert(dbModel)
+        .insert([dbModel])
         .select()
         .single();
       
@@ -128,7 +122,6 @@ export const useRegisterSessions = () => {
     }
   });
 
-  // Update a register
   const updateRegister = useMutation({
     mutationFn: async ({ id, updates }: { id: string, updates: Partial<Register> }) => {
       const dbUpdates = mapToDbModel(updates as Register);
@@ -153,7 +146,6 @@ export const useRegisterSessions = () => {
     }
   });
 
-  // Open a register
   const openRegister = async (id: string, openingBalance: Record<PaymentMethod, number>, openedBy: string = "Current User") => {
     return updateRegister.mutateAsync({
       id,
@@ -167,7 +159,6 @@ export const useRegisterSessions = () => {
     });
   };
 
-  // Close a register
   const closeRegister = async (
     id: string,
     closingBalance: Record<PaymentMethod, number>,
@@ -195,7 +186,6 @@ export const useRegisterSessions = () => {
     });
   };
 
-  // Resolve discrepancy
   const resolveDiscrepancy = async (
     id: string,
     resolution: DiscrepancyResolution,

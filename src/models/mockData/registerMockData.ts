@@ -1,103 +1,188 @@
+import { Register, RegisterSession, DiscrepancyResolution } from '../types/transactionTypes';
 
-import { Register, RegisterSession } from '../interfaces/registerInterfaces';
-
-export const mockRegister: Register = {
-  id: 'r1',
-  name: 'Main Register',
-  isOpen: true,
-  openedAt: '2023-06-01T08:00:00Z',
-  openedBy: 'John Admin',
-  openingBalance: {
-    cash: 500,
-    card: 0,
-    bank: 0,
-    wave: 0,
-    mobile: 0,
+export const mockRegisters: Register[] = [
+  {
+    id: 'reg-001',
+    name: 'Main Register',
+    isOpen: true,
+    openedAt: '2023-08-15T09:00:00Z',
+    openedBy: 'user-001',
+    openingBalance: {
+      cash: 500,
+      card: 0,
+      bank: 0,
+      wave: 0,
+      mobile: 0,
+      not_specified: 0
+    },
+    currentBalance: {
+      cash: 1250.75,
+      card: 850.25,
+      bank: 300,
+      wave: 125.50,
+      mobile: 75,
+      not_specified: 0
+    },
+    expectedBalance: {
+      cash: 1250.75,
+      card: 850.25,
+      bank: 300,
+      wave: 125.50,
+      mobile: 75,
+      not_specified: 0
+    }
   },
-  currentBalance: {
-    cash: 625.50,
-    card: 75.25,
-    bank: 250,
-    wave: 50.75,
-    mobile: 0,
+  {
+    id: 'reg-002',
+    name: 'Secondary Register',
+    isOpen: false,
+    openedAt: '2023-08-14T08:30:00Z',
+    closedAt: '2023-08-14T17:30:00Z',
+    openedBy: 'user-003',
+    closedBy: 'user-003',
+    openingBalance: {
+      cash: 300,
+      card: 0,
+      bank: 0,
+      wave: 0,
+      mobile: 0,
+      not_specified: 0
+    },
+    currentBalance: {
+      cash: 850.25,
+      card: 1200.75,
+      bank: 350,
+      wave: 75,
+      mobile: 125,
+      not_specified: 0
+    },
+    expectedBalance: {
+      cash: 855,
+      card: 1200.75,
+      bank: 350,
+      wave: 75,
+      mobile: 125,
+      not_specified: 0
+    },
+    discrepancies: {
+      cash: -4.75,
+      card: 0,
+      bank: 0,
+      wave: 0,
+      mobile: 0,
+      not_specified: 0
+    },
+    discrepancyResolution: 'approved',
+    discrepancyApprovedBy: 'user-001',
+    discrepancyApprovedAt: '2023-08-14T17:45:00Z',
+    discrepancyNotes: 'Small discrepancy approved after investigation.'
   },
-  expectedBalance: {
-    cash: 625.50,
-    card: 75.25,
-    bank: 250,
-    wave: 50.75,
-    mobile: 0,
+  {
+    id: 'reg-003',
+    name: 'Mobile Register',
+    isOpen: false,
+    openingBalance: {
+      cash: 200,
+      card: 0,
+      bank: 0,
+      wave: 0,
+      mobile: 0,
+      not_specified: 0
+    },
+    currentBalance: {
+      cash: 200,
+      card: 0,
+      bank: 0,
+      wave: 0,
+      mobile: 0,
+      not_specified: 0
+    },
+    expectedBalance: {
+      cash: 200,
+      card: 0,
+      bank: 0,
+      wave: 0,
+      mobile: 0,
+      not_specified: 0
+    }
   }
-};
+];
 
 export const mockRegisterSessions: RegisterSession[] = [
   {
-    id: "rs1",
-    registerId: "r1",
-    cashierId: "c1",
-    cashierName: "John Doe",
-    openedAt: "2023-06-01T08:00:00Z",
-    closedAt: "2023-06-01T17:00:00Z",
+    id: 'session-001',
+    registerId: 'reg-001',
+    cashierId: 'user-002',
+    cashierName: 'John Cashier',
+    openedAt: '2023-08-15T09:00:00Z',
+    closedAt: '2023-08-15T17:00:00Z',
     openingBalance: {
       cash: 500,
       card: 0,
       bank: 0,
       wave: 0,
       mobile: 0,
+      not_specified: 0
     },
     closingBalance: {
-      cash: 1200.50,
-      card: 350.75,
-      bank: 125.25,
-      wave: 75.00,
-      mobile: 0,
+      cash: 1250.75,
+      card: 850.25,
+      bank: 300,
+      wave: 125.50,
+      mobile: 75,
+      not_specified: 0
     },
     expectedBalance: {
-      cash: 1225.50,
-      card: 350.75,
-      bank: 125.25,
-      wave: 75.00,
-      mobile: 0,
+      cash: 1253.25,
+      card: 850.25,
+      bank: 300,
+      wave: 125.50,
+      mobile: 75,
+      not_specified: 0
     },
     discrepancies: {
-      cash: -25.00,
+      cash: -2.50,
       card: 0,
       bank: 0,
       wave: 0,
       mobile: 0,
+      not_specified: 0
     },
-    discrepancyResolution: "deduct_salary",
-    discrepancyApprovedBy: "Admin User",
-    discrepancyApprovedAt: "2023-06-01T17:30:00Z",
-    discrepancyNotes: "Cashier agreed to deduction from salary"
+    discrepancyResolution: 'deduct_salary',
+    discrepancyApprovedBy: 'user-001',
+    discrepancyApprovedAt: '2023-08-15T17:15:00Z',
+    discrepancyNotes: 'Minor cash discrepancy deducted from employee salary.'
   },
   {
-    id: "rs2",
-    registerId: "r1",
-    cashierId: "c2",
-    cashierName: "Jane Smith",
-    openedAt: "2023-06-02T08:00:00Z",
-    closedAt: "2023-06-02T17:00:00Z",
+    id: 'session-002',
+    registerId: 'reg-001',
+    cashierId: 'user-003',
+    cashierName: 'Jane Operator',
+    openedAt: '2023-08-16T08:30:00Z',
+    closedAt: '2023-08-16T16:30:00Z',
     openingBalance: {
       cash: 500,
       card: 0,
       bank: 0,
       wave: 0,
       mobile: 0,
+      not_specified: 0
     },
     closingBalance: {
-      cash: 950.25,
-      card: 425.50,
-      bank: 200.00,
-      wave: 150.75,
-      mobile: 50.00,
+      cash: 1325.50,
+      card: 975.25,
+      bank: 450,
+      wave: 200,
+      mobile: 100,
+      not_specified: 0
     },
     expectedBalance: {
-      cash: 950.25,
-      card: 425.50,
-      bank: 200.00,
-      wave: 150.75,
-      mobile: 50.00,
+      cash: 1325.50,
+      card: 975.25,
+      bank: 450,
+      wave: 200,
+      mobile: 100,
+      not_specified: 0
     },
     discrepancies: {
       cash: 0,
@@ -105,46 +190,51 @@ export const mockRegisterSessions: RegisterSession[] = [
       bank: 0,
       wave: 0,
       mobile: 0,
+      not_specified: 0
     }
   },
   {
-    id: "rs3",
-    registerId: "r1",
-    cashierId: "c3",
-    cashierName: "Bob Johnson",
-    openedAt: "2023-06-03T08:00:00Z",
-    closedAt: "2023-06-03T17:00:00Z",
+    id: 'session-003',
+    registerId: 'reg-002',
+    cashierId: 'user-004',
+    cashierName: 'Alice Accountant',
+    openedAt: '2023-08-15T08:45:00Z',
+    closedAt: '2023-08-15T17:15:00Z',
     openingBalance: {
-      cash: 500,
+      cash: 300,
       card: 0,
       bank: 0,
       wave: 0,
       mobile: 0,
+      not_specified: 0
     },
     closingBalance: {
-      cash: 1075.00,
-      card: 525.25,
-      bank: 150.50,
-      wave: 200.00,
-      mobile: 75.25,
+      cash: 850.25,
+      card: 1200.75,
+      bank: 350,
+      wave: 75,
+      mobile: 125,
+      not_specified: 0
     },
     expectedBalance: {
-      cash: 1100.00,
-      card: 525.25,
-      bank: 150.50,
-      wave: 200.00,
-      mobile: 75.25,
+      cash: 855,
+      card: 1200.75,
+      bank: 350,
+      wave: 75,
+      mobile: 125,
+      not_specified: 0
     },
     discrepancies: {
-      cash: -25.00,
+      cash: -4.75,
       card: 0,
       bank: 0,
       wave: 0,
       mobile: 0,
+      not_specified: 0
     },
-    discrepancyResolution: "ecart_caisse",
-    discrepancyApprovedBy: "Admin User",
-    discrepancyApprovedAt: "2023-06-03T17:45:00Z",
-    discrepancyNotes: "Small discrepancy assigned to Écart de Caisse"
+    discrepancyResolution: 'approved',
+    discrepancyApprovedBy: 'user-001',
+    discrepancyApprovedAt: '2023-08-15T17:30:00Z',
+    discrepancyNotes: 'Small discrepancy approved after investigation.'
   }
 ];
