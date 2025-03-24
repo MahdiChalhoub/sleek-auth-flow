@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 type UserRole = "admin" | "cashier" | "manager";
 
@@ -25,6 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Mock Supabase session check
   useEffect(() => {
@@ -47,9 +48,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkSession();
   }, []);
 
-  // Handle redirect based on user role after login
+  // Only redirect on initial login, not on every render
+  // This effect now runs only once after login, not on every location change
   useEffect(() => {
-    if (!isLoading && user) {
+    if (!isLoading && user && location.pathname === "/login") {
       switch (user.role) {
         case "admin":
           navigate("/home");
@@ -64,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           navigate("/home");
       }
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, navigate, location.pathname]);
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
