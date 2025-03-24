@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { useTabs, Tab } from "@/contexts/TabsContext";
@@ -6,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { navItems } from "./sidebar/navItems";
+import { navItems } from "./sidebar/nav"; // Updated import
 
 const TabNavigation: React.FC = () => {
   const { tabs, activeTabId, closeTab, activateTab, openTab } = useTabs();

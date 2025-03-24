@@ -12,7 +12,7 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton
 } from "@/components/ui/sidebar";
-import { NavItem, navItems } from "./navItems";
+import { NavItem, navItems } from "./nav"; // Updated import
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTabs } from "@/contexts/TabsContext";
 
