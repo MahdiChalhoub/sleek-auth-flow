@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -33,6 +32,7 @@ const POSRegister = () => {
   const [register, setRegister] = useState<Register>(mockRegister);
   const [isOpenRegisterDialogOpen, setIsOpenRegisterDialogOpen] = useState(false);
   const [isCloseRegisterDialogOpen, setIsCloseRegisterDialogOpen] = useState(false);
+  const [isDiscrepancyDialogOpen, setIsDiscrepancyDialogOpen] = useState(false);
   const [discrepancies, setDiscrepancies] = useState<Record<PaymentMethod, number>>({
     cash: 0,
     card: 0,
@@ -562,7 +562,5 @@ const POSRegister = () => {
     </div>
   );
 };
-
-const [isDiscrepancyDialogOpen, setIsDiscrepancyDialogOpen] = useState(false);
 
 export default POSRegister;
