@@ -1,117 +1,144 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Mail, Lock } from "lucide-react";
+import { Link, useNavigate, Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import AuthCard from "@/components/AuthCard";
-import AuthInput from "@/components/AuthInput";
-import AuthButton from "@/components/AuthButton";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 
-const Login = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    rememberMe: false,
+const formSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+const Login: React.FC = () => {
+  const { user, login, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleCheckboxChange = (checked: boolean) => {
-    setFormData((prev) => ({ ...prev, rememberMe: checked }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Simulating API call
+  
+  // If already logged in, redirect to appropriate page
+  if (user) {
+    return <Navigate to="/home" replace />;
+  }
+  
+  const onSubmit = async (data: FormValues) => {
+    setIsSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // Success toast
-      toast.success("Login successful!", {
-        description: "Redirecting to dashboard...",
-      });
-      
-      // Redirect would happen here in a real app
+      await login(data.email, data.password);
+      toast.success("Login successful");
     } catch (error) {
-      toast.error("Login failed", {
-        description: "Please check your credentials and try again.",
-      });
+      console.error(error);
+      toast.error("Login failed. Please check your credentials.");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
-
+  
   return (
-    <AuthCard 
-      title="Welcome Back" 
-      subtitle="Sign in to your account to continue"
-    >
-      <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in">
-        <AuthInput
-          label="Email"
-          type="email"
-          name="email"
-          placeholder="your@email.com"
-          value={formData.email}
-          onChange={handleChange}
-          icon={<Mail size={18} />}
-          required
-          autoFocus
-        />
-
-        <AuthInput
-          label="Password"
-          type="password"
-          name="password"
-          placeholder="••••••••"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="rememberMe" 
-              checked={formData.rememberMe}
-              onCheckedChange={handleCheckboxChange}
-              className="auth-checkbox"
-            />
-            <Label 
-              htmlFor="rememberMe" 
-              className="text-sm text-gray-600 dark:text-gray-300 cursor-pointer"
-            >
-              Remember me
-            </Label>
-          </div>
-
-          <Link to="/forgot-password" className="auth-link">
-            Forgot Password?
-          </Link>
-        </div>
-
-        <AuthButton type="submit" isLoading={isLoading}>
-          Sign In
-        </AuthButton>
-
-        <div className="text-center mt-6">
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            Don't have an account?{" "}
-            <Link to="/signup" className="auth-link font-medium">
-              Sign Up
-            </Link>
-          </p>
-        </div>
-      </form>
-    </AuthCard>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-muted/50 p-4">
+      <div className="w-full max-w-md">
+        <Card className="border-border/40 bg-background/80 backdrop-blur">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold">POS System Login</CardTitle>
+            <CardDescription>
+              Enter your credentials to access your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="your.email@example.com" 
+                          {...field} 
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="password" 
+                          placeholder="********" 
+                          {...field} 
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? "Logging in..." : "Login"}
+                </Button>
+              </form>
+            </Form>
+            
+            <div className="mt-4 text-center text-sm">
+              <p className="text-muted-foreground">
+                Demo accounts:
+              </p>
+              <div className="mt-1 grid grid-cols-3 gap-2 text-xs">
+                <div className="rounded-md bg-muted p-1">
+                  admin@pos.com
+                </div>
+                <div className="rounded-md bg-muted p-1">
+                  manager@pos.com
+                </div>
+                <div className="rounded-md bg-muted p-1">
+                  cashier@pos.com
+                </div>
+              </div>
+              <p className="mt-2 text-muted-foreground">
+                Use any password (min 6 chars)
+              </p>
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
+            <div className="text-center text-sm">
+              <Link to="/forgot-password" className="text-primary hover:underline">
+                Forgot password?
+              </Link>
+            </div>
+            <div className="text-center text-sm">
+              Don't have an account?{" "}
+              <Link to="/signup" className="text-primary hover:underline">
+                Sign up
+              </Link>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
   );
 };
 

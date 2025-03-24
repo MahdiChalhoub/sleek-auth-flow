@@ -87,4 +87,3 @@ function debounce(func: Function, wait: number) {
     timeout = setTimeout(later, wait)
   }
 }
-
