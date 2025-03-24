@@ -28,7 +28,7 @@ const UserRoleTable: React.FC<UserRoleTableProps> = ({ users, roles, onRoleChang
               <TableCell>{user.email}</TableCell>
               <TableCell>
                 <Select
-                  defaultValue={user.roleId}
+                  defaultValue={user.roleId || "no-role"} // Ensure there's a fallback value
                   onValueChange={(value) => onRoleChange(user.id, value)}
                 >
                   <SelectTrigger className="w-[180px]">
@@ -40,6 +40,10 @@ const UserRoleTable: React.FC<UserRoleTableProps> = ({ users, roles, onRoleChang
                         {role.name}
                       </SelectItem>
                     ))}
+                    {/* Add a fallback option if needed */}
+                    {!roles.some(role => role.id === "no-role") && (
+                      <SelectItem value="no-role">No Role Assigned</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </TableCell>

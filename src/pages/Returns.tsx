@@ -13,10 +13,16 @@ import { NewPurchaseReturnButton } from "@/components/returns/NewPurchaseReturnB
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
 
+// Define the DateRange type to match what's used in DatePickerWithRange
+type DateRange = {
+  from: Date | undefined;
+  to: Date | undefined;
+};
+
 const Returns: React.FC = () => {
   const { isMobile } = useScreenSize();
   const [activeTab, setActiveTab] = useState<"sales" | "purchase">("sales");
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: undefined,
     to: undefined,
   });
@@ -72,7 +78,7 @@ const Returns: React.FC = () => {
                     <SelectValue placeholder={`Select ${activeTab === "sales" ? "client" : "supplier"}`} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     {activeTab === "sales" ? (
                       <>
                         <SelectItem value="client1">John Doe</SelectItem>
