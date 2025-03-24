@@ -15,12 +15,12 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   return (
     <Card className="overflow-hidden transition-all duration-200 hover:shadow-md glass-card animate-fade-in">
       <div 
-        className="h-32 bg-cover bg-center relative" 
+        className="h-28 bg-cover bg-center relative" 
         style={{ backgroundImage: `url(${product.image})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
           <div className="text-white">
-            <p className="font-medium text-sm truncate">{product.name}</p>
+            <p className="font-medium text-xs truncate">{product.name}</p>
             <p className="text-white/80 text-xs truncate">{product.barcode}</p>
           </div>
         </div>
@@ -28,7 +28,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
       <CardContent className="p-2">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-bold text-base">${product.price.toFixed(2)}</p>
+            <p className="font-bold text-sm">${product.price.toFixed(2)}</p>
             <p className="text-xs text-muted-foreground">Stock: {product.stock}</p>
           </div>
           <TooltipProvider>

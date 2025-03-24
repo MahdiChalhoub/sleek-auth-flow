@@ -1,16 +1,17 @@
 
 import React, { useState } from "react";
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
-} from "@/components/ui/dialog";
+  AlertDialog, 
+  AlertDialogContent, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogDescription, 
+  AlertDialogFooter,
+  AlertDialogCancel
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Lock, AlertCircle } from "lucide-react";
-import { toast } from "sonner";
+import { ShieldAlert, ShieldCheck } from "lucide-react";
 
 interface SecurityCheckDialogProps {
   isOpen: boolean;
@@ -19,85 +20,89 @@ interface SecurityCheckDialogProps {
   actionType: 'delete' | 'discount';
 }
 
-const SecurityCheckDialog = ({ isOpen, onClose, onConfirm, actionType }: SecurityCheckDialogProps) => {
-  const [code, setCode] = useState("");
+const SecurityCheckDialog = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  actionType
+}: SecurityCheckDialogProps) => {
+  const [securityCode, setSecurityCode] = useState("");
   const [error, setError] = useState(false);
   
-  // In a real app, this would check against a database or API
-  const validateCode = () => {
-    const validCode = "1234"; // Demo purposes only
-    if (code === validCode) {
+  // Reset state when dialog opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setSecurityCode("");
+      setError(false);
+    }
+  }, [isOpen]);
+  
+  // Handle verify button click
+  const handleVerify = () => {
+    // In a real app, this would check the security code against an API or database
+    // For this demo, we're using a simple hardcoded check
+    if (securityCode === "1234") {
+      setError(false);
       onConfirm();
       onClose();
-      setCode("");
-      setError(false);
-      toast.success(`Access granted for ${actionType} action`);
     } else {
       setError(true);
-      toast.error("Invalid security code");
     }
   };
   
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      validateCode();
-    }
-  };
+  // Get title and description based on action type
+  const title = actionType === 'delete' ? "Confirm Item Removal" : "Apply Discount";
+  const description = actionType === 'delete' 
+    ? "Please enter your security code to remove this item from the cart."
+    : "Please enter your security code to apply a discount to this item.";
   
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      if (!open) {
-        onClose();
-        setCode("");
-        setError(false);
-      }
-    }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            Security Verification Required
-          </DialogTitle>
-        </DialogHeader>
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
+      <AlertDialogContent className="glass-card">
+        <AlertDialogHeader>
+          <div className="flex items-center gap-2">
+            {actionType === 'delete' ? (
+              <ShieldAlert className="h-5 w-5 text-destructive" />
+            ) : (
+              <ShieldCheck className="h-5 w-5 text-primary" />
+            )}
+            <AlertDialogTitle>{title}</AlertDialogTitle>
+          </div>
+          <AlertDialogDescription>
+            {description}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
         
-        <div className="py-4">
-          <p className="text-muted-foreground mb-4">
-            Please enter your security code to {actionType === 'delete' ? 'remove this item' : 'apply a discount'}.
-          </p>
-          
-          <div className={`flex relative ${error ? 'animate-shake' : ''}`}>
+        <div className="py-3">
+          <div className="space-y-4">
             <Input
               type="password"
               placeholder="Enter security code"
-              value={code}
+              value={securityCode}
               onChange={(e) => {
-                setCode(e.target.value);
-                if (error) setError(false);
+                setSecurityCode(e.target.value);
+                setError(false);
               }}
-              onKeyDown={handleKeyDown}
-              className={error ? "border-red-500 pr-10" : ""}
-              autoFocus
+              className={error ? "border-destructive" : ""}
             />
+            
             {error && (
-              <AlertCircle className="absolute right-3 top-2.5 h-5 w-5 text-red-500" />
+              <p className="text-sm text-destructive">Invalid security code. Please try again.</p>
             )}
           </div>
-          
-          {error && (
-            <p className="text-red-500 text-sm mt-1">Invalid security code. Please try again.</p>
-          )}
         </div>
         
-        <DialogFooter className="flex space-x-2 justify-end">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={validateCode}>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <Button 
+            variant={actionType === 'delete' ? "destructive" : "default"} 
+            onClick={handleVerify}
+          >
             Verify
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 
