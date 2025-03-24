@@ -29,3 +29,16 @@ export interface LoyaltyPermission {
   canViewRewards: boolean;
   canIssueRewards: boolean;
 }
+
+export interface ReturnPermission {
+  roleId: string;
+  canViewSalesReturns: boolean;
+  canCreateSalesReturns: boolean;
+  canApproveSalesReturns: boolean;
+  canDeleteSalesReturns: boolean;
+  canViewPurchaseReturns: boolean;
+  canCreatePurchaseReturns: boolean;
+  canApprovePurchaseReturns: boolean;
+  canDeletePurchaseReturns: boolean;
+  canOverrideReturnLimit: boolean;
+}
