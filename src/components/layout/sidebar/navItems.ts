@@ -1,4 +1,3 @@
-
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -21,7 +20,7 @@ import {
   Home,
   UserCircle,
   Contact,
-  TruckDelivery,
+  Truck,
   Scale,
   Receipt,
   UserCheck,
@@ -106,7 +105,7 @@ export const navItems: NavItem[] = [
       {
         title: "Réceptions",
         path: "/stock-transfers",
-        icon: TruckDelivery,
+        icon: Truck,
         roles: ["admin", "manager"]
       }
     ]
@@ -140,7 +139,7 @@ export const navItems: NavItem[] = [
   {
     title: "Transferts de stock",
     path: "/stock-transfers",
-    icon: TruckDelivery,
+    icon: Truck,
     roles: ["admin", "manager"]
   },
   {

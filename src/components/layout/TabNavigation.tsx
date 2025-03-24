@@ -48,7 +48,7 @@ const TabNavigation: React.FC = () => {
 
   return (
     <div className="border-b bg-background/90 backdrop-blur-sm">
-      <ScrollArea orientation="horizontal" className="w-full">
+      <ScrollArea className="w-full">
         <div 
           ref={scrollContainerRef}
           className="flex overflow-x-auto hide-scrollbar"
