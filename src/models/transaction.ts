@@ -10,6 +10,7 @@ export * from './interfaces/registerInterfaces';
 export * from './interfaces/permissionInterfaces';
 export * from './interfaces/branchInterfaces';
 export * from './interfaces/backupInterfaces';
+export * from './interfaces/businessInterfaces';
 
 // Re-export mock data
 export * from './mockData/transactionMockData';
