@@ -1,28 +1,19 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Search, User, UserPlus, Star, CreditCard, Phone, Mail, MapPin } from "lucide-react";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Client, mockClients } from "@/models/client";
 
 interface ClientSelectorProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (client: {
-    name: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-    isVip?: boolean;
-    creditLimit?: number;
-    outstandingBalance?: number;
-  }) => void;
+  onSelect: (clientName: string) => void;
 }
 
 // Schema for new client form
@@ -34,50 +25,6 @@ const newClientSchema = z.object({
 });
 
 type NewClientFormValues = z.infer<typeof newClientSchema>;
-
-// Sample mock clients for demo
-const mockClients = [
-  { 
-    id: "1", 
-    name: "John Doe", 
-    email: "john@example.com", 
-    phone: "+123456789",
-    address: "123 Main St",
-    isVip: true,
-    creditLimit: 1000,
-    outstandingBalance: 250
-  },
-  { 
-    id: "2", 
-    name: "Jane Smith", 
-    email: "jane@example.com", 
-    phone: "+987654321",
-    address: "456 Oak Ave"
-  },
-  { 
-    id: "3", 
-    name: "Bob Johnson", 
-    email: "bob@example.com", 
-    phone: "+192837465",
-    isVip: true,
-    creditLimit: 500,
-    outstandingBalance: 0
-  },
-  { 
-    id: "4", 
-    name: "Alice Brown", 
-    email: "alice@example.com", 
-    phone: "+918273645"
-  },
-  { 
-    id: "5", 
-    name: "Charlie Wilson", 
-    email: "charlie@example.com", 
-    phone: "+567891234",
-    creditLimit: 200,
-    outstandingBalance: 150
-  },
-];
 
 const ClientSelector = ({ isOpen, onClose, onSelect }: ClientSelectorProps) => {
   const [activeTab, setActiveTab] = useState<'existing' | 'new'>('existing');
@@ -126,12 +73,7 @@ const ClientSelector = ({ isOpen, onClose, onSelect }: ClientSelectorProps) => {
   // Handle new client submission
   const onSubmit = (data: NewClientFormValues) => {
     // In a real app, you would add this client to the database
-    onSelect({
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      address: data.address
-    });
+    onSelect(data.name);
   };
   
   return (
@@ -174,7 +116,7 @@ const ClientSelector = ({ isOpen, onClose, onSelect }: ClientSelectorProps) => {
                     key={client.id}
                     variant="outline"
                     className="w-full justify-start h-auto py-3"
-                    onClick={() => onSelect(client)}
+                    onClick={() => onSelect(client.name)}
                   >
                     <div className="flex items-center w-full">
                       <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
@@ -212,7 +154,7 @@ const ClientSelector = ({ isOpen, onClose, onSelect }: ClientSelectorProps) => {
             <Button 
               variant="secondary" 
               className="w-full justify-start mt-3"
-              onClick={() => onSelect({ name: "Guest" })}
+              onClick={() => onSelect("Guest")}
             >
               <User className="h-4 w-4 mr-2" />
               Continue as Guest

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -634,10 +633,10 @@ const POSSales = () => {
       <ClientSelector 
         isOpen={isClientSelectorOpen} 
         onClose={() => setIsClientSelectorOpen(false)}
-        onSelect={(client) => {
-          setSelectedClient(client);
+        onSelect={(clientName) => {
+          setSelectedClient(clientName);
           setIsClientSelectorOpen(false);
-          toast.success(`Selected client: ${client}`);
+          toast.success(`Selected client: ${clientName}`);
         }}
       />
       
