@@ -22,7 +22,7 @@ const CreateTransferModal: React.FC<CreateTransferModalProps> = ({
   availableLocations 
 }) => {
   const [formData, setFormData] = useState({
-    source: "",
+    source: currentLocation?.name || "",
     destination: "",
     reason: "",
     notes: ""
@@ -32,7 +32,7 @@ const CreateTransferModal: React.FC<CreateTransferModalProps> = ({
     { productId: "", quantity: 1 }
   ]);
 
-  // Set the current location as the default source
+  // Set the current location as the default source when it changes
   useEffect(() => {
     if (currentLocation) {
       setFormData(prev => ({
@@ -73,6 +73,30 @@ const CreateTransferModal: React.FC<CreateTransferModalProps> = ({
     if (formData.source === formData.destination && formData.destination !== "N/A") {
       toast.error("Source and destination cannot be the same");
       return;
+    }
+
+    // Validate all form fields
+    if (!formData.source) {
+      toast.error("Source location is required");
+      return;
+    }
+
+    if (!formData.destination) {
+      toast.error("Destination location is required");
+      return;
+    }
+
+    if (!formData.reason) {
+      toast.error("Reason is required");
+      return;
+    }
+
+    // Validate all product selections
+    for (let i = 0; i < items.length; i++) {
+      if (!items[i].productId) {
+        toast.error(`Please select a product for item #${i+1}`);
+        return;
+      }
     }
     
     console.log("Transfer data:", { ...formData, items });

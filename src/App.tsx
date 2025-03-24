@@ -18,6 +18,11 @@ import Transactions from './pages/Transactions';
 import RegisterPage from './pages/POSRegister';
 import RegisterSessions from './pages/RegisterSessions';
 import Signup from './pages/Signup';
+import TransactionPermissions from './pages/TransactionPermissions';
+import StaffFinance from './pages/StaffFinance';
+import Loyalty from './pages/Loyalty';
+import Returns from './pages/Returns';
+import RoleManagement from './pages/RoleManagement';
 
 // Add PrivateRoute component
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -45,6 +50,11 @@ const App = () => {
               <Route path="/transactions" element={<Transactions />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/register-sessions" element={<RegisterSessions />} />
+              <Route path="/transaction-permissions" element={<TransactionPermissions />} />
+              <Route path="/staff-finance" element={<StaffFinance />} />
+              <Route path="/loyalty" element={<Loyalty />} />
+              <Route path="/returns" element={<Returns />} />
+              <Route path="/roles" element={<RoleManagement />} />
             </Route>
           </Routes>
           
