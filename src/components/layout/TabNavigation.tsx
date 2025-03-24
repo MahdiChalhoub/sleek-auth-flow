@@ -5,7 +5,6 @@ import { useTabs, Tab } from "@/contexts/TabsContext";
 import { useLocation } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { navItems } from "./sidebar/nav";
 
 const TabNavigation: React.FC = () => {
@@ -87,7 +86,9 @@ const TabButton = React.forwardRef<HTMLButtonElement, TabButtonProps>(
         )}
         onClick={onClick}
       >
-        {IconComponent && React.createElement(IconComponent, { className: "h-4 w-4" })}
+        {IconComponent && typeof IconComponent === 'function' && (
+          <IconComponent className="h-4 w-4" />
+        )}
         <span>{tab.title}</span>
         <button
           className="ml-1 rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
