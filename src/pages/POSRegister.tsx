@@ -6,7 +6,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, DollarSign, CreditCard, Wallet, Calendar, Clock, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import { 
+  ArrowLeft, 
+  DollarSign, 
+  CreditCard, 
+  Wallet, 
+  History,
+  CheckCircle, 
+  XCircle, 
+  AlertTriangle,
+  FileText
+} from "lucide-react";
 import { toast } from "sonner";
 import { mockRegister, Register, PaymentMethod } from "@/models/transaction";
 import RegisterBalanceCard from "@/components/RegisterBalanceCard";
@@ -30,6 +40,10 @@ const POSRegister = () => {
     wave: register.currentBalance.wave,
     mobile: register.currentBalance.mobile,
   });
+  
+  // Track resolution for discrepancies
+  const [discrepancyResolution, setDiscrepancyResolution] = useState<string>('pending');
+  const [discrepancyNotes, setDiscrepancyNotes] = useState<string>('');
 
   const handleOpenRegister = () => {
     setRegister({
@@ -73,6 +87,8 @@ const POSRegister = () => {
       closedAt: new Date().toISOString(),
       closedBy: "John Admin",
       currentBalance: closingBalances,
+      discrepancies: newDiscrepancies,
+      discrepancyResolution: hasDiscrepancies ? 'pending' : undefined,
     });
     
     setIsCloseRegisterDialogOpen(false);
@@ -84,6 +100,28 @@ const POSRegister = () => {
       ...closingBalances,
       [method]: numValue,
     });
+  };
+
+  const handleResolutionChange = (value: string) => {
+    setDiscrepancyResolution(value);
+  };
+
+  const handleDiscrepancyApproval = () => {
+    setRegister({
+      ...register,
+      discrepancyResolution: discrepancyResolution as any,
+      discrepancyApprovedBy: "Admin User",
+      discrepancyApprovedAt: new Date().toISOString(),
+      discrepancyNotes: discrepancyNotes,
+    });
+    
+    toast.success("Discrepancy has been resolved", {
+      description: `The discrepancy has been resolved with the ${discrepancyResolution} option.`,
+    });
+  };
+
+  const getTotalDiscrepancy = () => {
+    return Object.values(discrepancies).reduce((sum, value) => sum + value, 0);
   };
 
   return (
@@ -99,20 +137,29 @@ const POSRegister = () => {
             <h1 className="text-2xl font-semibold">POS Register</h1>
           </div>
           
-          {register.isOpen ? (
-            <Button 
-              variant="destructive" 
-              onClick={() => setIsCloseRegisterDialogOpen(true)}
-            >
-              Close Register
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/register-sessions">
+                <History className="h-4 w-4 mr-1.5" />
+                Sessions History
+              </Link>
             </Button>
-          ) : (
-            <Button 
-              onClick={() => setIsOpenRegisterDialogOpen(true)}
-            >
-              Open Register
-            </Button>
-          )}
+            
+            {register.isOpen ? (
+              <Button 
+                variant="destructive" 
+                onClick={() => setIsCloseRegisterDialogOpen(true)}
+              >
+                Close Register
+              </Button>
+            ) : (
+              <Button 
+                onClick={() => setIsOpenRegisterDialogOpen(true)}
+              >
+                Open Register
+              </Button>
+            )}
+          </div>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -133,30 +180,45 @@ const POSRegister = () => {
                     value={register.currentBalance.cash} 
                     icon={<DollarSign className="h-5 w-5 text-green-500" />}
                     className="border-l-4 border-green-500"
+                    status="success"
+                    showTooltip={true}
+                    tooltipContent="Physical cash balance in register"
                   />
                   <RegisterBalanceCard 
                     title="Card" 
                     value={register.currentBalance.card} 
                     icon={<CreditCard className="h-5 w-5 text-blue-500" />}
                     className="border-l-4 border-blue-500"
+                    status="info"
+                    showTooltip={true}
+                    tooltipContent="Credit/debit card transactions"
                   />
                   <RegisterBalanceCard 
                     title="Bank" 
                     value={register.currentBalance.bank} 
                     icon={<Wallet className="h-5 w-5 text-purple-500" />}
                     className="border-l-4 border-purple-500"
+                    status="info"
+                    showTooltip={true}
+                    tooltipContent="Bank transfer transactions"
                   />
                   <RegisterBalanceCard 
                     title="Wave" 
                     value={register.currentBalance.wave} 
                     icon={<Wallet className="h-5 w-5 text-orange-500" />}
                     className="border-l-4 border-orange-500"
+                    status="info"
+                    showTooltip={true}
+                    tooltipContent="Wave mobile money transactions"
                   />
                   <RegisterBalanceCard 
                     title="Mobile" 
                     value={register.currentBalance.mobile} 
                     icon={<Wallet className="h-5 w-5 text-pink-500" />}
                     className="border-l-4 border-pink-500"
+                    status="info"
+                    showTooltip={true}
+                    tooltipContent="Other mobile money transactions"
                   />
                 </div>
               </CardContent>
@@ -210,7 +272,7 @@ const POSRegister = () => {
                       ))}
                     </div>
                     
-                    {Object.values(discrepancies).some(value => value !== 0) && (
+                    {Object.values(discrepancies).some(value => value !== 0) && !register.discrepancyResolution && (
                       <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
                         <div className="flex items-start gap-3">
                           <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5" />
@@ -220,9 +282,34 @@ const POSRegister = () => {
                               There are discrepancies between the expected and actual balances.
                               Please review and get approval from an administrator.
                             </p>
-                            <Button variant="outline" size="sm" className="mt-2 bg-white dark:bg-transparent">
+                            <Button variant="outline" size="sm" className="mt-2 bg-white dark:bg-transparent" 
+                              onClick={() => setIsDiscrepancyDialogOpen(true)}>
                               Request Approval
                             </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {register.discrepancyResolution && (
+                      <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <div className="flex items-start gap-3">
+                          <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                          <div>
+                            <p className="font-medium text-green-800 dark:text-green-300">Discrepancy Resolved</p>
+                            <p className="text-sm text-green-700 dark:text-green-400">
+                              Discrepancy has been resolved with option: <span className="font-medium capitalize">
+                                {register.discrepancyResolution === 'deduct_salary' ? 'Deduct from Salary' : 
+                                 register.discrepancyResolution === 'ecart_caisse' ? 'Écart de Caisse' : 
+                                 register.discrepancyResolution}
+                              </span>
+                            </p>
+                            {register.discrepancyNotes && (
+                              <div className="mt-2 p-2 bg-white dark:bg-black/20 rounded text-sm">
+                                <p className="font-medium">Note:</p>
+                                <p>{register.discrepancyNotes}</p>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -241,6 +328,15 @@ const POSRegister = () => {
                         />
                       ))}
                     </div>
+                    
+                    <div className="mt-6 flex justify-end">
+                      <Button variant="outline" className="gap-2" asChild>
+                        <Link to="/register-sessions">
+                          <FileText className="h-4 w-4" />
+                          View All Sessions
+                        </Link>
+                      </Button>
+                    </div>
                   </TabsContent>
                 </Tabs>
               </CardContent>
@@ -251,7 +347,7 @@ const POSRegister = () => {
       
       {/* Open Register Dialog */}
       <Dialog open={isOpenRegisterDialogOpen} onOpenChange={setIsOpenRegisterDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md glass-card">
           <DialogHeader>
             <DialogTitle>Open Register</DialogTitle>
             <DialogDescription>
@@ -289,7 +385,7 @@ const POSRegister = () => {
       
       {/* Close Register Dialog */}
       <Dialog open={isCloseRegisterDialogOpen} onOpenChange={setIsCloseRegisterDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] overflow-y-auto glass-card">
           <DialogHeader>
             <DialogTitle>Close Register</DialogTitle>
             <DialogDescription>
@@ -406,8 +502,60 @@ const POSRegister = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Discrepancy Resolution Dialog */}
+      <Dialog open={register.discrepancies && Object.values(register.discrepancies).some(value => value !== 0) && !register.discrepancyResolution && isDiscrepancyDialogOpen} 
+        onOpenChange={setIsDiscrepancyDialogOpen}>
+        <DialogContent className="max-w-md glass-card">
+          <DialogHeader>
+            <DialogTitle>Resolve Discrepancy</DialogTitle>
+            <DialogDescription>
+              Total discrepancy: ${getTotalDiscrepancy().toFixed(2)}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Resolution Method:</label>
+                <Select value={discrepancyResolution} onValueChange={handleResolutionChange}>
+                  <SelectTrigger className="mt-1.5">
+                    <SelectValue placeholder="Select resolution method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="deduct_salary">Deduct from Salary</SelectItem>
+                    <SelectItem value="ecart_caisse">Assign to Écart de Caisse</SelectItem>
+                    <SelectItem value="approved">Approve Discrepancy</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium">Notes:</label>
+                <textarea 
+                  className="mt-1.5 w-full px-3 py-2 border border-input rounded-md glass-input h-24"
+                  placeholder="Add notes about this discrepancy resolution..."
+                  value={discrepancyNotes}
+                  onChange={(e) => setDiscrepancyNotes(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDiscrepancyDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleDiscrepancyApproval}>
+              Approve Resolution
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
+
+const [isDiscrepancyDialogOpen, setIsDiscrepancyDialogOpen] = useState(false);
 
 export default POSRegister;

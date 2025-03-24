@@ -11,6 +11,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
 import RoleManagement from "./pages/RoleManagement";
 import POSRegister from "./pages/POSRegister";
+import RegisterSessions from "./pages/RegisterSessions";
 import Transactions from "./pages/Transactions";
 import TransactionPermissions from "./pages/TransactionPermissions";
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/home" element={<Index />} />
           <Route path="/roles" element={<RoleManagement />} />
           <Route path="/register" element={<POSRegister />} />
+          <Route path="/register-sessions" element={<RegisterSessions />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/transaction-permissions" element={<TransactionPermissions />} />
           <Route path="*" element={<NotFound />} />
