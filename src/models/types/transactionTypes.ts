@@ -1,6 +1,6 @@
 
 export type TransactionStatus = 'pending' | 'open' | 'locked' | 'verified' | 'unverified' | 'secure';
-export type PaymentMethod = 'cash' | 'card' | 'bank' | 'wave' | 'mobile';
+export type PaymentMethod = 'cash' | 'card' | 'bank' | 'wave' | 'mobile' | 'not_specified';
 export type DiscrepancyResolution = 'pending' | 'approved' | 'deduct_salary' | 'ecart_caisse' | 'rejected';
 export type AccountType = 
   'cash' | 'bank' | 'inventory' | 'revenue' | 'expense' | 

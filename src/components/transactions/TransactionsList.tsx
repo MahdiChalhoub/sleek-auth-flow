@@ -3,13 +3,13 @@ import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge";
-import { Transaction } from "@/models/transaction";
+import { Transaction, TransactionStatus } from "@/models/transaction";
 import { BookOpen, Edit, Lock, Unlock, CheckCircle, ShieldCheck, Trash2 } from "lucide-react";
 
 interface TransactionsListProps {
   transactions: Transaction[];
   onViewLedger: (transaction: Transaction) => void;
-  onChangeStatus: (transactionId: string, newStatus: "open" | "locked" | "verified" | "secure") => void;
+  onChangeStatus: (transactionId: string, newStatus: TransactionStatus) => void;
   onDeleteTransaction: (transactionId: string) => void;
   isLoading?: boolean;
 }

@@ -2,7 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Client } from '@/models/client';
 import { Supplier } from '@/models/supplier';
 import { StockTransfer } from '@/models/stockTransfer';
-import { Transaction } from '@/models/transaction';
+import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
 
 // Clients API
 export const clientsApi = {
@@ -375,12 +375,12 @@ export const transactionsApi = {
     return data.map(item => ({
       id: item.id,
       amount: item.amount,
-      status: item.status,
+      status: item.status as TransactionStatus,
       createdAt: item.created_at,
       updatedAt: item.updated_at,
       createdBy: "System", // Default value
       description: item.notes || "No description",
-      paymentMethod: "not_specified", // Default value
+      paymentMethod: "not_specified" as PaymentMethod, // Cast to PaymentMethod
       branchId: item.location_id,
       notes: item.notes,
       referenceId: item.reference_id,
@@ -395,7 +395,7 @@ export const transactionsApi = {
         description: '',
         createdAt: entry.created_at,
         createdBy: "System"
-      }))
+      })) as LedgerEntry[]
     })) as Transaction[];
   },
   
@@ -414,12 +414,12 @@ export const transactionsApi = {
     return {
       id: data.id,
       amount: data.amount,
-      status: data.status,
+      status: data.status as TransactionStatus,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       createdBy: "System", // Default value
       description: data.notes || "No description",
-      paymentMethod: "not_specified", // Default value
+      paymentMethod: "not_specified" as PaymentMethod, // Cast to PaymentMethod
       branchId: data.location_id,
       notes: data.notes,
       referenceId: data.reference_id,
@@ -434,7 +434,7 @@ export const transactionsApi = {
         description: '',
         createdAt: entry.created_at,
         createdBy: "System"
-      }))
+      })) as LedgerEntry[]
     } as Transaction;
   },
   
@@ -448,8 +448,7 @@ export const transactionsApi = {
         notes: transaction.description,
         location_id: transaction.branchId,
         reference_id: transaction.referenceId,
-        reference_type: transaction.referenceType,
-        notes: transaction.notes
+        reference_type: transaction.referenceType
       }])
       .select()
       .single();
@@ -482,12 +481,12 @@ export const transactionsApi = {
     return {
       id: data.id,
       amount: data.amount,
-      status: data.status,
+      status: data.status as TransactionStatus,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       createdBy: "System", // Default value
       description: data.notes || "No description",
-      paymentMethod: "not_specified", // Default value
+      paymentMethod: "not_specified" as PaymentMethod, // Cast to PaymentMethod
       branchId: data.location_id,
       notes: data.notes,
       referenceId: data.reference_id,
@@ -497,7 +496,7 @@ export const transactionsApi = {
     } as Transaction;
   },
   
-  updateStatus: async (id: string, status: "open" | "locked" | "verified" | "secure"): Promise<Transaction> => {
+  updateStatus: async (id: string, status: TransactionStatus): Promise<Transaction> => {
     const { data, error } = await supabase
       .from('transactions')
       .update({ 
@@ -516,12 +515,12 @@ export const transactionsApi = {
     return {
       id: data.id,
       amount: data.amount,
-      status: data.status,
+      status: data.status as TransactionStatus,
       createdAt: data.created_at,
       updatedAt: data.updated_at,
       createdBy: "System", // Default value
       description: data.notes || "No description",
-      paymentMethod: "not_specified", // Default value
+      paymentMethod: "not_specified" as PaymentMethod, // Cast to PaymentMethod
       branchId: data.location_id,
       notes: data.notes,
       referenceId: data.reference_id,

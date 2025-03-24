@@ -6,7 +6,7 @@ import TransactionFilters from "@/components/transactions/TransactionFilters";
 import TransactionLedgerDialog from "@/components/transactions/TransactionLedgerDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Transaction } from "@/models/transaction";
+import { Transaction, TransactionStatus } from "@/models/transaction";
 import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 
 const TransactionsPage = () => {
@@ -34,7 +34,7 @@ const TransactionsPage = () => {
     setIsLedgerOpen(true);
   };
   
-  const handleChangeStatus = (transactionId: string, newStatus: "open" | "locked" | "verified" | "secure") => {
+  const handleChangeStatus = (transactionId: string, newStatus: TransactionStatus) => {
     changeStatus({ transactionId, newStatus });
   };
   
