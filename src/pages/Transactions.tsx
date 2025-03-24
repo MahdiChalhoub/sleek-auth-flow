@@ -6,17 +6,52 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Filter, Search, Edit, Lock, Unlock, CheckCircle, ShieldCheck, Trash2, ArrowUpDown, Calendar } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { 
+  ArrowLeft, 
+  Filter, 
+  Search, 
+  Edit, 
+  Lock, 
+  Unlock, 
+  CheckCircle, 
+  ShieldCheck, 
+  Trash2, 
+  ArrowUpDown, 
+  Calendar, 
+  BookOpen,
+  Building,
+  DownloadCloud,
+  Database
+} from "lucide-react";
 import { toast } from "sonner";
-import { mockTransactions, Transaction, TransactionStatus } from "@/models/transaction";
+import { 
+  mockTransactions, 
+  Transaction, 
+  TransactionStatus, 
+  LedgerEntry, 
+  mockLedgerEntries, 
+  mockBranches 
+} from "@/models/transaction";
 import TransactionStatusBadge from "@/components/TransactionStatusBadge";
+import { useToast } from "@/hooks/use-toast";
 
 const Transactions = () => {
+  const { toast: toastUI } = useToast();
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<TransactionStatus | "all">("all");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-
+  const [branchFilter, setBranchFilter] = useState<string>("all");
+  
+  // New states for ledger preview and offline mode
+  const [showLedgerPreview, setShowLedgerPreview] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
+  const [showBackupDialog, setShowBackupDialog] = useState(false);
+  
   const handleChangeStatus = (transactionId: string, newStatus: TransactionStatus) => {
     setTransactions(transactions.map(transaction => {
       if (transaction.id === transactionId) {
@@ -41,6 +76,54 @@ const Transactions = () => {
       description: "The transaction has been permanently deleted",
     });
   };
+  
+  // Handle opening ledger preview
+  const handleShowLedger = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setShowLedgerPreview(true);
+  };
+  
+  // Handle toggle offline mode
+  const handleToggleOfflineMode = () => {
+    setIsOfflineMode(!isOfflineMode);
+    
+    if (!isOfflineMode) {
+      toastUI({
+        title: "Offline Mode Enabled",
+        description: "Changes will be stored locally and synced when you're back online.",
+        variant: "default",
+      });
+    } else {
+      toastUI({
+        title: "Online Mode Restored",
+        description: "All changes have been synced to the server.",
+        variant: "default",
+      });
+    }
+  };
+  
+  // Get ledger entries for a transaction
+  const getLedgerEntries = (transactionId: string): LedgerEntry[] => {
+    return mockLedgerEntries.filter(entry => entry.transactionId === transactionId);
+  };
+  
+  // Handle backup data
+  const handleBackupData = () => {
+    setShowBackupDialog(true);
+  };
+  
+  // Generate backup file (mock functionality)
+  const generateBackupFile = (type: 'json' | 'sql') => {
+    // In a real app, this would create an actual backup file
+    setTimeout(() => {
+      setShowBackupDialog(false);
+      toastUI({
+        title: "Backup Created Successfully",
+        description: `Your ${type.toUpperCase()} backup is ready to download.`,
+        variant: "success",
+      });
+    }, 1500);
+  };
 
   const filteredTransactions = transactions
     .filter(transaction => {
@@ -57,6 +140,11 @@ const Transactions = () => {
       // Filter by status
       if (statusFilter === "all") return true;
       return transaction.status === statusFilter;
+    })
+    .filter(transaction => {
+      // Filter by branch
+      if (branchFilter === "all") return true;
+      return transaction.branchId === branchFilter;
     })
     .sort((a, b) => {
       // Sort by date
@@ -76,11 +164,35 @@ const Transactions = () => {
               </Link>
             </Button>
             <h1 className="text-2xl font-semibold">Transactions</h1>
+            
+            {/* Offline Mode Indicator */}
+            {isOfflineMode && (
+              <Badge variant="outline" className="ml-2 bg-amber-100 text-amber-800 border-amber-200">
+                Offline Mode
+              </Badge>
+            )}
           </div>
           
-          <Button>
-            New Transaction
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Offline Mode Toggle */}
+            <div className="flex items-center mr-4">
+              <span className="text-sm mr-2">Offline Mode</span>
+              <Switch 
+                checked={isOfflineMode} 
+                onCheckedChange={handleToggleOfflineMode} 
+              />
+            </div>
+            
+            {/* Backup Button */}
+            <Button variant="outline" onClick={handleBackupData} className="mr-2">
+              <DownloadCloud className="h-4 w-4 mr-2" />
+              Backup
+            </Button>
+            
+            <Button>
+              New Transaction
+            </Button>
+          </div>
         </div>
         
         <Card className="mb-6">
@@ -102,12 +214,12 @@ const Transactions = () => {
                 />
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Select
                   value={statusFilter}
                   onValueChange={(value) => setStatusFilter(value as TransactionStatus | "all")}
                 >
-                  <SelectTrigger className="w-[180px] glass-input">
+                  <SelectTrigger className="w-[160px] glass-input">
                     <div className="flex items-center gap-2">
                       <Filter className="h-4 w-4" />
                       <SelectValue placeholder="Filter by status" />
@@ -119,6 +231,25 @@ const Transactions = () => {
                     <SelectItem value="locked">Locked</SelectItem>
                     <SelectItem value="verified">Verified</SelectItem>
                     <SelectItem value="secure">Secure</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {/* Branch Filter */}
+                <Select
+                  value={branchFilter}
+                  onValueChange={(value) => setBranchFilter(value)}
+                >
+                  <SelectTrigger className="w-[160px] glass-input">
+                    <div className="flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      <SelectValue placeholder="Filter by branch" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Branches</SelectItem>
+                    {mockBranches.map(branch => (
+                      <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 
@@ -173,6 +304,17 @@ const Transactions = () => {
                         <TableCell>{transaction.createdBy}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end items-center gap-1">
+                            {/* Ledger Preview Button */}
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => handleShowLedger(transaction)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="View Ledger Entries"
+                            >
+                              <BookOpen className="h-4 w-4" />
+                            </Button>
+                            
                             {transaction.status === "open" && (
                               <>
                                 <Button 
@@ -257,6 +399,158 @@ const Transactions = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Ledger Preview Dialog */}
+      {selectedTransaction && (
+        <Dialog open={showLedgerPreview} onOpenChange={setShowLedgerPreview}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Journal Entries</DialogTitle>
+              <DialogDescription>
+                Double-entry ledger records for transaction {selectedTransaction.id}
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="py-4">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium">Transaction Details</h3>
+                  <div className="grid grid-cols-2 gap-2 mt-1 text-sm">
+                    <div>
+                      <span className="text-muted-foreground">Description:</span>
+                      <p>{selectedTransaction.description}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Amount:</span>
+                      <p>${selectedTransaction.amount.toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Date:</span>
+                      <p>{new Date(selectedTransaction.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground">Payment Method:</span>
+                      <p className="capitalize">{selectedTransaction.paymentMethod}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium">Ledger Entries</h3>
+                  <Table className="mt-1">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Account</TableHead>
+                        <TableHead>Debit</TableHead>
+                        <TableHead>Credit</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getLedgerEntries(selectedTransaction.id).map((entry) => (
+                        <TableRow key={entry.id}>
+                          <TableCell className="capitalize">{entry.accountType.replace('_', ' ')}</TableCell>
+                          <TableCell>{entry.isDebit ? `$${entry.amount.toFixed(2)}` : ""}</TableCell>
+                          <TableCell>{!entry.isDebit ? `$${entry.amount.toFixed(2)}` : ""}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                
+                <div className="text-xs text-muted-foreground">
+                  <p>Created by {selectedTransaction.createdBy} on {new Date(selectedTransaction.createdAt).toLocaleString()}</p>
+                  {selectedTransaction.status === "verified" && selectedTransaction.verifiedBy && (
+                    <p>Verified by {selectedTransaction.verifiedBy} on {new Date(selectedTransaction.verifiedAt || "").toLocaleString()}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button onClick={() => setShowLedgerPreview(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+      
+      {/* Backup Dialog */}
+      <Dialog open={showBackupDialog} onOpenChange={setShowBackupDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Backup Data</DialogTitle>
+            <DialogDescription>
+              Create a backup of your POS data. Choose your preferred format.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button 
+                variant="outline" 
+                className="h-auto p-4 flex flex-col items-center justify-center text-center space-y-2 border-2"
+                onClick={() => generateBackupFile('json')}
+              >
+                <Database className="h-12 w-12 mb-2 text-blue-500" />
+                <span className="font-medium">JSON Backup</span>
+                <span className="text-xs text-muted-foreground">Complete data in JSON format</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-center justify-center text-center space-y-2 border-2"
+                onClick={() => generateBackupFile('sql')}
+              >
+                <Database className="h-12 w-12 mb-2 text-green-500" />
+                <span className="font-medium">SQL Backup</span>
+                <span className="text-xs text-muted-foreground">SQL dump for database restore</span>
+              </Button>
+            </div>
+            
+            <div>
+              <h3 className="text-sm font-medium mb-2">Auto-Backup Settings</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm">Frequency</label>
+                  <Select defaultValue="daily">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm">Storage Location</label>
+                  <Select defaultValue="local">
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="local">Local</SelectItem>
+                      <SelectItem value="gdrive">Google Drive</SelectItem>
+                      <SelectItem value="dropbox">Dropbox</SelectItem>
+                      <SelectItem value="custom">Custom URL</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBackupDialog(false)}>
+              Cancel
+            </Button>
+            <Button>
+              Save Settings
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

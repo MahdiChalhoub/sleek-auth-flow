@@ -1,7 +1,43 @@
-
 export type TransactionStatus = 'pending' | 'open' | 'locked' | 'verified' | 'unverified' | 'secure';
 export type PaymentMethod = 'cash' | 'card' | 'bank' | 'wave' | 'mobile';
 export type DiscrepancyResolution = 'pending' | 'approved' | 'deduct_salary' | 'ecart_caisse' | 'rejected';
+
+export type AccountType = 
+  'cash' | 'bank' | 'inventory' | 'revenue' | 'expense' | 
+  'accounts_receivable' | 'accounts_payable' | 'equity' | 
+  'assets' | 'liabilities' | 'salaries' | 'taxes';
+
+export type TransactionType = 
+  'sale' | 'purchase' | 'return_sale' | 'return_purchase' | 
+  'payment_received' | 'payment_made' | 'expense' | 'transfer' | 
+  'adjustment' | 'salary' | 'cash_in' | 'cash_out';
+
+export interface LedgerEntry {
+  id: string;
+  transactionId: string;
+  accountType: AccountType;
+  amount: number;
+  isDebit: boolean;
+  description: string;
+  createdAt: string;
+  createdBy: string;
+  reference?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface JournalTransaction {
+  id: string;
+  date: string;
+  transactionType: TransactionType;
+  description: string;
+  entries: LedgerEntry[];
+  createdBy: string;
+  verified: boolean;
+  verifiedBy?: string;
+  verifiedAt?: string;
+  notes?: string;
+  reference?: string;
+}
 
 export interface Transaction {
   id: string;
@@ -17,6 +53,11 @@ export interface Transaction {
   verifiedAt?: string;
   lockedBy?: string;
   lockedAt?: string;
+  journalEntries?: LedgerEntry[];
+  branchId?: string;
+  clientId?: string;
+  pointsEarned?: number;
+  pointsRedeemed?: number;
 }
 
 export interface TransactionItem {
@@ -121,7 +162,44 @@ export interface TransactionPermission {
   canViewReports: boolean;
 }
 
-// Mock data for development
+export interface Branch {
+  id: string;
+  name: string;
+  address: string;
+  phone?: string;
+  email?: string;
+  manager?: string;
+  isActive: boolean;
+  openingHours?: {
+    monday: string;
+    tuesday: string;
+    wednesday: string;
+    thursday: string;
+    friday: string;
+    saturday: string;
+    sunday: string;
+  };
+  latitude?: number;
+  longitude?: number;
+}
+
+export interface BackupSettings {
+  autoBackup: boolean;
+  frequency: 'daily' | 'weekly' | 'monthly';
+  time: string; // HH:MM format
+  storage: 'local' | 'cloud';
+  cloudProvider?: 'dropbox' | 'google_drive' | 'custom';
+  cloudSettings?: {
+    apiKey?: string;
+    folderPath?: string;
+    customUrl?: string;
+  };
+  lastBackupTime?: string;
+  lastBackupSize?: number; // in bytes
+  lastBackupStatus?: 'success' | 'failed';
+  retentionPeriod?: number; // days
+}
+
 export const mockTransactions: Transaction[] = [
   {
     id: 't1',
@@ -358,3 +436,222 @@ export const mockTransactionPermissions: TransactionPermission[] = [
     canViewReports: false,
   },
 ];
+
+export const mockLedgerEntries: LedgerEntry[] = [
+  {
+    id: "le1",
+    transactionId: "t1",
+    accountType: "cash",
+    amount: 125.50,
+    isDebit: true,
+    description: "Cash received for grocery purchase",
+    createdAt: "2023-06-01T10:30:00Z",
+    createdBy: "John Admin",
+  },
+  {
+    id: "le2",
+    transactionId: "t1",
+    accountType: "revenue",
+    amount: 125.50,
+    isDebit: false,
+    description: "Revenue from grocery purchase",
+    createdAt: "2023-06-01T10:30:00Z",
+    createdBy: "John Admin",
+  },
+  {
+    id: "le3",
+    transactionId: "t2",
+    accountType: "bank",
+    amount: 75.25,
+    isDebit: true,
+    description: "Card payment for electronics",
+    createdAt: "2023-06-01T11:45:00Z",
+    createdBy: "Cathy Cashier",
+  },
+  {
+    id: "le4",
+    transactionId: "t2",
+    accountType: "revenue",
+    amount: 75.25,
+    isDebit: false,
+    description: "Revenue from electronics sale",
+    createdAt: "2023-06-01T11:45:00Z",
+    createdBy: "Cathy Cashier",
+  }
+];
+
+export const mockJournalTransactions: JournalTransaction[] = [
+  {
+    id: "j1",
+    date: "2023-06-01T10:30:00Z",
+    transactionType: "sale",
+    description: "Sale of grocery items",
+    entries: [
+      {
+        id: "le1",
+        transactionId: "t1",
+        accountType: "cash",
+        amount: 125.50,
+        isDebit: true,
+        description: "Cash received for grocery purchase",
+        createdAt: "2023-06-01T10:30:00Z",
+        createdBy: "John Admin",
+      },
+      {
+        id: "le2",
+        transactionId: "t1",
+        accountType: "revenue",
+        amount: 125.50,
+        isDebit: false,
+        description: "Revenue from grocery purchase",
+        createdAt: "2023-06-01T10:30:00Z",
+        createdBy: "John Admin",
+      }
+    ],
+    createdBy: "John Admin",
+    verified: true,
+    verifiedBy: "Sarah Supervisor",
+    verifiedAt: "2023-06-01T11:00:00Z",
+  },
+  {
+    id: "j2",
+    date: "2023-06-01T11:45:00Z",
+    transactionType: "sale",
+    description: "Sale of electronics",
+    entries: [
+      {
+        id: "le3",
+        transactionId: "t2",
+        accountType: "bank",
+        amount: 75.25,
+        isDebit: true,
+        description: "Card payment for electronics",
+        createdAt: "2023-06-01T11:45:00Z",
+        createdBy: "Cathy Cashier",
+      },
+      {
+        id: "le4",
+        transactionId: "t2",
+        accountType: "revenue",
+        amount: 75.25,
+        isDebit: false,
+        description: "Revenue from electronics sale",
+        createdAt: "2023-06-01T11:45:00Z",
+        createdBy: "Cathy Cashier",
+      }
+    ],
+    createdBy: "Cathy Cashier",
+    verified: true,
+    verifiedBy: "John Admin",
+    verifiedAt: "2023-06-01T12:15:00Z",
+  },
+  {
+    id: "j3",
+    date: "2023-06-01T13:00:00Z",
+    transactionType: "purchase",
+    description: "Purchase of office supplies",
+    entries: [
+      {
+        id: "le5",
+        transactionId: "t3",
+        accountType: "inventory",
+        amount: 250.00,
+        isDebit: true,
+        description: "Purchase of office supplies inventory",
+        createdAt: "2023-06-01T13:00:00Z",
+        createdBy: "Mike Manager",
+      },
+      {
+        id: "le6",
+        transactionId: "t3",
+        accountType: "accounts_payable",
+        amount: 250.00,
+        isDebit: false,
+        description: "Payable for office supplies purchase",
+        createdAt: "2023-06-01T13:00:00Z",
+        createdBy: "Mike Manager",
+      }
+    ],
+    createdBy: "Mike Manager",
+    verified: false,
+    notes: "Awaiting verification"
+  }
+];
+
+export const mockBranches: Branch[] = [
+  {
+    id: "b1",
+    name: "Main Store",
+    address: "123 Main Street, Anytown",
+    phone: "+123456789",
+    email: "main@example.com",
+    manager: "John Admin",
+    isActive: true,
+    openingHours: {
+      monday: "9:00 AM - 9:00 PM",
+      tuesday: "9:00 AM - 9:00 PM",
+      wednesday: "9:00 AM - 9:00 PM",
+      thursday: "9:00 AM - 9:00 PM",
+      friday: "9:00 AM - 10:00 PM",
+      saturday: "10:00 AM - 10:00 PM",
+      sunday: "10:00 AM - 8:00 PM"
+    },
+    latitude: 34.0522,
+    longitude: -118.2437
+  },
+  {
+    id: "b2",
+    name: "Downtown Branch",
+    address: "456 Commerce Ave, Downtown",
+    phone: "+987654321",
+    email: "downtown@example.com",
+    manager: "Mike Manager",
+    isActive: true,
+    openingHours: {
+      monday: "8:00 AM - 8:00 PM",
+      tuesday: "8:00 AM - 8:00 PM",
+      wednesday: "8:00 AM - 8:00 PM",
+      thursday: "8:00 AM - 8:00 PM",
+      friday: "8:00 AM - 9:00 PM",
+      saturday: "9:00 AM - 9:00 PM",
+      sunday: "11:00 AM - 7:00 PM"
+    },
+    latitude: 34.0407,
+    longitude: -118.2468
+  },
+  {
+    id: "b3",
+    name: "Westside Mini Market",
+    address: "789 Ocean Blvd, Westside",
+    phone: "+192837465",
+    email: "westside@example.com",
+    manager: "Sarah Supervisor",
+    isActive: true,
+    openingHours: {
+      monday: "7:00 AM - 11:00 PM",
+      tuesday: "7:00 AM - 11:00 PM",
+      wednesday: "7:00 AM - 11:00 PM",
+      thursday: "7:00 AM - 11:00 PM",
+      friday: "7:00 AM - 12:00 AM",
+      saturday: "8:00 AM - 12:00 AM",
+      sunday: "8:00 AM - 10:00 PM"
+    },
+    latitude: 34.0522,
+    longitude: -118.4441
+  }
+];
+
+export const mockBackupSettings: BackupSettings = {
+  autoBackup: true,
+  frequency: "daily",
+  time: "02:00",
+  storage: "cloud",
+  cloudProvider: "google_drive",
+  cloudSettings: {
+    folderPath: "/pos_backups"
+  },
+  lastBackupTime: "2023-06-01T02:00:00Z",
+  lastBackupSize: 1024 * 1024 * 5, // 5MB
+  lastBackupStatus: "success",
+  retentionPeriod: 30
+};
