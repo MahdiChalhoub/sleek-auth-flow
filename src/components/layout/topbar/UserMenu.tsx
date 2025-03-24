@@ -16,11 +16,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface UserMenuProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
   openBusinessDialog: () => void;
   openLocationDialog: () => void;
 }
 
 const UserMenu: React.FC<UserMenuProps> = ({ 
+  isOpen, 
+  onOpenChange,
   openBusinessDialog, 
   openLocationDialog 
 }) => {
@@ -29,10 +33,11 @@ const UserMenu: React.FC<UserMenuProps> = ({
   
   const handleNavigate = (path: string) => {
     navigate(path);
+    onOpenChange?.(false);
   };
   
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
@@ -52,14 +57,17 @@ const UserMenu: React.FC<UserMenuProps> = ({
           </div>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => handleNavigate("/profile")}>Profile</DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleNavigate("/settings")}>Settings</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuLabel>Locations</DropdownMenuLabel>
-        <DropdownMenuItem onClick={openLocationDialog}>
+        <DropdownMenuItem onClick={() => {
+          openLocationDialog();
+          onOpenChange?.(false);
+        }}>
           <MapPin className="mr-2 h-4 w-4" />
           Switch Location
         </DropdownMenuItem>
@@ -67,14 +75,20 @@ const UserMenu: React.FC<UserMenuProps> = ({
           <>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Businesses</DropdownMenuLabel>
-            <DropdownMenuItem onClick={openBusinessDialog}>
+            <DropdownMenuItem onClick={() => {
+              openBusinessDialog();
+              onOpenChange?.(false);
+            }}>
               <Building className="mr-2 h-4 w-4" />
               Switch Business
             </DropdownMenuItem>
           </>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout} className="text-destructive">
+        <DropdownMenuItem onClick={() => {
+          logout();
+          onOpenChange?.(false);
+        }} className="text-destructive">
           Logout
         </DropdownMenuItem>
       </DropdownMenuContent>

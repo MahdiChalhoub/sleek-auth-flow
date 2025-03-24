@@ -1,6 +1,5 @@
 
 import React, { useState } from "react";
-import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocationContext } from "@/contexts/LocationContext";
 import PageTitle from "./topbar/PageTitle";
@@ -12,9 +11,49 @@ import UserMenu from "./topbar/UserMenu";
 const AppTopbar: React.FC = () => {
   const { currentBusiness } = useAuth();
   const { currentLocation } = useLocationContext();
+  
+  // Use separate state variables for each dropdown
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
   const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  
+  // Event handlers to prevent conflicts between different menus
+  const handleBusinessDialogChange = (open: boolean) => {
+    setIsBusinessDialogOpen(open);
+    if (open) {
+      setIsLocationDialogOpen(false);
+      setIsNotificationsOpen(false);
+      setIsUserMenuOpen(false);
+    }
+  };
+  
+  const handleLocationDialogChange = (open: boolean) => {
+    setIsLocationDialogOpen(open);
+    if (open) {
+      setIsBusinessDialogOpen(false);
+      setIsNotificationsOpen(false);
+      setIsUserMenuOpen(false);
+    }
+  };
+  
+  const handleNotificationsChange = (open: boolean) => {
+    setIsNotificationsOpen(open);
+    if (open) {
+      setIsBusinessDialogOpen(false);
+      setIsLocationDialogOpen(false);
+      setIsUserMenuOpen(false);
+    }
+  };
+  
+  const handleUserMenuChange = (open: boolean) => {
+    setIsUserMenuOpen(open);
+    if (open) {
+      setIsBusinessDialogOpen(false);
+      setIsLocationDialogOpen(false);
+      setIsNotificationsOpen(false);
+    }
+  };
   
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -25,24 +64,26 @@ const AppTopbar: React.FC = () => {
           <div className="flex items-center gap-2">
             <LocationSelector 
               isOpen={isLocationDialogOpen} 
-              onOpenChange={setIsLocationDialogOpen} 
+              onOpenChange={handleLocationDialogChange} 
             />
 
             <BusinessSelector 
               isOpen={isBusinessDialogOpen} 
-              onOpenChange={setIsBusinessDialogOpen} 
+              onOpenChange={handleBusinessDialogChange} 
             />
           </div>
         )}
         
         <NotificationsMenu 
           isOpen={isNotificationsOpen} 
-          onOpenChange={setIsNotificationsOpen} 
+          onOpenChange={handleNotificationsChange} 
         />
         
         <UserMenu 
-          openBusinessDialog={() => setIsBusinessDialogOpen(true)}
-          openLocationDialog={() => setIsLocationDialogOpen(true)}
+          isOpen={isUserMenuOpen}
+          onOpenChange={handleUserMenuChange}
+          openBusinessDialog={() => handleBusinessDialogChange(true)}
+          openLocationDialog={() => handleLocationDialogChange(true)}
         />
       </div>
     </header>
