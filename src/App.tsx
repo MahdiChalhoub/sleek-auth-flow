@@ -25,6 +25,8 @@ import StockTransfers from "./pages/StockTransfers";
 import Settings from "./pages/Settings";
 import Returns from "./pages/Returns";
 import Dashboard from "./pages/Dashboard";
+import StaffFinance from "./pages/StaffFinance";
+import Loyalty from "./pages/Loyalty";
 
 // Layout
 import AppLayout from "./components/layout/AppLayout";
@@ -54,6 +56,8 @@ const App = () => (
               <Route path="/transactions" element={<Transactions />} />
               <Route path="/transaction-permissions" element={<TransactionPermissions />} />
               <Route path="/pos-sales" element={<POSSales />} />
+              <Route path="/staff-finance" element={<StaffFinance />} />
+              <Route path="/loyalty" element={<Loyalty />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/suppliers" element={<Suppliers />} />
               <Route path="/purchase-orders" element={<PurchaseOrders />} />

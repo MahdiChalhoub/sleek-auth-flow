@@ -9,7 +9,10 @@ import {
   RotateCcw, 
   Settings, 
   LogOut,
-  X
+  X,
+  Gift,
+  Briefcase,
+  BarChart3
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -33,15 +36,27 @@ interface NavItem {
 const navItems: NavItem[] = [
   {
     title: "Dashboard",
-    path: "/home",
-    icon: LayoutDashboard,
-    roles: ["admin", "manager"]
+    path: "/dashboard",
+    icon: BarChart3,
+    roles: ["admin", "manager", "cashier"]
   },
   {
     title: "POS Sales",
     path: "/pos-sales",
     icon: ShoppingCart,
     roles: ["admin", "cashier", "manager"]
+  },
+  {
+    title: "Staff Finance",
+    path: "/staff-finance",
+    icon: Briefcase,
+    roles: ["admin", "manager"]
+  },
+  {
+    title: "Loyalty & Rewards",
+    path: "/loyalty",
+    icon: Gift,
+    roles: ["admin", "manager", "cashier"]
   },
   {
     title: "Inventory",

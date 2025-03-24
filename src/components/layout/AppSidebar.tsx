@@ -16,7 +16,10 @@ import {
   Repeat,
   FileText,
   ShieldCheck,
-  BarChart3
+  BarChart3,
+  DollarSign,
+  Gift,
+  Briefcase
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -82,6 +85,18 @@ const navItems: NavItem[] = [
     path: "/transaction-permissions",
     icon: ShieldCheck,
     roles: ["admin"]
+  },
+  {
+    title: "Staff Finance",
+    path: "/staff-finance",
+    icon: Briefcase,
+    roles: ["admin", "manager"]
+  },
+  {
+    title: "Loyalty & Rewards",
+    path: "/loyalty",
+    icon: Gift,
+    roles: ["admin", "manager", "cashier"]
   },
   {
     title: "Inventory",
