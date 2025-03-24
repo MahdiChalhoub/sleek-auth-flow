@@ -12,12 +12,13 @@ import { NewSalesReturnButton } from "@/components/returns/NewSalesReturnButton"
 import { NewPurchaseReturnButton } from "@/components/returns/NewPurchaseReturnButton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
+import { DateRange as DayPickerDateRange } from "react-day-picker";
 
-// Define the DateRange type to match what's used in DatePickerWithRange
-type DateRange = {
+// Define our own DateRange type that matches the component props
+interface DateRange {
   from: Date | undefined;
   to: Date | undefined;
-};
+}
 
 const Returns: React.FC = () => {
   const { isMobile } = useScreenSize();
@@ -28,6 +29,21 @@ const Returns: React.FC = () => {
   });
   const [clientSupplier, setClientSupplier] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  
+  // Handler to convert between the two DateRange types
+  const handleDateRangeChange = (range: DayPickerDateRange | undefined) => {
+    if (range) {
+      setDateRange({
+        from: range.from,
+        to: range.to
+      });
+    } else {
+      setDateRange({
+        from: undefined,
+        to: undefined
+      });
+    }
+  };
   
   return (
     <div className="container mx-auto space-y-6">
@@ -64,8 +80,8 @@ const Returns: React.FC = () => {
               <div className="flex-1">
                 <p className="text-sm font-medium mb-2">Date Range</p>
                 <DatePickerWithRange 
-                  date={dateRange} 
-                  setDate={setDateRange} 
+                  date={dateRange as DayPickerDateRange} 
+                  setDate={handleDateRangeChange} 
                 />
               </div>
               

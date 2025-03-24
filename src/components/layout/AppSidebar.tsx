@@ -10,7 +10,12 @@ import {
   Settings, 
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Users,
+  CreditCard,
+  Repeat,
+  FileText,
+  ShieldCheck
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -39,7 +44,7 @@ const navItems: NavItem[] = [
     title: "Dashboard",
     path: "/home",
     icon: LayoutDashboard,
-    roles: ["admin", "manager"]
+    roles: ["admin", "manager", "cashier"]
   },
   {
     title: "POS Sales",
@@ -48,9 +53,39 @@ const navItems: NavItem[] = [
     roles: ["admin", "cashier", "manager"]
   },
   {
+    title: "Register",
+    path: "/register",
+    icon: CreditCard,
+    roles: ["admin", "cashier", "manager"]
+  },
+  {
+    title: "Register Sessions",
+    path: "/register-sessions",
+    icon: FileText,
+    roles: ["admin", "manager"]
+  },
+  {
+    title: "Transactions",
+    path: "/transactions",
+    icon: Repeat,
+    roles: ["admin", "manager"]
+  },
+  {
+    title: "Transaction Permissions",
+    path: "/transaction-permissions",
+    icon: ShieldCheck,
+    roles: ["admin"]
+  },
+  {
     title: "Inventory",
     path: "/inventory",
     icon: Package,
+    roles: ["admin", "manager"]
+  },
+  {
+    title: "Suppliers",
+    path: "/suppliers",
+    icon: Users,
     roles: ["admin", "manager"]
   },
   {
@@ -60,10 +95,22 @@ const navItems: NavItem[] = [
     roles: ["admin", "manager"]
   },
   {
+    title: "Stock Transfers",
+    path: "/stock-transfers",
+    icon: Repeat,
+    roles: ["admin", "manager"]
+  },
+  {
     title: "Returns",
     path: "/returns",
     icon: RotateCcw,
     roles: ["admin", "cashier", "manager"]
+  },
+  {
+    title: "Role Management",
+    path: "/roles",
+    icon: Users,
+    roles: ["admin"]
   },
   {
     title: "Settings",
