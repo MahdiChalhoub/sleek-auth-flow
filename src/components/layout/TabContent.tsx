@@ -85,56 +85,53 @@ const DynamicComponent = ({ componentPath }: { componentPath: string }) => {
   // Using React.lazy for code splitting
   const Component = React.useMemo(() => {
     try {
-      // Fix the dynamic import path by using a direct import pattern
-      return lazy(() => {
-        // Handle each component path explicitly to ensure correct imports
-        switch (componentPath) {
-          case "Dashboard":
-            return import("@/pages/Dashboard");
-          case "Inventory":
-            return import("@/pages/Inventory");
-          case "POSSales":
-            return import("@/pages/POSSales");
-          case "Settings":
-            return import("@/pages/Settings");
-          case "Suppliers":
-            return import("@/pages/Suppliers");
-          case "PurchaseOrders":
-            return import("@/pages/PurchaseOrders");
-          case "StockTransfers":
-            return import("@/pages/StockTransfers");
-          case "Transactions":
-            return import("@/pages/Transactions");
-          case "POSRegister":
-            return import("@/pages/POSRegister");
-          case "RegisterSessions":
-            return import("@/pages/RegisterSessions");
-          case "TransactionPermissions":
-            return import("@/pages/TransactionPermissions");
-          case "StaffFinance":
-            return import("@/pages/StaffFinance");
-          case "Loyalty":
-            return import("@/pages/Loyalty");
-          case "Returns":
-            return import("@/pages/Returns");
-          case "RoleManagement":
-            return import("@/pages/RoleManagement");
-          case "Categories":
-            return import("@/pages/Categories");
-          case "ShiftReports":
-            return import("@/pages/ShiftReports");
-          case "AuditTrail":
-            return import("@/pages/AuditTrail");
-          case "Users":
-            return import("@/pages/Users");
-          case "Contacts":
-            return import("@/pages/Contacts");
-          case "Notifications":
-            return import("@/pages/Notifications");
-          default:
-            return import("@/pages/NotFound");
-        }
-      });
+      // Handle each component path explicitly to ensure correct imports
+      switch (componentPath) {
+        case "Dashboard":
+          return lazy(() => import("../../../src/pages/Dashboard"));
+        case "Inventory":
+          return lazy(() => import("../../../src/pages/Inventory"));
+        case "POSSales":
+          return lazy(() => import("../../../src/pages/POSSales"));
+        case "Settings":
+          return lazy(() => import("../../../src/pages/Settings"));
+        case "Suppliers":
+          return lazy(() => import("../../../src/pages/Suppliers"));
+        case "PurchaseOrders":
+          return lazy(() => import("../../../src/pages/PurchaseOrders"));
+        case "StockTransfers":
+          return lazy(() => import("../../../src/pages/StockTransfers"));
+        case "Transactions":
+          return lazy(() => import("../../../src/pages/Transactions"));
+        case "POSRegister":
+          return lazy(() => import("../../../src/pages/POSRegister"));
+        case "RegisterSessions":
+          return lazy(() => import("../../../src/pages/RegisterSessions"));
+        case "TransactionPermissions":
+          return lazy(() => import("../../../src/pages/TransactionPermissions"));
+        case "StaffFinance":
+          return lazy(() => import("../../../src/pages/StaffFinance"));
+        case "Loyalty":
+          return lazy(() => import("../../../src/pages/Loyalty"));
+        case "Returns":
+          return lazy(() => import("../../../src/pages/Returns"));
+        case "RoleManagement":
+          return lazy(() => import("../../../src/pages/RoleManagement"));
+        case "Categories":
+          return lazy(() => import("../../../src/pages/Categories"));
+        case "ShiftReports":
+          return lazy(() => import("../../../src/pages/ShiftReports"));
+        case "AuditTrail":
+          return lazy(() => import("../../../src/pages/AuditTrail"));
+        case "Users":
+          return lazy(() => import("../../../src/pages/Users"));
+        case "Contacts":
+          return lazy(() => import("../../../src/pages/Contacts"));
+        case "Notifications":
+          return lazy(() => import("../../../src/pages/Notifications"));
+        default:
+          return lazy(() => import("../../../src/pages/NotFound"));
+      }
     } catch (error) {
       console.error(`Failed to load component: ${componentPath}`, error);
       return () => <div>Error loading component: {String(error)}</div>;
