@@ -1,7 +1,7 @@
 
-import React from "react";
+import React, { useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { UserCircle, Building, ChevronDown, MapPin } from "lucide-react";
+import { UserCircle, Building, MapPin } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,6 +30,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
 }) => {
   const { user, logout, currentBusiness } = useAuth();
   const navigate = useNavigate();
+  const buttonRef = useRef<HTMLButtonElement>(null);
   
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -39,7 +40,15 @@ const UserMenu: React.FC<UserMenuProps> = ({
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2">
+        <Button 
+          variant="ghost" 
+          className="flex items-center gap-2"
+          ref={buttonRef}
+          onClick={(e) => {
+            // Prevent event propagation to avoid auto-closing
+            e.stopPropagation();
+          }}
+        >
           <Avatar className="h-8 w-8">
             <AvatarImage src={user?.avatarUrl} alt={user?.name} />
             <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
@@ -57,7 +66,17 @@ const UserMenu: React.FC<UserMenuProps> = ({
           </div>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent 
+        align="end" 
+        className="w-56"
+        onPointerDownOutside={(e) => {
+          // Don't close when clicking the trigger button
+          if (buttonRef.current?.contains(e.target as Node)) {
+            e.preventDefault();
+          }
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => handleNavigate("/profile")}>Profile</DropdownMenuItem>

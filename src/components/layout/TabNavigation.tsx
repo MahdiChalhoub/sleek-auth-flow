@@ -11,7 +11,7 @@ const TabNavigation: React.FC = () => {
   const { tabs, activeTabId, closeTab, activateTab, openTab } = useTabs();
   const location = useLocation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const activeTabRef = useRef<HTMLButtonElement>(null);
+  const activeTabRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (location.pathname === '/') return;
@@ -73,25 +73,25 @@ interface TabButtonProps {
   onClose: () => void;
 }
 
-const TabButton = React.forwardRef<HTMLButtonElement, TabButtonProps>(
+const TabButton = React.forwardRef<HTMLDivElement, TabButtonProps>(
   ({ tab, isActive, onClick, onClose }, ref) => {
     // Safely check if icon exists and is a valid component
     const IconComponent = tab.icon;
     const hasValidIcon = IconComponent && typeof IconComponent === 'function';
     
     return (
-      <button
+      <div
         ref={ref}
         className={cn(
-          "group flex h-10 items-center gap-2 border-r px-4 text-sm font-medium transition-colors hover:bg-muted/50",
+          "group flex h-10 items-center gap-2 border-r px-4 text-sm font-medium transition-colors hover:bg-muted/50 cursor-pointer",
           isActive ? "bg-background text-foreground" : "text-muted-foreground"
         )}
         onClick={onClick}
       >
         {hasValidIcon && <IconComponent className="h-4 w-4" />}
         <span>{tab.title}</span>
-        <button
-          className="ml-1 rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+        <div
+          className="ml-1 rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
           onClick={(e) => {
             e.stopPropagation();
             onClose();
@@ -99,8 +99,8 @@ const TabButton = React.forwardRef<HTMLButtonElement, TabButtonProps>(
         >
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
-        </button>
-      </button>
+        </div>
+      </div>
     );
   }
 );

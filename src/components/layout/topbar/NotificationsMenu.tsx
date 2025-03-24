@@ -41,7 +41,7 @@ const NotificationsMenu: React.FC<NotificationsMenuProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="p-0 w-auto" 
+        className="p-0 w-80 max-h-[450px] overflow-auto" 
         align="end"
         onClick={(e) => e.stopPropagation()}
         onPointerDownOutside={(e) => {
@@ -50,6 +50,9 @@ const NotificationsMenu: React.FC<NotificationsMenuProps> = ({
             e.preventDefault();
           }
         }}
+        avoidCollisions={true}
+        side="bottom"
+        sideOffset={10}
       >
         <NotificationsPanel />
       </PopoverContent>

@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocationContext } from "@/contexts/LocationContext";
 import PageTitle from "./topbar/PageTitle";
@@ -18,9 +18,51 @@ const AppTopbar: React.FC = () => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
+  // Add refs to track the last opened component time
+  const lastOpenedTimestampRef = useRef<number>(0);
+  const activeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Clear timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (activeTimeoutRef.current) {
+        clearTimeout(activeTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  // Helper function to manage dropdown state with debounce
+  const handleOpenStateChange = (
+    setter: React.Dispatch<React.SetStateAction<boolean>>,
+    open: boolean,
+    debounceTime = 100
+  ) => {
+    const now = Date.now();
+    
+    // If trying to open and something was recently opened, prevent rapid state changes
+    if (open && now - lastOpenedTimestampRef.current < debounceTime) {
+      return;
+    }
+    
+    if (activeTimeoutRef.current) {
+      clearTimeout(activeTimeoutRef.current);
+    }
+    
+    // Update the timestamp when opening
+    if (open) {
+      lastOpenedTimestampRef.current = now;
+    }
+    
+    // Use timeout to prevent rapid state changes
+    activeTimeoutRef.current = setTimeout(() => {
+      setter(open);
+      activeTimeoutRef.current = null;
+    }, 10);
+  };
+  
   // Event handlers to prevent conflicts between different menus
   const handleBusinessDialogChange = (open: boolean) => {
-    setIsBusinessDialogOpen(open);
+    handleOpenStateChange(setIsBusinessDialogOpen, open);
     if (open) {
       setIsLocationDialogOpen(false);
       setIsNotificationsOpen(false);
@@ -29,7 +71,7 @@ const AppTopbar: React.FC = () => {
   };
   
   const handleLocationDialogChange = (open: boolean) => {
-    setIsLocationDialogOpen(open);
+    handleOpenStateChange(setIsLocationDialogOpen, open);
     if (open) {
       setIsBusinessDialogOpen(false);
       setIsNotificationsOpen(false);
@@ -38,7 +80,7 @@ const AppTopbar: React.FC = () => {
   };
   
   const handleNotificationsChange = (open: boolean) => {
-    setIsNotificationsOpen(open);
+    handleOpenStateChange(setIsNotificationsOpen, open);
     if (open) {
       setIsBusinessDialogOpen(false);
       setIsLocationDialogOpen(false);
@@ -47,7 +89,7 @@ const AppTopbar: React.FC = () => {
   };
   
   const handleUserMenuChange = (open: boolean) => {
-    setIsUserMenuOpen(open);
+    handleOpenStateChange(setIsUserMenuOpen, open);
     if (open) {
       setIsBusinessDialogOpen(false);
       setIsLocationDialogOpen(false);
