@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Client } from '@/models/client';
 import { Supplier } from '@/models/supplier';
 import { StockTransfer } from '@/models/stockTransfer';
@@ -158,7 +158,7 @@ export const stockTransfersApi = {
   getAll: async (): Promise<StockTransfer[]> => {
     const { data, error } = await supabase
       .from('stock_transfers')
-      .select('*');
+      .select('*, stock_transfer_items(*)');
     
     if (error) {
       console.error('Error fetching stock transfers:', error);
@@ -171,7 +171,7 @@ export const stockTransfersApi = {
   getById: async (id: string): Promise<StockTransfer | null> => {
     const { data, error } = await supabase
       .from('stock_transfers')
-      .select('*')
+      .select('*, stock_transfer_items(*)')
       .eq('id', id)
       .single();
     
@@ -186,7 +186,12 @@ export const stockTransfersApi = {
   create: async (transfer: Omit<StockTransfer, 'id'>): Promise<StockTransfer> => {
     const { data, error } = await supabase
       .from('stock_transfers')
-      .insert([transfer])
+      .insert([{
+        source_location_id: transfer.sourceLocationId,
+        destination_location_id: transfer.destinationLocationId,
+        notes: transfer.notes,
+        status: transfer.status
+      }])
       .select()
       .single();
     
@@ -195,13 +200,35 @@ export const stockTransfersApi = {
       throw error;
     }
     
+    // Add items if they exist
+    if (transfer.items && transfer.items.length > 0) {
+      const items = transfer.items.map(item => ({
+        stock_transfer_id: data.id,
+        product_id: item.productId,
+        quantity: item.quantity
+      }));
+      
+      const { error: itemsError } = await supabase
+        .from('stock_transfer_items')
+        .insert(items);
+      
+      if (itemsError) {
+        console.error('Error adding stock transfer items:', itemsError);
+        throw itemsError;
+      }
+    }
+    
     return data;
   },
   
   update: async (id: string, updates: Partial<StockTransfer>): Promise<StockTransfer> => {
     const { data, error } = await supabase
       .from('stock_transfers')
-      .update(updates)
+      .update({
+        status: updates.status,
+        notes: updates.notes,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', id)
       .select()
       .single();
@@ -232,20 +259,23 @@ export const transactionsApi = {
   getAll: async (): Promise<Transaction[]> => {
     const { data, error } = await supabase
       .from('transactions')
-      .select('*');
+      .select('*, journal_entries(*)');
     
     if (error) {
       console.error('Error fetching transactions:', error);
       throw error;
     }
     
-    return data || [];
+    return data.map(item => ({
+      ...item,
+      journalEntries: item.journal_entries || []
+    })) as Transaction[];
   },
   
   getById: async (id: string): Promise<Transaction | null> => {
     const { data, error } = await supabase
       .from('transactions')
-      .select('*')
+      .select('*, journal_entries(*)')
       .eq('id', id)
       .single();
     
@@ -254,13 +284,26 @@ export const transactionsApi = {
       throw error;
     }
     
-    return data;
+    return {
+      ...data,
+      journalEntries: data.journal_entries || []
+    } as Transaction;
   },
   
   create: async (transaction: Omit<Transaction, 'id'>): Promise<Transaction> => {
     const { data, error } = await supabase
       .from('transactions')
-      .insert([transaction])
+      .insert([{
+        amount: transaction.amount,
+        type: transaction.type,
+        status: transaction.status || 'open',
+        description: transaction.description,
+        payment_method: transaction.paymentMethod,
+        location_id: transaction.branchId,
+        reference_id: transaction.referenceId,
+        reference_type: transaction.referenceType,
+        notes: transaction.notes
+      }])
       .select()
       .single();
     
@@ -269,13 +312,37 @@ export const transactionsApi = {
       throw error;
     }
     
+    // Add journal entries if they exist
+    if (transaction.journalEntries && transaction.journalEntries.length > 0) {
+      const entries = transaction.journalEntries.map(entry => ({
+        transaction_id: data.id,
+        account: entry.accountType,
+        amount: entry.amount,
+        type: entry.isDebit ? 'debit' : 'credit',
+        description: entry.description,
+        reference: entry.reference
+      }));
+      
+      const { error: entriesError } = await supabase
+        .from('journal_entries')
+        .insert(entries);
+      
+      if (entriesError) {
+        console.error('Error adding journal entries:', entriesError);
+        throw entriesError;
+      }
+    }
+    
     return data;
   },
   
   updateStatus: async (id: string, status: "open" | "locked" | "verified" | "secure"): Promise<Transaction> => {
     const { data, error } = await supabase
       .from('transactions')
-      .update({ status })
+      .update({ 
+        status, 
+        updated_at: new Date().toISOString() 
+      })
       .eq('id', id)
       .select()
       .single();
