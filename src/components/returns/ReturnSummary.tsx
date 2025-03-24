@@ -8,7 +8,7 @@ import { RefundMethod } from "@/models/returns";
 interface ReturnSummaryProps {
   items: ReturnItemType[];
   type: "sales" | "purchase";
-  refundMethod: RefundMethod | "refund" | "credit" | "replace";
+  refundMethod: RefundMethod | "refund" | "credit" | "replace" | "cash" | "credit_note" | "deduct_next_po";
 }
 
 export function ReturnSummary({ items, type, refundMethod }: ReturnSummaryProps) {

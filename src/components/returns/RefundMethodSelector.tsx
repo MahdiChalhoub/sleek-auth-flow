@@ -5,8 +5,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { RefundMethod } from "@/models/returns";
 
 interface RefundMethodSelectorProps {
-  value: RefundMethod | "refund" | "credit" | "replace";
-  onChange: (value: RefundMethod | "refund" | "credit" | "replace") => void;
+  value: RefundMethod | "refund" | "credit" | "replace" | "cash" | "credit_note" | "deduct_next_po";
+  onChange: (value: RefundMethod | "refund" | "credit" | "replace" | "cash" | "credit_note" | "deduct_next_po") => void;
   type: "sales" | "purchase";
 }
 
