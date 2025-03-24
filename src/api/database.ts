@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Client } from '@/models/client';
 import { Supplier } from '@/models/supplier';
@@ -91,7 +90,16 @@ export const suppliersApi = {
       throw error;
     }
     
-    return data || [];
+    return (data || []).map(item => ({
+      id: item.id,
+      name: item.name,
+      contactPerson: item.contact_person || '',
+      email: item.email || '',
+      phone: item.phone || '',
+      address: item.address || '',
+      notes: item.notes,
+      products: [] // Default empty array for products
+    }));
   },
   
   getById: async (id: string): Promise<Supplier | null> => {
@@ -106,13 +114,29 @@ export const suppliersApi = {
       throw error;
     }
     
-    return data;
+    return {
+      id: data.id,
+      name: data.name,
+      contactPerson: data.contact_person || '',
+      email: data.email || '',
+      phone: data.phone || '',
+      address: data.address || '',
+      notes: data.notes,
+      products: [] // Default empty array for products
+    };
   },
   
   create: async (supplier: Omit<Supplier, 'id'>): Promise<Supplier> => {
     const { data, error } = await supabase
       .from('suppliers')
-      .insert([supplier])
+      .insert([{
+        name: supplier.name,
+        contact_person: supplier.contactPerson,
+        email: supplier.email,
+        phone: supplier.phone,
+        address: supplier.address,
+        notes: supplier.notes
+      }])
       .select()
       .single();
     
@@ -121,13 +145,30 @@ export const suppliersApi = {
       throw error;
     }
     
-    return data;
+    return {
+      id: data.id,
+      name: data.name,
+      contactPerson: data.contact_person || '',
+      email: data.email || '',
+      phone: data.phone || '',
+      address: data.address || '',
+      notes: data.notes,
+      products: [] // Default empty array for products
+    };
   },
   
   update: async (id: string, updates: Partial<Supplier>): Promise<Supplier> => {
+    const dbUpdates: any = {};
+    if (updates.name) dbUpdates.name = updates.name;
+    if (updates.contactPerson) dbUpdates.contact_person = updates.contactPerson;
+    if (updates.email) dbUpdates.email = updates.email;
+    if (updates.phone) dbUpdates.phone = updates.phone;
+    if (updates.address) dbUpdates.address = updates.address;
+    if (updates.notes) dbUpdates.notes = updates.notes;
+    
     const { data, error } = await supabase
       .from('suppliers')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', id)
       .select()
       .single();
@@ -137,7 +178,16 @@ export const suppliersApi = {
       throw error;
     }
     
-    return data;
+    return {
+      id: data.id,
+      name: data.name,
+      contactPerson: data.contact_person || '',
+      email: data.email || '',
+      phone: data.phone || '',
+      address: data.address || '',
+      notes: data.notes,
+      products: [] // Default empty array for products
+    };
   },
   
   delete: async (id: string): Promise<void> => {
@@ -165,7 +215,23 @@ export const stockTransfersApi = {
       throw error;
     }
     
-    return data || [];
+    return (data || []).map(item => ({
+      id: item.id,
+      date: item.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
+      source: 'Location', // Default placeholder
+      sourceLocationId: item.source_location_id,
+      destination: 'Location', // Default placeholder
+      destinationLocationId: item.destination_location_id,
+      reason: item.notes || 'Stock Transfer',
+      status: mapDatabaseStatus(item.status),
+      notes: item.notes,
+      createdBy: 'System', // Default value
+      items: (item.stock_transfer_items || []).map(transferItem => ({
+        productId: transferItem.product_id,
+        productName: 'Product', // Default placeholder
+        quantity: transferItem.quantity
+      }))
+    }));
   },
   
   getById: async (id: string): Promise<StockTransfer | null> => {
@@ -180,7 +246,23 @@ export const stockTransfersApi = {
       throw error;
     }
     
-    return data;
+    return {
+      id: data.id,
+      date: data.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
+      source: 'Location', // Default placeholder
+      sourceLocationId: data.source_location_id,
+      destination: 'Location', // Default placeholder
+      destinationLocationId: data.destination_location_id,
+      reason: data.notes || 'Stock Transfer',
+      status: mapDatabaseStatus(data.status),
+      notes: data.notes,
+      createdBy: 'System', // Default value
+      items: (data.stock_transfer_items || []).map(transferItem => ({
+        productId: transferItem.product_id,
+        productName: 'Product', // Default placeholder
+        quantity: transferItem.quantity
+      }))
+    };
   },
   
   create: async (transfer: Omit<StockTransfer, 'id'>): Promise<StockTransfer> => {
@@ -190,7 +272,7 @@ export const stockTransfersApi = {
         source_location_id: transfer.sourceLocationId,
         destination_location_id: transfer.destinationLocationId,
         notes: transfer.notes,
-        status: transfer.status
+        status: mapToDbStatus(transfer.status) // Map from our status to db status
       }])
       .select()
       .single();
@@ -200,7 +282,6 @@ export const stockTransfersApi = {
       throw error;
     }
     
-    // Add items if they exist
     if (transfer.items && transfer.items.length > 0) {
       const items = transfer.items.map(item => ({
         stock_transfer_id: data.id,
@@ -218,17 +299,30 @@ export const stockTransfersApi = {
       }
     }
     
-    return data;
+    return {
+      id: data.id,
+      date: data.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
+      source: 'Location', // Default placeholder
+      sourceLocationId: data.source_location_id,
+      destination: 'Location', // Default placeholder
+      destinationLocationId: data.destination_location_id,
+      reason: data.notes || 'Stock Transfer',
+      status: mapDatabaseStatus(data.status),
+      notes: data.notes,
+      createdBy: 'System', // Default value
+      items: transfer.items || []
+    };
   },
   
   update: async (id: string, updates: Partial<StockTransfer>): Promise<StockTransfer> => {
+    const dbUpdates: any = {};
+    if (updates.status) dbUpdates.status = mapToDbStatus(updates.status);
+    if (updates.notes) dbUpdates.notes = updates.notes;
+    dbUpdates.updated_at = new Date().toISOString();
+    
     const { data, error } = await supabase
       .from('stock_transfers')
-      .update({
-        status: updates.status,
-        notes: updates.notes,
-        updated_at: new Date().toISOString()
-      })
+      .update(dbUpdates)
       .eq('id', id)
       .select()
       .single();
@@ -238,7 +332,19 @@ export const stockTransfersApi = {
       throw error;
     }
     
-    return data;
+    return {
+      id: data.id,
+      date: data.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
+      source: 'Location', // Default placeholder
+      sourceLocationId: data.source_location_id,
+      destination: 'Location', // Default placeholder
+      destinationLocationId: data.destination_location_id,
+      reason: data.notes || 'Stock Transfer',
+      status: mapDatabaseStatus(data.status),
+      notes: data.notes,
+      createdBy: 'System', // Default value
+      items: [] // Default empty array
+    };
   },
   
   delete: async (id: string): Promise<void> => {
@@ -267,8 +373,29 @@ export const transactionsApi = {
     }
     
     return data.map(item => ({
-      ...item,
-      journalEntries: item.journal_entries || []
+      id: item.id,
+      amount: item.amount,
+      status: item.status,
+      createdAt: item.created_at,
+      updatedAt: item.updated_at,
+      createdBy: "System", // Default value
+      description: item.notes || "No description",
+      paymentMethod: "not_specified", // Default value
+      branchId: item.location_id,
+      notes: item.notes,
+      referenceId: item.reference_id,
+      referenceType: item.reference_type,
+      type: item.type,
+      journalEntries: (item.journal_entries || []).map(entry => ({
+        id: entry.id,
+        transactionId: entry.transaction_id,
+        accountType: entry.account,
+        amount: entry.amount,
+        isDebit: entry.type === 'debit',
+        description: '',
+        createdAt: entry.created_at,
+        createdBy: "System"
+      }))
     })) as Transaction[];
   },
   
@@ -285,8 +412,29 @@ export const transactionsApi = {
     }
     
     return {
-      ...data,
-      journalEntries: data.journal_entries || []
+      id: data.id,
+      amount: data.amount,
+      status: data.status,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      createdBy: "System", // Default value
+      description: data.notes || "No description",
+      paymentMethod: "not_specified", // Default value
+      branchId: data.location_id,
+      notes: data.notes,
+      referenceId: data.reference_id,
+      referenceType: data.reference_type,
+      type: data.type,
+      journalEntries: (data.journal_entries || []).map(entry => ({
+        id: entry.id,
+        transactionId: entry.transaction_id,
+        accountType: entry.account,
+        amount: entry.amount,
+        isDebit: entry.type === 'debit',
+        description: '',
+        createdAt: entry.created_at,
+        createdBy: "System"
+      }))
     } as Transaction;
   },
   
@@ -295,10 +443,9 @@ export const transactionsApi = {
       .from('transactions')
       .insert([{
         amount: transaction.amount,
-        type: transaction.type,
+        type: transaction.type, 
         status: transaction.status || 'open',
-        description: transaction.description,
-        payment_method: transaction.paymentMethod,
+        notes: transaction.description,
         location_id: transaction.branchId,
         reference_id: transaction.referenceId,
         reference_type: transaction.referenceType,
@@ -312,7 +459,6 @@ export const transactionsApi = {
       throw error;
     }
     
-    // Add journal entries if they exist
     if (transaction.journalEntries && transaction.journalEntries.length > 0) {
       const entries = transaction.journalEntries.map(entry => ({
         transaction_id: data.id,
@@ -333,7 +479,22 @@ export const transactionsApi = {
       }
     }
     
-    return data;
+    return {
+      id: data.id,
+      amount: data.amount,
+      status: data.status,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      createdBy: "System", // Default value
+      description: data.notes || "No description",
+      paymentMethod: "not_specified", // Default value
+      branchId: data.location_id,
+      notes: data.notes,
+      referenceId: data.reference_id,
+      referenceType: data.reference_type,
+      type: data.type,
+      journalEntries: transaction.journalEntries || []
+    } as Transaction;
   },
   
   updateStatus: async (id: string, status: "open" | "locked" | "verified" | "secure"): Promise<Transaction> => {
@@ -352,7 +513,22 @@ export const transactionsApi = {
       throw error;
     }
     
-    return data;
+    return {
+      id: data.id,
+      amount: data.amount,
+      status: data.status,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      createdBy: "System", // Default value
+      description: data.notes || "No description",
+      paymentMethod: "not_specified", // Default value
+      branchId: data.location_id,
+      notes: data.notes,
+      referenceId: data.reference_id,
+      referenceType: data.reference_type,
+      type: data.type,
+      journalEntries: []
+    } as Transaction;
   },
   
   delete: async (id: string): Promise<void> => {
@@ -367,3 +543,25 @@ export const transactionsApi = {
     }
   }
 };
+
+// Helper function to map database status to our internal status
+function mapDatabaseStatus(status: string): "draft" | "sent" | "verified" | "cancelled" {
+  switch (status) {
+    case 'pending': return 'draft';
+    case 'in-transit': return 'sent';
+    case 'completed': return 'verified';
+    case 'cancelled': return 'cancelled';
+    default: return 'draft';
+  }
+}
+
+// Helper function to map our internal status to database status
+function mapToDbStatus(status: "draft" | "sent" | "verified" | "cancelled"): string {
+  switch (status) {
+    case 'draft': return 'pending';
+    case 'sent': return 'in-transit';
+    case 'verified': return 'completed';
+    case 'cancelled': return 'cancelled';
+    default: return 'pending';
+  }
+}

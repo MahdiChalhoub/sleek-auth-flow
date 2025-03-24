@@ -21,9 +21,32 @@ export const useTransactions = () => {
         throw error;
       }
       
+      // Transform the data to match our Transaction interface
       return data.map(item => ({
-        ...item,
-        journalEntries: item.journal_entries || []
+        id: item.id,
+        amount: item.amount,
+        status: item.status,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+        // Set a default value for createdBy since it's not in the database
+        createdBy: "System",
+        description: item.notes || "No description",
+        paymentMethod: "not_specified", // Default value
+        branchId: item.location_id,
+        notes: item.notes,
+        referenceId: item.reference_id,
+        referenceType: item.reference_type,
+        type: item.type,
+        journalEntries: (item.journal_entries || []).map(entry => ({
+          id: entry.id,
+          transactionId: entry.transaction_id,
+          accountType: entry.account,
+          amount: entry.amount,
+          isDebit: entry.type === 'debit',
+          description: '',
+          createdAt: entry.created_at,
+          createdBy: "System"
+        }))
       })) as Transaction[];
     }
   });

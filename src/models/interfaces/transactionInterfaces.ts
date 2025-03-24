@@ -47,6 +47,11 @@ export interface Transaction {
   clientId?: string;
   pointsEarned?: number;
   pointsRedeemed?: number;
+  // Add these properties to support database fields
+  referenceId?: string;
+  referenceType?: string;
+  notes?: string;
+  type?: string;
 }
 
 export interface TransactionItem {
