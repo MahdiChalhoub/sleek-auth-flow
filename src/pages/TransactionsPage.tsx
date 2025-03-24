@@ -3,10 +3,11 @@ import React, { useState } from "react";
 import { useTransactions } from "@/hooks/useTransactions";
 import TransactionsList from "@/components/transactions/TransactionsList";
 import TransactionFilters from "@/components/transactions/TransactionFilters";
-import { TransactionLedgerDialog } from "@/components/transactions/TransactionLedgerDialog";
+import TransactionLedgerDialog from "@/components/transactions/TransactionLedgerDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Transaction } from "@/models/transaction";
+import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 
 const TransactionsPage = () => {
   const { transactions, isLoading, changeStatus, deleteTransaction } = useTransactions();
@@ -14,6 +15,19 @@ const TransactionsPage = () => {
   const [isLedgerOpen, setIsLedgerOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
+  
+  // Using the transaction filters hook
+  const {
+    searchQuery,
+    setSearchQuery,
+    statusFilter,
+    setStatusFilter,
+    sortDirection,
+    setSortDirection,
+    branchFilter,
+    setBranchFilter,
+    filteredTransactions
+  } = useTransactionFilters(transactions);
   
   const handleViewLedger = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
@@ -46,11 +60,21 @@ const TransactionsPage = () => {
           <CardTitle>Transaction History</CardTitle>
         </CardHeader>
         <CardContent>
-          <TransactionFilters />
+          <TransactionFilters 
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            branchFilter={branchFilter}
+            setBranchFilter={setBranchFilter}
+            sortDirection={sortDirection}
+            setSortDirection={setSortDirection}
+            branches={[]} // Pass an empty array as a placeholder for branches
+          />
           
           <div className="mt-6">
             <TransactionsList 
-              transactions={transactions}
+              transactions={filteredTransactions || transactions}
               onViewLedger={handleViewLedger}
               onChangeStatus={handleChangeStatus}
               onDeleteTransaction={handleDeleteTransaction}
@@ -62,9 +86,10 @@ const TransactionsPage = () => {
       
       {selectedTransaction && (
         <TransactionLedgerDialog 
-          isOpen={isLedgerOpen}
+          open={isLedgerOpen}
           onOpenChange={setIsLedgerOpen}
           transaction={selectedTransaction}
+          ledgerEntries={selectedTransaction.journalEntries || []}
         />
       )}
       
