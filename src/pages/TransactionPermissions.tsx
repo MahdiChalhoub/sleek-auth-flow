@@ -28,9 +28,10 @@ const TransactionPermissions = () => {
     }));
     
     const role = roles.find(r => r.id === roleId);
+    const currentPermission = permissions.find(p => p.roleId === roleId);
     
     toast.success(`Permission updated`, {
-      description: `${role?.name} role ${permission[permissionKey] ? 'can no longer' : 'can now'} ${permissionKey.replace('can', '').toLowerCase()} transactions`,
+      description: `${role?.name} role ${currentPermission?.[permissionKey] ? 'can no longer' : 'can now'} ${permissionKey.replace('can', '').toLowerCase()} transactions`,
     });
   };
 
