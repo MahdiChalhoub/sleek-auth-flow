@@ -7,7 +7,7 @@ import AppTopbar from "./AppTopbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useScreenSize } from "@/hooks/use-mobile";
 import { Toaster } from "@/components/ui/sonner";
-import { TabsProvider, useTabs } from "@/contexts/TabsContext";
+import { TabsProvider, useTabs } from "@/contexts/tabs";
 import TabNavigation from "./TabNavigation";
 import TabContent from "./TabContent";
 

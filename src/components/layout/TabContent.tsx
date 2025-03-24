@@ -1,7 +1,6 @@
-
 import React, { Suspense, lazy } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { Tab } from "@/contexts/TabsContext";
+import { Tab } from "@/contexts/tabs";
 
 interface TabContentProps {
   tabs: Tab[];
@@ -18,10 +17,8 @@ const TabContent: React.FC<TabContentProps> = ({
   const location = useLocation();
   const activeTab = tabs.find(tab => tab.id === activeTabId);
   
-  // If the active tab doesn't match the current route, synchronize them
   React.useEffect(() => {
     if (activeTab && activeTab.path !== currentPath) {
-      // Navigate to the correct path without adding to browser history
       navigate(activeTab.path, { replace: true });
     }
   }, [activeTab, currentPath, navigate]);
@@ -39,9 +36,7 @@ const TabContent: React.FC<TabContentProps> = ({
   return (
     <main className="flex-1 overflow-auto p-4 md:p-6">
       <Suspense fallback={<div className="animate-pulse">Loading tab content...</div>}>
-        {/* We render Routes here to match the current location */}
         <Routes>
-          {/* This catch-all route will render the app's main routes */}
           <Route path="/*" element={<AppRoutes />} />
         </Routes>
       </Suspense>
@@ -49,7 +44,6 @@ const TabContent: React.FC<TabContentProps> = ({
   );
 };
 
-// This component renders the app's routes
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
@@ -74,18 +68,14 @@ const AppRoutes: React.FC = () => {
       <Route path="/users" element={<DynamicComponent componentPath="Users" />} />
       <Route path="/contacts" element={<DynamicComponent componentPath="Contacts" />} />
       <Route path="/notifications" element={<DynamicComponent componentPath="Notifications" />} />
-      {/* Fallback route */}
       <Route path="*" element={<div>Page not found</div>} />
     </Routes>
   );
 };
 
-// This is a dynamic component loader that will load the component based on the path
 const DynamicComponent = ({ componentPath }: { componentPath: string }) => {
-  // Using React.lazy for code splitting
   const Component = React.useMemo(() => {
     try {
-      // Handle each component path explicitly to ensure correct imports
       switch (componentPath) {
         case "Dashboard":
           return lazy(() => import("../../../src/pages/Dashboard"));

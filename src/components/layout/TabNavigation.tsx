@@ -1,7 +1,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
-import { useTabs, Tab } from "@/contexts/TabsContext";
+import { useTabs, Tab } from "@/contexts/tabs";
 import { useLocation } from "react-router-dom";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";

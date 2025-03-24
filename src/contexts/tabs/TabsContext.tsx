@@ -1,14 +1,8 @@
 
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
-export interface Tab {
-  id: string;
-  title: string;
-  path: string;
-  icon?: React.ElementType;
-  state?: Record<string, any>;
-}
+import { findTabByPath, isPathMatch } from "./tabUtils";
+import { Tab } from "./types";
 
 interface TabsContextType {
   tabs: Tab[];
@@ -64,34 +58,13 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [tabs, activeTabId]);
 
   // Find a tab by path
-  const findTabByPath = useCallback((path: string): Tab | undefined => {
-    // Check for exact path match first
-    let tab = tabs.find(t => t.path === path);
-    
-    if (!tab) {
-      // Check for pattern matching (for dynamic routes)
-      // e.g., '/products/edit/123' should match a tab with path '/products/edit/:id'
-      const pathSegments = path.split('/').filter(Boolean);
-      
-      tab = tabs.find(t => {
-        const tabSegments = t.path.split('/').filter(Boolean);
-        
-        if (pathSegments.length !== tabSegments.length) return false;
-        
-        return tabSegments.every((segment, i) => {
-          // If the segment starts with ':', it's a parameter
-          if (segment.startsWith(':')) return true;
-          return segment === pathSegments[i];
-        });
-      });
-    }
-    
-    return tab;
-  }, [tabs]);
+  const findTabByPathFn = (path: string): Tab | undefined => {
+    return findTabByPath(tabs, path);
+  };
 
   // Open a tab if not already open
-  const openTab = useCallback((tab: Omit<Tab, "id">) => {
-    const existingTab = findTabByPath(tab.path);
+  const openTab = (tab: Omit<Tab, "id">) => {
+    const existingTab = findTabByPathFn(tab.path);
     
     if (existingTab) {
       setActiveTabId(existingTab.id);
@@ -108,10 +81,10 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (location.pathname !== tab.path) {
       navigate(tab.path, { replace: false });
     }
-  }, [findTabByPath, location.pathname, navigate]);
+  };
 
   // Close a tab
-  const closeTab = useCallback((tabId: string) => {
+  const closeTab = (tabId: string) => {
     const tabIndex = tabs.findIndex(t => t.id === tabId);
     if (tabIndex === -1) return;
     
@@ -128,10 +101,10 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setActiveTabId(null);
       navigate('/home', { replace: true });
     }
-  }, [tabs, activeTabId, navigate]);
+  };
 
   // Activate a tab
-  const activateTab = useCallback((tabId: string) => {
+  const activateTab = (tabId: string) => {
     const tab = tabs.find(t => t.id === tabId);
     if (tab) {
       setActiveTabId(tabId);
@@ -139,21 +112,21 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
         navigate(tab.path, { replace: true });
       }
     }
-  }, [tabs, location.pathname, navigate]);
+  };
 
   // Check if a tab with the given path is already open
-  const isTabOpen = useCallback((path: string) => {
-    return !!findTabByPath(path);
-  }, [findTabByPath]);
+  const isTabOpen = (path: string) => {
+    return !!findTabByPathFn(path);
+  };
 
   // Get tab state
-  const getTabState = useCallback((tabId: string) => {
+  const getTabState = (tabId: string) => {
     const tab = tabs.find(t => t.id === tabId);
     return tab?.state;
-  }, [tabs]);
+  };
 
   // Update tab state
-  const updateTabState = useCallback((tabId: string, state: Record<string, any>) => {
+  const updateTabState = (tabId: string, state: Record<string, any>) => {
     setTabs(prev => 
       prev.map(tab => 
         tab.id === tabId 
@@ -161,29 +134,19 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
           : tab
       )
     );
-  }, []);
+  };
 
-  const contextValue = useMemo(() => ({ 
+  const contextValue = {
     tabs, 
     activeTabId, 
     openTab, 
     closeTab, 
     activateTab,
     isTabOpen,
-    findTabByPath,
+    findTabByPath: findTabByPathFn,
     getTabState,
     updateTabState
-  }), [
-    tabs, 
-    activeTabId, 
-    openTab, 
-    closeTab, 
-    activateTab, 
-    isTabOpen, 
-    findTabByPath,
-    getTabState,
-    updateTabState
-  ]);
+  };
 
   return (
     <TabsContext.Provider value={contextValue}>
