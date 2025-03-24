@@ -1,10 +1,10 @@
 
 import React, { useState } from "react";
-import { Plus, Eye, FileText, Download, Filter, Search } from "lucide-react";
+import { Plus, Eye, FileText, Download, Filter, Search, ScanLine, Clock, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import CreatePurchaseOrderModal from "@/components/inventory/CreatePurchaseOrder
 import PurchaseOrderViewModal from "@/components/inventory/PurchaseOrderViewModal";
 import ReorderSuggestions from "@/components/inventory/ReorderSuggestions";
 import ExportMenu from "@/components/inventory/ExportMenu";
+import BarcodeScannerModal from "@/components/inventory/BarcodeScannerModal";
+import { useToast } from "@/components/ui/use-toast";
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -28,10 +30,34 @@ const PurchaseOrders: React.FC = () => {
   const [selectedPO, setSelectedPO] = useState<any>(null);
   const [viewOpen, setViewOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const { toast } = useToast();
+
+  // Handle keyboard shortcut for barcode scanning
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.altKey && event.key === 'b') {
+        event.preventDefault();
+        setScannerOpen(true);
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleViewPO = (po: any) => {
     setSelectedPO(po);
     setViewOpen(true);
+  };
+
+  const handleBarcodeScanned = (barcode: string) => {
+    toast({
+      title: "Barcode Scanned",
+      description: `Product with barcode ${barcode} will be added to the purchase order.`,
+    });
+    setScannerOpen(false);
+    setCreateOpen(true);
   };
 
   // Filter POs based on search query and status
@@ -51,8 +77,21 @@ const PurchaseOrders: React.FC = () => {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Purchase Orders</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Purchase Orders</h1>
+          <p className="text-muted-foreground">Manage your supplier orders and inventory restocking</p>
+        </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => setScannerOpen(true)}
+            className="relative"
+            title="Scan Barcode (Alt+B)"
+          >
+            <ScanLine size={18} />
+            <kbd className="absolute bottom-0 right-0 bg-primary/10 text-[10px] rounded px-1">Alt+B</kbd>
+          </Button>
           <ExportMenu />
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
@@ -66,10 +105,20 @@ const PurchaseOrders: React.FC = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="orders">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="orders">Purchase Orders</TabsTrigger>
-          <TabsTrigger value="suggestions">Reorder Suggestions</TabsTrigger>
+      <Tabs defaultValue="orders" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsTrigger value="orders" className="flex items-center gap-2">
+            <FileText size={16} />
+            Purchase Orders
+          </TabsTrigger>
+          <TabsTrigger value="suggestions" className="flex items-center gap-2">
+            <ShoppingBag size={16} />
+            Reorder Suggestions
+          </TabsTrigger>
+          <TabsTrigger value="recent" className="flex items-center gap-2">
+            <Clock size={16} />
+            Recent Activity
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders" className="space-y-4">
@@ -99,9 +148,9 @@ const PurchaseOrders: React.FC = () => {
             </div>
           </div>
 
-          <Card>
+          <Card className="bg-card/60 backdrop-blur-sm border border-slate-200/50 dark:border-slate-800/50">
             <CardContent className="p-0">
-              <div className="rounded-md border">
+              <div className="rounded-md">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -115,42 +164,103 @@ const PurchaseOrders: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredPOs.map((po) => (
-                      <TableRow key={po.id}>
-                        <TableCell className="font-medium">{po.id}</TableCell>
-                        <TableCell>{po.supplier.name}</TableCell>
-                        <TableCell>{po.dateCreated}</TableCell>
-                        <TableCell>{po.expectedDelivery}</TableCell>
-                        <TableCell className="text-right">${po.totalValue.toFixed(2)}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge className={statusColors[po.status]}>
-                            {po.status.charAt(0).toUpperCase() + po.status.slice(1)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="icon" onClick={() => handleViewPO(po)}>
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon">
-                              <FileText className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon">
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
+                    {filteredPOs.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          No purchase orders found matching your criteria
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : (
+                      filteredPOs.map((po) => (
+                        <TableRow key={po.id} className="hover:bg-muted/50 transition-colors">
+                          <TableCell className="font-medium">{po.id}</TableCell>
+                          <TableCell>{po.supplier.name}</TableCell>
+                          <TableCell>{po.dateCreated}</TableCell>
+                          <TableCell>{po.expectedDelivery}</TableCell>
+                          <TableCell className="text-right font-mono">${po.totalValue.toFixed(2)}</TableCell>
+                          <TableCell className="text-center">
+                            <Badge className={statusColors[po.status]}>
+                              {po.status.charAt(0).toUpperCase() + po.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button variant="ghost" size="sm" onClick={() => handleViewPO(po)}>
+                                <Eye className="h-4 w-4 mr-1" />
+                                View
+                              </Button>
+                              <Button variant="ghost" size="sm">
+                                <FileText className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                              <Button variant="ghost" size="sm">
+                                <Download className="h-4 w-4 mr-1" />
+                                Export
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </div>
             </CardContent>
           </Card>
+
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredPOs.length} of {mockPurchaseOrders.length} purchase orders
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" disabled>Previous</Button>
+              <Button variant="outline" size="sm" disabled>Next</Button>
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="suggestions">
           <ReorderSuggestions />
+        </TabsContent>
+
+        <TabsContent value="recent">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Purchase Order Activity</CardTitle>
+              <CardDescription>View the latest changes to purchase orders</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {mockPurchaseOrders.slice(0, 3).map((po) => (
+                  <div key={po.id} className="flex items-start gap-4 p-3 rounded-lg border">
+                    <div className={`rounded-full p-2 ${po.status === 'completed' ? 'bg-green-100' : 'bg-blue-100'}`}>
+                      {po.status === 'completed' ? (
+                        <FileText className="h-4 w-4 text-green-700" />
+                      ) : (
+                        <Clock className="h-4 w-4 text-blue-700" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-medium">{po.id}</h4>
+                          <p className="text-sm text-muted-foreground">{po.supplier.name}</p>
+                        </div>
+                        <Badge className={statusColors[po.status]}>
+                          {po.status.charAt(0).toUpperCase() + po.status.slice(1)}
+                        </Badge>
+                      </div>
+                      <div className="mt-1 text-sm">
+                        {po.status === 'completed' 
+                          ? `Completed on ${po.lastUpdated || po.dateCreated}`
+                          : `Expected delivery on ${po.expectedDelivery}`}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
@@ -161,6 +271,22 @@ const PurchaseOrders: React.FC = () => {
           onClose={() => setViewOpen(false)} 
         />
       </Dialog>
+
+      {/* Barcode Scanner Modal */}
+      <Dialog open={scannerOpen} onOpenChange={setScannerOpen}>
+        <BarcodeScannerModal onScan={handleBarcodeScanned} onClose={() => setScannerOpen(false)} />
+      </Dialog>
+
+      {/* Floating Action Button */}
+      <div className="fixed bottom-6 right-6">
+        <Button 
+          onClick={() => setCreateOpen(true)}
+          size="lg" 
+          className="rounded-full w-14 h-14 shadow-lg animate-pulse-soft"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      </div>
     </div>
   );
 };
