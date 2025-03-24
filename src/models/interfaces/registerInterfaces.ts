@@ -9,34 +9,10 @@ export interface Register {
   closedAt?: string;
   openedBy?: string;
   closedBy?: string;
-  openingBalance: {
-    cash: number;
-    card: number;
-    bank: number;
-    wave: number;
-    mobile: number;
-  };
-  currentBalance: {
-    cash: number;
-    card: number;
-    bank: number;
-    wave: number;
-    mobile: number;
-  };
-  expectedBalance: {
-    cash: number;
-    card: number;
-    bank: number;
-    wave: number;
-    mobile: number;
-  };
-  discrepancies?: {
-    cash: number;
-    card: number;
-    bank: number;
-    wave: number;
-    mobile: number;
-  };
+  openingBalance: Record<PaymentMethod, number>;
+  currentBalance: Record<PaymentMethod, number>;
+  expectedBalance: Record<PaymentMethod, number>;
+  discrepancies?: Record<PaymentMethod, number>;
   discrepancyResolution?: DiscrepancyResolution;
   discrepancyApprovedBy?: string;
   discrepancyApprovedAt?: string;
@@ -50,34 +26,10 @@ export interface RegisterSession {
   cashierName: string;
   openedAt: string;
   closedAt?: string;
-  openingBalance: {
-    cash: number;
-    card: number;
-    bank: number;
-    wave: number;
-    mobile: number;
-  };
-  closingBalance?: {
-    cash: number;
-    card: number;
-    bank: number;
-    wave: number;
-    mobile: number;
-  };
-  expectedBalance?: {
-    cash: number;
-    card: number;
-    bank: number;
-    wave: number;
-    mobile: number;
-  };
-  discrepancies?: {
-    cash: number;
-    card: number;
-    bank: number;
-    wave: number;
-    mobile: number;
-  };
+  openingBalance: Record<PaymentMethod, number>;
+  closingBalance?: Record<PaymentMethod, number>;
+  expectedBalance?: Record<PaymentMethod, number>;
+  discrepancies?: Record<PaymentMethod, number>;
   discrepancyResolution?: DiscrepancyResolution;
   discrepancyApprovedBy?: string;
   discrepancyApprovedAt?: string;

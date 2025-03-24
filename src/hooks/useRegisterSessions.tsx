@@ -111,7 +111,7 @@ export const useRegisterSessions = () => {
       
       const { data, error } = await supabase
         .from('register_sessions')
-        .insert([dbModel])
+        .insert(dbModel)
         .select()
         .single();
       
