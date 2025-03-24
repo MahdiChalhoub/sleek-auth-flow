@@ -1,4 +1,6 @@
 
+import { Business } from "@/models/interfaces/businessInterfaces";
+
 export type UserRole = "admin" | "cashier" | "manager";
 
 export interface User {
