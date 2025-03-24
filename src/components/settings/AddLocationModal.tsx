@@ -7,11 +7,9 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { LocationFormContent } from "./LocationForm/LocationFormContent";
 import { Branch } from "@/models/interfaces/businessInterfaces";
 
@@ -38,7 +36,7 @@ const locationSchema = z.object({
     friday: z.string(),
     saturday: z.string(),
     sunday: z.string(),
-  }).optional(),
+  }),
 });
 
 export const AddLocationModal: React.FC<AddLocationModalProps> = ({
