@@ -15,6 +15,10 @@ import RegisterSessions from "./pages/RegisterSessions";
 import Transactions from "./pages/Transactions";
 import TransactionPermissions from "./pages/TransactionPermissions";
 import POSSales from "./pages/POSSales";
+import Inventory from "./pages/Inventory";
+import Suppliers from "./pages/Suppliers";
+import PurchaseOrders from "./pages/PurchaseOrders";
+import StockTransfers from "./pages/StockTransfers";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +40,10 @@ const App = () => (
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/transaction-permissions" element={<TransactionPermissions />} />
           <Route path="/pos-sales" element={<POSSales />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/suppliers" element={<Suppliers />} />
+          <Route path="/purchase-orders" element={<PurchaseOrders />} />
+          <Route path="/stock-transfers" element={<StockTransfers />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
