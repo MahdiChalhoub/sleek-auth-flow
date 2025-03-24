@@ -18,83 +18,86 @@ const AppTopbar: React.FC = () => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
-  // Add refs to track the last opened component time
-  const lastOpenedTimestampRef = useRef<number>(0);
-  const activeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Reference to track if a state change is already in progress
+  const isChangingRef = useRef(false);
+  const pendingChangeRef = useRef<null | { setter: Function, value: boolean }>(null);
+  // Timeout reference for cleanup
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Clear timeout on unmount
+  // Effect to handle pending changes
   useEffect(() => {
     return () => {
-      if (activeTimeoutRef.current) {
-        clearTimeout(activeTimeoutRef.current);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
     };
   }, []);
   
-  // Helper function to manage dropdown state with debounce
-  const handleOpenStateChange = (
+  // Helper function to safely update dropdown state
+  const safelyUpdateState = (
     setter: React.Dispatch<React.SetStateAction<boolean>>,
-    open: boolean,
-    debounceTime = 100
+    value: boolean
   ) => {
-    const now = Date.now();
-    
-    // If trying to open and something was recently opened, prevent rapid state changes
-    if (open && now - lastOpenedTimestampRef.current < debounceTime) {
+    // If we're already in the process of changing state, queue this change
+    if (isChangingRef.current) {
+      pendingChangeRef.current = { setter, value };
       return;
     }
     
-    if (activeTimeoutRef.current) {
-      clearTimeout(activeTimeoutRef.current);
-    }
+    // Mark that we're changing state
+    isChangingRef.current = true;
     
-    // Update the timestamp when opening
-    if (open) {
-      lastOpenedTimestampRef.current = now;
-    }
+    // Apply the state change
+    setter(value);
     
-    // Use timeout to prevent rapid state changes
-    activeTimeoutRef.current = setTimeout(() => {
-      setter(open);
-      activeTimeoutRef.current = null;
-    }, 10);
+    // Reset the changing flag after a short delay
+    timeoutRef.current = setTimeout(() => {
+      isChangingRef.current = false;
+      
+      // If there's a pending change, apply it
+      if (pendingChangeRef.current) {
+        const { setter: pendingSetter, value: pendingValue } = pendingChangeRef.current;
+        pendingChangeRef.current = null;
+        safelyUpdateState(pendingSetter as React.Dispatch<React.SetStateAction<boolean>>, pendingValue);
+      }
+    }, 50);
   };
   
-  // Event handlers to prevent conflicts between different menus
+  // Close all other dropdowns when one is opened
+  const closeAllExcept = (keepOpen: string) => {
+    if (keepOpen !== 'business') setIsBusinessDialogOpen(false);
+    if (keepOpen !== 'location') setIsLocationDialogOpen(false);
+    if (keepOpen !== 'notifications') setIsNotificationsOpen(false);
+    if (keepOpen !== 'user') setIsUserMenuOpen(false);
+  };
+  
+  // Specific handlers for each dropdown
   const handleBusinessDialogChange = (open: boolean) => {
-    handleOpenStateChange(setIsBusinessDialogOpen, open);
     if (open) {
-      setIsLocationDialogOpen(false);
-      setIsNotificationsOpen(false);
-      setIsUserMenuOpen(false);
+      closeAllExcept('business');
     }
+    safelyUpdateState(setIsBusinessDialogOpen, open);
   };
   
   const handleLocationDialogChange = (open: boolean) => {
-    handleOpenStateChange(setIsLocationDialogOpen, open);
     if (open) {
-      setIsBusinessDialogOpen(false);
-      setIsNotificationsOpen(false);
-      setIsUserMenuOpen(false);
+      closeAllExcept('location');
     }
+    safelyUpdateState(setIsLocationDialogOpen, open);
   };
   
   const handleNotificationsChange = (open: boolean) => {
-    handleOpenStateChange(setIsNotificationsOpen, open);
     if (open) {
-      setIsBusinessDialogOpen(false);
-      setIsLocationDialogOpen(false);
-      setIsUserMenuOpen(false);
+      closeAllExcept('notifications');
     }
+    safelyUpdateState(setIsNotificationsOpen, open);
   };
   
   const handleUserMenuChange = (open: boolean) => {
-    handleOpenStateChange(setIsUserMenuOpen, open);
     if (open) {
-      setIsBusinessDialogOpen(false);
-      setIsLocationDialogOpen(false);
-      setIsNotificationsOpen(false);
+      closeAllExcept('user');
     }
+    safelyUpdateState(setIsUserMenuOpen, open);
   };
   
   return (

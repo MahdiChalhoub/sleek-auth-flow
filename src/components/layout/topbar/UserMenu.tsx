@@ -37,6 +37,14 @@ const UserMenu: React.FC<UserMenuProps> = ({
     onOpenChange?.(false);
   };
   
+  // Handler to prevent event propagation
+  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent event propagation to avoid auto-closing
+    e.stopPropagation();
+    // Toggle the menu state manually
+    onOpenChange?.(!isOpen);
+  };
+  
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
@@ -44,10 +52,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
           variant="ghost" 
           className="flex items-center gap-2"
           ref={buttonRef}
-          onClick={(e) => {
-            // Prevent event propagation to avoid auto-closing
-            e.stopPropagation();
-          }}
+          onClick={handleButtonClick}
         >
           <Avatar className="h-8 w-8">
             <AvatarImage src={user?.avatarUrl} alt={user?.name} />

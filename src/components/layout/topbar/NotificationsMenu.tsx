@@ -21,6 +21,14 @@ const NotificationsMenu: React.FC<NotificationsMenuProps> = ({
   // Use a ref to prevent auto-closing behavior
   const triggerRef = useRef<HTMLButtonElement>(null);
   
+  // Handler to prevent event propagation
+  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent event propagation to avoid auto-closing
+    e.stopPropagation();
+    // Toggle the menu state manually
+    onOpenChange(!isOpen);
+  };
+  
   return (
     <Popover open={isOpen} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
@@ -29,10 +37,7 @@ const NotificationsMenu: React.FC<NotificationsMenuProps> = ({
           size="icon" 
           className="relative"
           ref={triggerRef}
-          onClick={(e) => {
-            // Prevent event propagation to avoid auto-closing
-            e.stopPropagation();
-          }}
+          onClick={handleButtonClick}
         >
           <Bell className="h-5 w-5" />
           <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">
