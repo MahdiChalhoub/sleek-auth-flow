@@ -86,7 +86,7 @@ const MobileDrawerMenu: React.FC<MobileDrawerMenuProps> = ({ children }) => {
       <DrawerTrigger asChild>
         {children}
       </DrawerTrigger>
-      <DrawerContent className="h-full w-[250px] left-0 right-auto rounded-r-lg" side="left">
+      <DrawerContent className="h-full w-[250px] left-0 right-auto rounded-r-lg">
         <DrawerHeader className="border-b px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

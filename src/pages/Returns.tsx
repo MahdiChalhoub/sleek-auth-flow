@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useScreenSize } from "@/hooks/use-mobile";
-import { Search, BarcodeScan, FileSearch, ArrowLeftRight } from "lucide-react";
+import { Search, BarcodeIcon, FileSearch, ArrowLeftRight } from "lucide-react";
 
 const Returns: React.FC = () => {
   const { isMobile } = useScreenSize();
@@ -39,7 +39,7 @@ const Returns: React.FC = () => {
                     </div>
                   </div>
                   <Button variant="outline" className="gap-2">
-                    <BarcodeScan size={16} />
+                    <BarcodeIcon size={16} />
                     <span>Scan Receipt</span>
                   </Button>
                   <Button className="gap-2">
