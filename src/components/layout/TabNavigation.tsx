@@ -75,7 +75,9 @@ interface TabButtonProps {
 
 const TabButton = React.forwardRef<HTMLButtonElement, TabButtonProps>(
   ({ tab, isActive, onClick, onClose }, ref) => {
+    // Safely check if icon exists and is a valid component
     const IconComponent = tab.icon;
+    const hasValidIcon = IconComponent && typeof IconComponent === 'function';
     
     return (
       <button
@@ -86,9 +88,7 @@ const TabButton = React.forwardRef<HTMLButtonElement, TabButtonProps>(
         )}
         onClick={onClick}
       >
-        {IconComponent && typeof IconComponent === 'function' && (
-          <IconComponent className="h-4 w-4" />
-        )}
+        {hasValidIcon && <IconComponent className="h-4 w-4" />}
         <span>{tab.title}</span>
         <button
           className="ml-1 rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
