@@ -17,7 +17,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger 
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/popover";
 import { format } from "date-fns";
 import { 
   Plus, 
