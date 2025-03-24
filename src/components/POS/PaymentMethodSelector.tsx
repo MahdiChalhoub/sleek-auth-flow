@@ -11,11 +11,13 @@ import {
   Landmark,
   ArrowRight,
   Check,
-  User
+  User,
+  AlertCircle
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { PaymentMethod } from "@/models/transaction";
+import { Client } from "@/models/client";
 
 interface PaymentMethodSelectorProps {
   isOpen: boolean;
@@ -25,6 +27,7 @@ interface PaymentMethodSelectorProps {
     methods: Record<PaymentMethod, number>;
     totalPaid: number;
     change: number;
+    useCredit?: boolean;
   }) => void;
   selectedClient?: {
     name: string;
@@ -82,6 +85,12 @@ const PaymentMethodSelector = ({
     selectedClient.outstandingBalance !== undefined &&
     (selectedClient.creditLimit - selectedClient.outstandingBalance) >= amount;
   
+  // Check if client is blocked (for demonstration, we'll consider any client with outstandingBalance > creditLimit as blocked)
+  const isClientBlocked = selectedClient && 
+    selectedClient.creditLimit !== undefined && 
+    selectedClient.outstandingBalance !== undefined &&
+    selectedClient.outstandingBalance >= selectedClient.creditLimit;
+  
   // Handle payment amount change
   const handleAmountChange = (method: PaymentMethod, value: string) => {
     const numValue = parseFloat(value) || 0;
@@ -108,6 +117,16 @@ const PaymentMethodSelector = ({
     });
   };
   
+  // Handle split payment button
+  const handleSplitPayment = (method: PaymentMethod) => {
+    if (remainingAmount <= 0) return;
+    
+    setSelectedMethods(prev => ({
+      ...prev,
+      [method]: prev[method] + remainingAmount
+    }));
+  };
+  
   // Process payment
   const processPayment = () => {
     // If using client credit
@@ -115,7 +134,8 @@ const PaymentMethodSelector = ({
       onPaymentComplete({
         methods: { cash: 0, card: 0, bank: 0, wave: 0, mobile: 0 },
         totalPaid: amount,
-        change: 0
+        change: 0,
+        useCredit: true
       });
       toast.success(`Sale charged to ${selectedClient?.name}'s account`);
       return;
@@ -130,7 +150,8 @@ const PaymentMethodSelector = ({
     onPaymentComplete({
       methods: selectedMethods,
       totalPaid,
-      change: changeAmount
+      change: changeAmount,
+      useCredit: false
     });
     
     // Show change information if needed
@@ -166,6 +187,12 @@ const PaymentMethodSelector = ({
                 {selectedClient.isVip && (
                   <span className="bg-amber-200 text-amber-800 text-xs px-2 py-0.5 rounded-full">VIP</span>
                 )}
+                {isClientBlocked && (
+                  <span className="bg-red-200 text-red-800 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    Blocked
+                  </span>
+                )}
               </div>
               
               {selectedClient.creditLimit !== undefined && (
@@ -178,11 +205,17 @@ const PaymentMethodSelector = ({
                     <span className="text-muted-foreground">Outstanding:</span>
                     <span>${selectedClient.outstandingBalance?.toFixed(2) || "0.00"}</span>
                   </div>
+                  <div className="flex justify-between col-span-2">
+                    <span className="text-muted-foreground">Available Credit:</span>
+                    <span className={availableCredit <= 0 ? "text-red-500" : "text-green-500"}>
+                      ${availableCredit.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               )}
               
               {/* Credit Payment Option */}
-              {hasAvailableCredit && (
+              {hasAvailableCredit && !isClientBlocked && (
                 <div className="mt-2">
                   <Button 
                     variant={useCredit ? "default" : "outline"} 
@@ -276,13 +309,24 @@ const PaymentMethodSelector = ({
                           className="pl-8"
                         />
                       </div>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => handleFullPayment(method)}
-                        disabled={remainingAmount <= 0}
-                      >
-                        Full (${remainingAmount.toFixed(2)})
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => handleFullPayment(method)}
+                          disabled={remainingAmount <= 0}
+                          size="sm"
+                        >
+                          Full
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => handleSplitPayment(method)}
+                          disabled={remainingAmount <= 0}
+                          size="sm"
+                        >
+                          Split
+                        </Button>
+                      </div>
                     </div>
                     
                     {/* Quick amount buttons */}
@@ -292,6 +336,7 @@ const PaymentMethodSelector = ({
                           key={quickAmount}
                           variant="outline"
                           onClick={() => handleAmountChange(method, String(quickAmount))}
+                          size="sm"
                         >
                           ${quickAmount}
                         </Button>
@@ -310,7 +355,7 @@ const PaymentMethodSelector = ({
           </Button>
           <Button 
             onClick={processPayment}
-            disabled={!useCredit && totalPaid < amount}
+            disabled={(!useCredit && totalPaid < amount) || (useCredit && !hasAvailableCredit)}
             className="gap-2"
           >
             Complete Payment

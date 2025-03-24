@@ -1,13 +1,15 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, User, UserPlus, Star, CreditCard, Phone, Mail, MapPin } from "lucide-react";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Search, User, UserPlus, Star, CreditCard, Phone, Mail, MapPin, AlertCircle, Clock } from "lucide-react";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { Client, mockClients } from "@/models/client";
 
 interface ClientSelectorProps {
@@ -22,6 +24,7 @@ const newClientSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email" }).optional().or(z.literal("")),
   phone: z.string().min(5, { message: "Phone number is required" }),
   address: z.string().optional().or(z.literal("")),
+  notes: z.string().optional().or(z.literal("")),
 });
 
 type NewClientFormValues = z.infer<typeof newClientSchema>;
@@ -39,6 +42,7 @@ const ClientSelector = ({ isOpen, onClose, onSelect }: ClientSelectorProps) => {
       email: "",
       phone: "",
       address: "",
+      notes: "",
     },
   });
   
@@ -74,6 +78,13 @@ const ClientSelector = ({ isOpen, onClose, onSelect }: ClientSelectorProps) => {
   const onSubmit = (data: NewClientFormValues) => {
     // In a real app, you would add this client to the database
     onSelect(data.name);
+  };
+  
+  // Check if client is blocked (for demonstration, we'll consider any client with outstandingBalance > creditLimit as blocked)
+  const isClientBlocked = (client: Client) => {
+    return client.creditLimit !== undefined && 
+           client.outstandingBalance !== undefined &&
+           client.outstandingBalance >= client.creditLimit;
   };
   
   return (
@@ -117,6 +128,7 @@ const ClientSelector = ({ isOpen, onClose, onSelect }: ClientSelectorProps) => {
                     variant="outline"
                     className="w-full justify-start h-auto py-3"
                     onClick={() => onSelect(client.name)}
+                    disabled={isClientBlocked(client)}
                   >
                     <div className="flex items-center w-full">
                       <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center mr-3">
@@ -125,13 +137,28 @@ const ClientSelector = ({ isOpen, onClose, onSelect }: ClientSelectorProps) => {
                       <div className="text-left flex-1">
                         <div className="flex items-center">
                           <p className="font-medium">{client.name}</p>
-                          {client.isVip && (
-                            <div className="ml-2">
-                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            </div>
-                          )}
+                          <div className="ml-2 flex gap-1">
+                            {client.isVip && (
+                              <span className="inline-flex">
+                                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                              </span>
+                            )}
+                            {isClientBlocked(client) && (
+                              <span className="inline-flex">
+                                <AlertCircle className="h-3 w-3 text-red-500" />
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">{client.email} • {client.phone}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {client.email} • {client.phone}
+                        </p>
+                        {client.lastVisit && (
+                          <div className="flex items-center text-xs text-muted-foreground mt-0.5">
+                            <Clock className="h-3 w-3 mr-1" />
+                            <span>Last visit: {new Date(client.lastVisit).toLocaleDateString()}</span>
+                          </div>
+                        )}
                       </div>
                       {client.creditLimit !== undefined && (
                         <div className="text-right text-xs">
@@ -142,6 +169,9 @@ const ClientSelector = ({ isOpen, onClose, onSelect }: ClientSelectorProps) => {
                           <p className="text-muted-foreground">
                             Balance: ${client.outstandingBalance || 0}
                           </p>
+                          {isClientBlocked(client) && (
+                            <p className="text-red-500 text-xs">Account blocked</p>
+                          )}
                         </div>
                       )}
                     </div>
@@ -227,6 +257,27 @@ const ClientSelector = ({ isOpen, onClose, onSelect }: ClientSelectorProps) => {
                           <Input className="pl-9" placeholder="123 Main St, City" {...field} />
                         </div>
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Customer preferences or special requirements" 
+                          className="resize-none" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Add any additional information about this client
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

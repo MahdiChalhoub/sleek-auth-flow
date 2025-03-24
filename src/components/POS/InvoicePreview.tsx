@@ -2,7 +2,7 @@
 import React from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Printer, Mail, FileDown, ShoppingBag, Check } from "lucide-react";
+import { Printer, Mail, FileDown, ShoppingBag, Check, Building, CalendarDays, CreditCard, Receipt } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { format } from "date-fns";
 
@@ -22,14 +22,16 @@ interface InvoicePreviewProps {
   subtotal: number;
   discount: number;
   total: number;
-  paymentMethod: string;
+  paymentMethods: Record<string, number>;
   amountPaid: number;
   change: number;
   client?: {
     name: string;
     phone?: string;
     email?: string;
+    isVip?: boolean;
   };
+  usedCredit?: boolean;
 }
 
 const InvoicePreview = ({
@@ -40,13 +42,15 @@ const InvoicePreview = ({
   subtotal,
   discount,
   total,
-  paymentMethod,
+  paymentMethods,
   amountPaid,
   change,
-  client
+  client,
+  usedCredit
 }: InvoicePreviewProps) => {
   const transactionCode = `TX-${Date.now().toString().slice(-8)}`;
   const currentDate = new Date();
+  const cashierName = "John Doe"; // In a real app, this would be the logged-in user's name
   
   // Function to trigger printing
   const handlePrint = () => {
@@ -58,12 +62,27 @@ const InvoicePreview = ({
   const handleEmail = () => {
     // In a real app, this would trigger sending an email with receipt
     console.log("Emailing receipt to:", client?.email);
+    window.open(`mailto:${client?.email || ''}?subject=Receipt ${transactionCode}&body=Please find your receipt attached.`);
   };
   
   // Function to save as PDF
   const handleSaveAsPDF = () => {
     // In a real app, this would trigger PDF generation and download
     console.log("Saving receipt as PDF");
+  };
+  
+  // Function to get payment method display name
+  const getPaymentMethodDisplay = (method: string) => {
+    const paymentMethodMap: Record<string, string> = {
+      cash: "Cash",
+      card: "Credit/Debit Card",
+      bank: "Bank Transfer",
+      wave: "Wave",
+      mobile: "Mobile Money",
+      credit: "Customer Account"
+    };
+    
+    return paymentMethodMap[method] || method;
   };
   
   return (
@@ -79,14 +98,30 @@ const InvoicePreview = ({
             {/* Receipt Header */}
             <div className="text-center mb-4">
               <h3 className="font-bold text-lg">SALES RECEIPT</h3>
-              <p className="text-xs text-muted-foreground">{format(currentDate, "PPpp")}</p>
-              <p className="text-xs text-muted-foreground">Transaction: {transactionCode}</p>
+              <div className="flex items-center justify-center gap-1 mb-1">
+                <CalendarDays className="h-3 w-3" />
+                <p className="text-xs text-muted-foreground">{format(currentDate, "PPpp")}</p>
+              </div>
+              <div className="flex items-center justify-center gap-1">
+                <Receipt className="h-3 w-3" />
+                <p className="text-xs text-muted-foreground">Transaction: {transactionCode}</p>
+              </div>
+            </div>
+            
+            {/* Business Info */}
+            <div className="text-center mb-3">
+              <div className="flex items-center justify-center gap-1">
+                <Building className="h-3 w-3" />
+                <p className="text-xs font-semibold">ACME CORPORATION</p>
+              </div>
+              <p className="text-xs text-muted-foreground">123 Business Ave, City, Country</p>
+              <p className="text-xs text-muted-foreground">Tax ID: 123456789</p>
             </div>
             
             {/* Client Info */}
             {client && client.name !== "Guest" && (
               <div className="mb-3 text-xs">
-                <p><span className="font-semibold">Customer:</span> {client.name}</p>
+                <p><span className="font-semibold">Customer:</span> {client.name} {client.isVip && "(VIP)"}</p>
                 {client.phone && <p><span className="font-semibold">Phone:</span> {client.phone}</p>}
                 {client.email && <p><span className="font-semibold">Email:</span> {client.email}</p>}
               </div>
@@ -141,16 +176,33 @@ const InvoicePreview = ({
                 <span>${total.toFixed(2)}</span>
               </div>
               
-              <div className="flex justify-between">
-                <span>Payment ({paymentMethod}):</span>
-                <span>${amountPaid.toFixed(2)}</span>
-              </div>
-              
-              {change > 0 && (
+              {/* Payment Methods */}
+              {usedCredit ? (
                 <div className="flex justify-between">
-                  <span>Change:</span>
-                  <span>${change.toFixed(2)}</span>
+                  <div className="flex items-center gap-1">
+                    <CreditCard className="h-3 w-3" />
+                    <span>Charged to Account:</span>
+                  </div>
+                  <span>${total.toFixed(2)}</span>
                 </div>
+              ) : (
+                <>
+                  {Object.entries(paymentMethods).map(([method, amount]) => 
+                    amount > 0 ? (
+                      <div key={method} className="flex justify-between">
+                        <span>{getPaymentMethodDisplay(method)}:</span>
+                        <span>${amount.toFixed(2)}</span>
+                      </div>
+                    ) : null
+                  )}
+                  
+                  {change > 0 && (
+                    <div className="flex justify-between">
+                      <span>Change:</span>
+                      <span>${change.toFixed(2)}</span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
             
@@ -158,7 +210,7 @@ const InvoicePreview = ({
             
             {/* Footer */}
             <div className="text-center text-xs text-muted-foreground">
-              <p>Cashier: John Doe</p>
+              <p>Cashier: {cashierName}</p>
               <p className="mt-2">Thank you for your purchase!</p>
               <p>Please keep this receipt for returns or exchanges.</p>
               <p>Returns accepted within 30 days with receipt.</p>
@@ -173,7 +225,7 @@ const InvoicePreview = ({
               <span>Print</span>
             </Button>
             
-            <Button variant="outline" size="sm" onClick={handleEmail} className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleEmail} className="flex items-center gap-2" disabled={!client?.email}>
               <Mail className="h-4 w-4" />
               <span>Email</span>
             </Button>
