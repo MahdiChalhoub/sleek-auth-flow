@@ -11,13 +11,17 @@ interface SecurityCodeDialogProps {
   description: string;
   onConfirm: () => void;
   onCancel: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
 const SecurityCodeDialog: React.FC<SecurityCodeDialogProps> = ({
   title,
   description,
   onConfirm,
-  onCancel
+  onCancel,
+  isOpen, // We added this prop but won't use it directly since this component doesn't control visibility
+  onClose // We added this prop but will use onCancel instead
 }) => {
   const [securityCode, setSecurityCode] = useState("");
   const [error, setError] = useState("");

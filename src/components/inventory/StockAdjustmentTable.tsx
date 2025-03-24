@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import SecurityCodeDialog from "./SecurityCodeDialog";
 
 interface StockAdjustmentTableProps {
@@ -103,12 +104,14 @@ const StockAdjustmentTable: React.FC<StockAdjustmentTableProps> = ({ products })
           </Button>
         </div>
 
-        <SecurityCodeDialog
-          title="Confirm Stock Adjustment"
-          description="Enter security code to confirm stock adjustment"
-          onConfirm={handleConfirmAdjustment}
-          onCancel={() => setShowSecurityDialog(false)}
-        />
+        <Dialog open={showSecurityDialog} onOpenChange={setShowSecurityDialog}>
+          <SecurityCodeDialog
+            title="Confirm Stock Adjustment"
+            description="Enter security code to confirm stock adjustment"
+            onConfirm={handleConfirmAdjustment}
+            onCancel={() => setShowSecurityDialog(false)}
+          />
+        </Dialog>
       </CardContent>
     </Card>
   );
