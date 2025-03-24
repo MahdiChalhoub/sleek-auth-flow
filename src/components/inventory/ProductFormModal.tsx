@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -514,5 +515,56 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
             </>
           )}
 
-          {
+          <div>
+            <Label htmlFor="quantity">Quantity in Stock</Label>
+            <Input
+              id="quantity"
+              name="quantity"
+              type="number"
+              min="0"
+              value={formData.quantity}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
+          <div>
+            <Label htmlFor="lowStockThreshold">Low Stock Alert Threshold</Label>
+            <Input
+              id="lowStockThreshold"
+              name="lowStockThreshold"
+              type="number"
+              min="0"
+              value={formData.lowStockThreshold}
+              onChange={handleChange}
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">
+            {product ? "Update Product" : "Add Product"}
+          </Button>
+        </DialogFooter>
+      </form>
+
+      <Dialog open={isSecurityDialogOpen} onOpenChange={setIsSecurityDialogOpen}>
+        <SecurityCodeDialog
+          title={securityAction === "enableCombo" ? "Enable Combo Product" : "Manual Price Override"}
+          description={
+            securityAction === "enableCombo"
+              ? "Enter security code to enable combo product functionality."
+              : "Enter security code to manually set product pricing."
+          }
+          onConfirm={handleSecurityConfirm}
+          onCancel={() => setIsSecurityDialogOpen(false)}
+        />
+      </Dialog>
+    </DialogContent>
+  );
+};
+
+export default ProductFormModal;
