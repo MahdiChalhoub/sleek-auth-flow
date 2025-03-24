@@ -10,7 +10,7 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useTabs } from "@/contexts/TabsContext";
+import { useTabs } from "@/contexts/tabs"; // Updated import path
 import { NavItem as NavItemType } from "../nav";
 
 interface NavItemProps {

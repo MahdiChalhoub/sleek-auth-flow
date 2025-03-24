@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { findTabByPath, isPathMatch } from "./tabUtils";
+import { findTabByPath } from "./tabUtils";
 import { Tab } from "./types";
 
 interface TabsContextType {
@@ -24,7 +23,6 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Initialize tabs from localStorage if available
   useEffect(() => {
     const savedTabs = localStorage.getItem('appTabs');
     const savedActiveTab = localStorage.getItem('activeTabId');
@@ -49,7 +47,6 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Save tabs to localStorage when they change
   useEffect(() => {
     localStorage.setItem('appTabs', JSON.stringify(tabs));
     if (activeTabId) {
@@ -57,12 +54,10 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [tabs, activeTabId]);
 
-  // Find a tab by path
   const findTabByPathFn = (path: string): Tab | undefined => {
     return findTabByPath(tabs, path);
   };
 
-  // Open a tab if not already open
   const openTab = (tab: Omit<Tab, "id">) => {
     const existingTab = findTabByPathFn(tab.path);
     
@@ -83,7 +78,6 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Close a tab
   const closeTab = (tabId: string) => {
     const tabIndex = tabs.findIndex(t => t.id === tabId);
     if (tabIndex === -1) return;
@@ -91,9 +85,7 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const newTabs = tabs.filter(t => t.id !== tabId);
     setTabs(newTabs);
     
-    // If the active tab is being closed, activate another tab
     if (activeTabId === tabId && newTabs.length > 0) {
-      // Try to activate the tab to the left, or the first tab if there isn't one
       const newActiveTab = newTabs[tabIndex > 0 ? tabIndex - 1 : 0];
       setActiveTabId(newActiveTab.id);
       navigate(newActiveTab.path, { replace: true });
@@ -103,7 +95,6 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Activate a tab
   const activateTab = (tabId: string) => {
     const tab = tabs.find(t => t.id === tabId);
     if (tab) {
@@ -114,18 +105,15 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Check if a tab with the given path is already open
   const isTabOpen = (path: string) => {
     return !!findTabByPathFn(path);
   };
 
-  // Get tab state
   const getTabState = (tabId: string) => {
     const tab = tabs.find(t => t.id === tabId);
     return tab?.state;
   };
 
-  // Update tab state
   const updateTabState = (tabId: string, state: Record<string, any>) => {
     setTabs(prev => 
       prev.map(tab => 
