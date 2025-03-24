@@ -15,6 +15,9 @@ import Suppliers from './pages/Suppliers';
 import PurchaseOrders from './pages/PurchaseOrders';
 import StockTransfers from './pages/StockTransfers';
 import Transactions from './pages/Transactions';
+import RegisterPage from './pages/POSRegister';
+import RegisterSessions from './pages/RegisterSessions';
+import Signup from './pages/Signup';
 
 // Add PrivateRoute component
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -28,6 +31,7 @@ const App = () => {
         <LocationProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<Signup />} />
             <Route path="/" element={<Navigate to="/home" replace />} />
             
             <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
@@ -39,6 +43,8 @@ const App = () => {
               <Route path="/purchase-orders" element={<PurchaseOrders />} />
               <Route path="/stock-transfers" element={<StockTransfers />} />
               <Route path="/transactions" element={<Transactions />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/register-sessions" element={<RegisterSessions />} />
             </Route>
           </Routes>
           
