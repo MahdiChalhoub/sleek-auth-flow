@@ -1,85 +1,130 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useScreenSize } from "@/hooks/use-mobile";
-import { Search, BarcodeIcon, FileSearch, ArrowLeftRight } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DatePickerWithRange } from "@/components/returns/DateRangePicker";
+import { SalesReturnsList } from "@/components/returns/SalesReturnsList";
+import { PurchaseReturnsList } from "@/components/returns/PurchaseReturnsList";
+import { NewSalesReturnButton } from "@/components/returns/NewSalesReturnButton";
+import { NewPurchaseReturnButton } from "@/components/returns/NewPurchaseReturnButton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search } from "lucide-react";
 
 const Returns: React.FC = () => {
   const { isMobile } = useScreenSize();
+  const [activeTab, setActiveTab] = useState<"sales" | "purchase">("sales");
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
+    from: undefined,
+    to: undefined,
+  });
+  const [clientSupplier, setClientSupplier] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
   
   return (
     <div className="container mx-auto space-y-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold">Returns & Exchanges</h1>
-        <p className="text-muted-foreground">Process customer returns and exchanges</p>
+        <p className="text-muted-foreground">Process customer and supplier returns</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Find Transaction</CardTitle>
-              <CardDescription>
-                Search for a transaction to process a return
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="flex-1">
-                    <div className="relative">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        type="text"
-                        placeholder="Search by receipt number or customer name"
-                        className="pl-8"
-                      />
-                    </div>
-                  </div>
-                  <Button variant="outline" className="gap-2">
-                    <BarcodeIcon size={16} />
-                    <span>Scan Receipt</span>
-                  </Button>
-                  <Button className="gap-2">
-                    <FileSearch size={16} />
-                    <span>Search</span>
-                  </Button>
-                </div>
-                
-                <div className="rounded-lg border bg-card p-10 flex flex-col items-center justify-center text-center min-h-[400px]">
-                  <div className="mb-4">
-                    <ArrowLeftRight size={48} className="text-muted-foreground/50" />
-                  </div>
-                  <p className="text-lg font-medium">No Transaction Selected</p>
-                  <p className="text-muted-foreground">Search for a transaction to begin the return process</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      <Tabs defaultValue="sales" onValueChange={(value) => setActiveTab(value as "sales" | "purchase")}>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <TabsList className="bg-muted/60 backdrop-blur">
+            <TabsTrigger value="sales">Sales Returns</TabsTrigger>
+            <TabsTrigger value="purchase">Purchase Returns</TabsTrigger>
+          </TabsList>
+          
+          <div className="flex gap-2">
+            {activeTab === "sales" ? (
+              <NewSalesReturnButton />
+            ) : (
+              <NewPurchaseReturnButton />
+            )}
+          </div>
         </div>
         
-        <div className="md:col-span-1">
-          <Card className="h-full">
-            <CardHeader>
-              <CardTitle>Return Summary</CardTitle>
-              <CardDescription>
-                Return details and refund information
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1">
-              <div className="rounded-lg border bg-card p-6 text-center h-[300px] flex flex-col items-center justify-center">
-                <p className="text-muted-foreground">Select transaction to view return summary</p>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle>Filter Returns</CardTitle>
+            <CardDescription>
+              Narrow down results by date, {activeTab === "sales" ? "client" : "supplier"}, or product
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <p className="text-sm font-medium mb-2">Date Range</p>
+                <DatePickerWithRange 
+                  date={dateRange} 
+                  setDate={setDateRange} 
+                />
               </div>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t pt-4">
-              <Button variant="ghost">Cancel</Button>
-              <Button disabled>Process Return</Button>
-            </CardFooter>
-          </Card>
+              
+              <div className="flex-1">
+                <p className="text-sm font-medium mb-2">
+                  {activeTab === "sales" ? "Client" : "Supplier"}
+                </p>
+                <Select value={clientSupplier} onValueChange={setClientSupplier}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={`Select ${activeTab === "sales" ? "client" : "supplier"}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All</SelectItem>
+                    {activeTab === "sales" ? (
+                      <>
+                        <SelectItem value="client1">John Doe</SelectItem>
+                        <SelectItem value="client2">Jane Smith</SelectItem>
+                        <SelectItem value="client3">Bob Johnson</SelectItem>
+                      </>
+                    ) : (
+                      <>
+                        <SelectItem value="supplier1">Apple Inc.</SelectItem>
+                        <SelectItem value="supplier2">Samsung Electronics</SelectItem>
+                        <SelectItem value="supplier3">Sony Electronics</SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex-1">
+                <p className="text-sm font-medium mb-2">Product Search</p>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search products..."
+                    className="pl-8"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <div className="mt-6">
+          <TabsContent value="sales" className="m-0">
+            <SalesReturnsList 
+              dateRange={dateRange} 
+              clientId={clientSupplier} 
+              searchQuery={searchQuery} 
+            />
+          </TabsContent>
+          
+          <TabsContent value="purchase" className="m-0">
+            <PurchaseReturnsList 
+              dateRange={dateRange} 
+              supplierId={clientSupplier} 
+              searchQuery={searchQuery} 
+            />
+          </TabsContent>
         </div>
-      </div>
+      </Tabs>
     </div>
   );
 };
