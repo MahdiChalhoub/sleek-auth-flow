@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,12 +10,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SalesTrendsChart } from "@/components/dashboard/SalesTrendsChart";
 import { TopSellingProductsChart } from "@/components/dashboard/TopSellingProductsChart";
 import { ReturnsByCategoryChart } from "@/components/dashboard/ReturnsByCategoryChart";
-import { ProfitLossChart } from "@/components/dashboard/ProfitLossChart";
+import { CategorySalesDistributionChart } from "@/components/dashboard/CategorySalesDistributionChart";
+import { MonthlyPurchaseVsSalesChart } from "@/components/dashboard/MonthlyPurchaseVsSalesChart";
 import { DailySummaryTable } from "@/components/dashboard/DailySummaryTable";
 import { OverviewCards } from "@/components/dashboard/OverviewCards";
-import { CalendarIcon, Download, Search } from "lucide-react";
+import { StaffManagementTable } from "@/components/dashboard/StaffManagementTable";
+import { FinancialManagementSection } from "@/components/dashboard/FinancialManagementSection";
+import { LoyaltyAndPromotionsSection } from "@/components/dashboard/LoyaltyAndPromotionsSection";
+import { CalendarIcon, Download, FileText, Search, Users, BarChart3, DollarSign, ShoppingBag, Gift } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -52,36 +64,81 @@ const Dashboard: React.FC = () => {
     return `${greeting}, ${user?.name}! ${roleSpecificMessage[user?.role || "cashier"]}`;
   };
 
+  // Get current date in nice format
+  const getCurrentDate = () => {
+    const options: Intl.DateTimeFormatOptions = { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    return new Date().toLocaleDateString('en-US', options);
+  };
+
   return (
     <div className="container mx-auto space-y-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">{getWelcomeMessage()}</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <p className="text-muted-foreground">{getWelcomeMessage()}</p>
+            <Badge variant="outline" className="ml-2">
+              {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">{getCurrentDate()}</p>
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">
+                <FileText className="mr-2 h-4 w-4" />
+                Export Data
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                <Download className="mr-2 h-4 w-4" />
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("excel")}>
+                <Download className="mr-2 h-4 w-4" />
+                Export as Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("pdf")}>
+                <Download className="mr-2 h-4 w-4" />
+                Export as PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <Button variant="default">
+            Quick Actions
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="overview" onValueChange={setActiveTab}>
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="sales">Sales Analysis</TabsTrigger>
-            <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="returns">Returns</TabsTrigger>
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="overview" className="flex items-center">
+              <BarChart3 className="mr-1.5 h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="staff" className="flex items-center">
+              <Users className="mr-1.5 h-4 w-4" />
+              Staff
+            </TabsTrigger>
+            <TabsTrigger value="finance" className="flex items-center">
+              <DollarSign className="mr-1.5 h-4 w-4" />
+              Finance
+            </TabsTrigger>
+            <TabsTrigger value="loyalty" className="flex items-center">
+              <Gift className="mr-1.5 h-4 w-4" />
+              Loyalty
+            </TabsTrigger>
           </TabsList>
-
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleExport("csv")}>
-              <Download className="mr-2 h-4 w-4" />
-              CSV
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => handleExport("excel")}>
-              <Download className="mr-2 h-4 w-4" />
-              Excel
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => handleExport("pdf")}>
-              <Download className="mr-2 h-4 w-4" />
-              PDF
-            </Button>
-          </div>
         </div>
         
         {/* Filter Card */}
@@ -156,8 +213,8 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Sales Trends</CardTitle>
-                <CardDescription>Last 6 months sales performance</CardDescription>
+                <CardTitle>Sales & Profit Trends</CardTitle>
+                <CardDescription>Last 6 months sales and profit performance</CardDescription>
               </CardHeader>
               <CardContent>
                 <SalesTrendsChart />
@@ -167,7 +224,7 @@ const Dashboard: React.FC = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Top Selling Products</CardTitle>
-                <CardDescription>Best performing products</CardDescription>
+                <CardDescription>Best performing products by quantity and revenue</CardDescription>
               </CardHeader>
               <CardContent>
                 <TopSellingProductsChart />
@@ -178,6 +235,16 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
+                <CardTitle>Category Sales Distribution</CardTitle>
+                <CardDescription>Distribution of sales across categories</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CategorySalesDistributionChart />
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
                 <CardTitle>Returns by Category</CardTitle>
                 <CardDescription>Distribution of returns across categories</CardDescription>
               </CardHeader>
@@ -185,17 +252,17 @@ const Dashboard: React.FC = () => {
                 <ReturnsByCategoryChart />
               </CardContent>
             </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Monthly Profit/Loss</CardTitle>
-                <CardDescription>Financial performance by month</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ProfitLossChart />
-              </CardContent>
-            </Card>
           </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Purchases vs Sales</CardTitle>
+              <CardDescription>Monthly comparison of purchases and sales</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <MonthlyPurchaseVsSalesChart />
+            </CardContent>
+          </Card>
           
           <Card>
             <CardHeader>
@@ -208,39 +275,41 @@ const Dashboard: React.FC = () => {
           </Card>
         </TabsContent>
         
-        {/* Other Tabs - Simplified for this implementation */}
-        <TabsContent value="sales" className="m-0">
+        {/* Staff Management Tab */}
+        <TabsContent value="staff" className="m-0 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Detailed Sales Analysis</CardTitle>
-              <CardDescription>In-depth sales metrics and analytics</CardDescription>
+              <CardTitle>Staff Management</CardTitle>
+              <CardDescription>Manage employees, attendance, and payroll</CardDescription>
             </CardHeader>
-            <CardContent className="h-96 flex items-center justify-center text-muted-foreground">
-              Detailed sales analysis will appear here.
+            <CardContent>
+              <StaffManagementTable />
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="products" className="m-0">
+        {/* Financial Management Tab */}
+        <TabsContent value="finance" className="m-0 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Product Performance</CardTitle>
-              <CardDescription>Detailed product metrics and insights</CardDescription>
+              <CardTitle>Financial Management</CardTitle>
+              <CardDescription>Track financial performance and manage expenses</CardDescription>
             </CardHeader>
-            <CardContent className="h-96 flex items-center justify-center text-muted-foreground">
-              Product performance data will appear here.
+            <CardContent>
+              <FinancialManagementSection />
             </CardContent>
           </Card>
         </TabsContent>
         
-        <TabsContent value="returns" className="m-0">
+        {/* Loyalty & Promotions Tab */}
+        <TabsContent value="loyalty" className="m-0 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Returns Analysis</CardTitle>
-              <CardDescription>Patterns and insights from return data</CardDescription>
+              <CardTitle>Loyalty & Promotions</CardTitle>
+              <CardDescription>Manage loyalty programs and promotional offers</CardDescription>
             </CardHeader>
-            <CardContent className="h-96 flex items-center justify-center text-muted-foreground">
-              Returns analysis data will appear here.
+            <CardContent>
+              <LoyaltyAndPromotionsSection />
             </CardContent>
           </Card>
         </TabsContent>

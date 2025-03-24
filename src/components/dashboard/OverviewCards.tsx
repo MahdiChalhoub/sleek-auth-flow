@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
-import { ArrowUpRight, DollarSign, Package, RefreshCw, TrendingUp } from "lucide-react";
+import { ArrowUpRight, DollarSign, Package, RefreshCw, TrendingUp, ReceiptText, ShoppingCart, Tag } from "lucide-react";
 
 export const OverviewCards: React.FC = () => {
   // Mock data - in a real app, this would come from an API
@@ -10,7 +10,8 @@ export const OverviewCards: React.FC = () => {
     totalSales: 4785.50,
     totalProfit: 1258.75,
     returnsCount: 5,
-    expenses: 876.25
+    expenses: 876.25,
+    avgMargin: 26.3
   };
   
   const getPercentChange = (value: number) => {
@@ -19,7 +20,8 @@ export const OverviewCards: React.FC = () => {
       4785.50: 12.5,
       1258.75: 8.2,
       5: -15.5,
-      876.25: 4.8
+      876.25: 4.8,
+      26.3: 2.1
     };
     
     return percentages[value as keyof typeof percentages] || 0;
@@ -35,7 +37,7 @@ export const OverviewCards: React.FC = () => {
       trend: "up"
     },
     {
-      title: "Total Profit Today",
+      title: "Net Profit Today",
       value: todayData.totalProfit,
       description: "Net profit after expenses",
       percentChange: getPercentChange(todayData.totalProfit),
@@ -57,11 +59,19 @@ export const OverviewCards: React.FC = () => {
       percentChange: getPercentChange(todayData.expenses),
       icon: Package,
       trend: "up"
+    },
+    {
+      title: "Average Margin",
+      value: `${todayData.avgMargin}%`,
+      description: "Average profit margin this month",
+      percentChange: getPercentChange(todayData.avgMargin),
+      icon: Tag,
+      trend: "up"
     }
   ];
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {cards.map((card, index) => (
         <Card key={index} className="overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
