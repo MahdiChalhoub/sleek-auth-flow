@@ -37,6 +37,7 @@ interface AddLocationModalProps {
   onSave: (location: Branch) => void;
 }
 
+// Make sure the schema matches the Branch interface type requirements
 const locationSchema = z.object({
   name: z.string().min(2, { message: "Location name must be at least 2 characters" }),
   type: z.enum(["store", "warehouse", "pickup"]),
@@ -46,13 +47,13 @@ const locationSchema = z.object({
   managerId: z.string().optional(),
   locationCode: z.string().optional(),
   openingHours: z.object({
-    monday: z.string().optional(),
-    tuesday: z.string().optional(),
-    wednesday: z.string().optional(),
-    thursday: z.string().optional(),
-    friday: z.string().optional(),
-    saturday: z.string().optional(),
-    sunday: z.string().optional(),
+    monday: z.string(),
+    tuesday: z.string(),
+    wednesday: z.string(),
+    thursday: z.string(),
+    friday: z.string(),
+    saturday: z.string(),
+    sunday: z.string(),
   }).optional(),
 });
 
