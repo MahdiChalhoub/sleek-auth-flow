@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 import { useTabs, Tab } from "@/contexts/TabsContext";
@@ -14,7 +13,6 @@ const TabNavigation: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLButtonElement>(null);
 
-  // Sync current route with tabs
   useEffect(() => {
     if (location.pathname === '/') return;
     
@@ -28,7 +26,6 @@ const TabNavigation: React.FC = () => {
     }
   }, [location.pathname]);
 
-  // Scroll active tab into view
   useEffect(() => {
     if (activeTabRef.current && scrollContainerRef.current) {
       const tabElement = activeTabRef.current;
@@ -78,7 +75,6 @@ interface TabButtonProps {
 
 const TabButton = React.forwardRef<HTMLButtonElement, TabButtonProps>(
   ({ tab, isActive, onClick, onClose }, ref) => {
-    // Check if the icon is a valid React component before rendering
     const IconComponent = tab.icon;
     
     return (
@@ -90,7 +86,7 @@ const TabButton = React.forwardRef<HTMLButtonElement, TabButtonProps>(
         )}
         onClick={onClick}
       >
-        {IconComponent && typeof IconComponent === 'function' && <IconComponent className="h-4 w-4" />}
+        {IconComponent && <IconComponent className="h-4 w-4" />}
         <span>{tab.title}</span>
         <button
           className="ml-1 rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"

@@ -47,6 +47,7 @@ const SidebarNavigation: React.FC = () => {
   const renderNavItem = (item: NavItem) => {
     const hasChildren = item.children && item.children.length > 0;
     const isGroupOpen = openGroups[item.title];
+    const Icon = item.icon;
     
     return (
       <SidebarMenuItem key={item.path}>
@@ -59,7 +60,7 @@ const SidebarNavigation: React.FC = () => {
                 tooltip={item.title}
               >
                 <div className="flex items-center">
-                  <item.icon className="h-5 w-5 mr-2" />
+                  {Icon && <Icon className="h-5 w-5 mr-2" />}
                   <span>{item.title}</span>
                 </div>
                 {isGroupOpen ? (
@@ -71,24 +72,27 @@ const SidebarNavigation: React.FC = () => {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarMenuSub>
-                {item.children?.map(child => (
-                  <SidebarMenuSubItem key={child.path}>
-                    <SidebarMenuSubButton
-                      onClick={() => {
-                        navigate(child.path);
-                        openTab({
-                          title: child.title,
-                          path: child.path,
-                          icon: child.icon
-                        });
-                      }}
-                      isActive={isItemActive(child.path)}
-                    >
-                      <child.icon className="h-4 w-4 mr-2" />
-                      <span>{child.title}</span>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                ))}
+                {item.children?.map(child => {
+                  const ChildIcon = child.icon;
+                  return (
+                    <SidebarMenuSubItem key={child.path}>
+                      <SidebarMenuSubButton
+                        onClick={() => {
+                          navigate(child.path);
+                          openTab({
+                            title: child.title,
+                            path: child.path,
+                            icon: child.icon
+                          });
+                        }}
+                        isActive={isItemActive(child.path)}
+                      >
+                        {ChildIcon && <ChildIcon className="h-4 w-4 mr-2" />}
+                        <span>{child.title}</span>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  );
+                })}
               </SidebarMenuSub>
             </CollapsibleContent>
           </Collapsible>
@@ -98,7 +102,7 @@ const SidebarNavigation: React.FC = () => {
             tooltip={item.title}
             onClick={() => handleNavigation(item)}
           >
-            <item.icon className="h-5 w-5" />
+            {Icon && <Icon className="h-5 w-5" />}
             <span>{item.title}</span>
           </SidebarMenuButton>
         )}

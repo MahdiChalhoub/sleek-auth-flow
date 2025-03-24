@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -6,7 +5,7 @@ export interface Tab {
   id: string;
   title: string;
   path: string;
-  icon?: React.ComponentType<{ className?: string }>;
+  icon?: React.ElementType;
 }
 
 interface TabsContextType {
