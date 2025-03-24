@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Users, LogOut } from "lucide-react";
 
 const Index = () => {
   const handleLogout = () => {
@@ -20,14 +21,38 @@ const Index = () => {
           Welcome to your POS system. You are now logged in.
         </p>
         
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+          <Button
+            className="p-6 h-auto flex flex-col items-center gap-3"
+            variant="outline"
+            asChild
+          >
+            <Link to="/roles">
+              <Users className="h-6 w-6" />
+              <span>Manage Roles</span>
+            </Link>
+          </Button>
+          
+          <Button
+            className="p-6 h-auto flex flex-col items-center gap-3"
+            variant="outline"
+          >
+            <Users className="h-6 w-6" />
+            <span>Manage Users</span>
+          </Button>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
           <Button
             className="px-8 py-2"
             variant="outline"
             onClick={handleLogout}
             asChild
           >
-            <Link to="/login">Logout</Link>
+            <Link to="/login">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Link>
           </Button>
           
           <Button
