@@ -9,6 +9,16 @@ export interface Product {
   barcode: string;
   stock: number;
   category: string;
+  isCombo?: boolean;
+  comboComponents?: ComboComponent[];
+  hasStock?: boolean;
+}
+
+// Combo component type definition
+export interface ComboComponent {
+  productId: string;
+  quantity: number;
+  product: Product;
 }
 
 // Mock product data
@@ -174,3 +184,4 @@ export const mockProducts: Product[] = [
     category: "baby"
   }
 ];
+
