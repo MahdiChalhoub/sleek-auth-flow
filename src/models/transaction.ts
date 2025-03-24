@@ -11,7 +11,7 @@ export * from './interfaces/permissionInterfaces';
 // Exclude Branch from branchInterfaces to avoid conflicts with businessInterfaces
 export * from './interfaces/backupInterfaces';
 // Explicitly import and re-export businessInterfaces to ensure no conflicts
-export { Business, UserBusinessAssignment, Branch } from './interfaces/businessInterfaces';
+export type { Business, UserBusinessAssignment, Branch } from './interfaces/businessInterfaces';
 
 // Re-export mock data
 export * from './mockData/transactionMockData';

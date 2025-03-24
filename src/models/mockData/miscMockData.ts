@@ -9,8 +9,10 @@ export const mockBranches: Branch[] = [
     address: "123 Main Street, Anytown",
     phone: "+123456789",
     email: "main@example.com",
-    manager: "John Admin",
-    isActive: true,
+    managerId: "user-manager", // Changed from manager to managerId
+    status: "active", // Added status field which is required
+    businessId: "bus-1", // Added businessId which is required
+    type: "store", // Added type which is required
     openingHours: {
       monday: "9:00 AM - 9:00 PM",
       tuesday: "9:00 AM - 9:00 PM",
@@ -29,8 +31,10 @@ export const mockBranches: Branch[] = [
     address: "456 Commerce Ave, Downtown",
     phone: "+987654321",
     email: "downtown@example.com",
-    manager: "Mike Manager",
-    isActive: true,
+    managerId: "user-manager", // Changed from manager to managerId
+    status: "active", // Added status field which is required
+    businessId: "bus-1", // Added businessId which is required
+    type: "store", // Added type which is required
     openingHours: {
       monday: "8:00 AM - 8:00 PM",
       tuesday: "8:00 AM - 8:00 PM",
@@ -49,8 +53,10 @@ export const mockBranches: Branch[] = [
     address: "789 Ocean Blvd, Westside",
     phone: "+192837465",
     email: "westside@example.com",
-    manager: "Sarah Supervisor",
-    isActive: true,
+    managerId: "user-supervisor", // Changed from manager to managerId
+    status: "active", // Added status field which is required
+    businessId: "bus-2", // Added businessId which is required
+    type: "store", // Added type which is required
     openingHours: {
       monday: "7:00 AM - 11:00 PM",
       tuesday: "7:00 AM - 11:00 PM",
