@@ -26,6 +26,7 @@ export const useRegister = (initialRegister?: Register) => {
     mobile: 0,
     not_specified: 0
   });
+  
   const [closingBalances, setClosingBalances] = useState<Record<PaymentMethod, number>>({
     cash: 0,
     card: 0,
@@ -113,10 +114,10 @@ export const useRegister = (initialRegister?: Register) => {
 
   const handleBalanceChange = (method: PaymentMethod, value: string) => {
     const numValue = parseFloat(value) || 0;
-    setClosingBalances({
-      ...closingBalances,
+    setClosingBalances(prev => ({
+      ...prev,
       [method]: numValue,
-    });
+    }));
   };
 
   const handleResolutionChange = (value: string) => {

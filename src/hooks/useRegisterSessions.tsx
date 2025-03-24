@@ -107,9 +107,11 @@ export const useRegisterSessions = () => {
   // Create a new register
   const createRegister = useMutation({
     mutationFn: async (register: Omit<Register, 'id'>) => {
+      const dbModel = mapToDbModel(register as Register);
+      
       const { data, error } = await supabase
         .from('register_sessions')
-        .insert([mapToDbModel(register as Register)])
+        .insert([dbModel])
         .select()
         .single();
       
