@@ -78,7 +78,7 @@ interface TabButtonProps {
 
 const TabButton = React.forwardRef<HTMLButtonElement, TabButtonProps>(
   ({ tab, isActive, onClick, onClose }, ref) => {
-    // Use dynamic icon component
+    // Check if the icon is a valid React component before rendering
     const IconComponent = tab.icon;
     
     return (
@@ -90,7 +90,7 @@ const TabButton = React.forwardRef<HTMLButtonElement, TabButtonProps>(
         )}
         onClick={onClick}
       >
-        {IconComponent && <IconComponent className="h-4 w-4" />}
+        {IconComponent && typeof IconComponent === 'function' && <IconComponent className="h-4 w-4" />}
         <span>{tab.title}</span>
         <button
           className="ml-1 rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"

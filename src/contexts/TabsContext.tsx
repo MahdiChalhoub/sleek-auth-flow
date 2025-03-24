@@ -6,7 +6,7 @@ export interface Tab {
   id: string;
   title: string;
   path: string;
-  icon?: React.ElementType;
+  icon?: React.ComponentType<{ className?: string }>;
 }
 
 interface TabsContextType {
