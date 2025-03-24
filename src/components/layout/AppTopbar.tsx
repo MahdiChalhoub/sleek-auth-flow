@@ -12,93 +12,82 @@ const AppTopbar: React.FC = () => {
   const { currentBusiness } = useAuth();
   const { currentLocation } = useLocationContext();
   
-  // Use separate state variables for each dropdown
+  // State for dropdown menus
   const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
   const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   
-  // Reference to track if a state change is already in progress
-  const isChangingRef = useRef(false);
-  const pendingChangeRef = useRef<null | { setter: Function, value: boolean }>(null);
-  // Timeout reference for cleanup
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Synchronization flag to prevent rapid state changes
+  const pendingUpdatesRef = useRef<Array<() => void>>([]);
+  const isProcessingRef = useRef(false);
   
-  // Effect to handle pending changes
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-  
-  // Helper function to safely update dropdown state
-  const safelyUpdateState = (
-    setter: React.Dispatch<React.SetStateAction<boolean>>,
-    value: boolean
-  ) => {
-    // If we're already in the process of changing state, queue this change
-    if (isChangingRef.current) {
-      pendingChangeRef.current = { setter, value };
+  // Process pending state updates one at a time
+  const processNextUpdate = () => {
+    if (pendingUpdatesRef.current.length === 0) {
+      isProcessingRef.current = false;
       return;
     }
     
-    // Mark that we're changing state
-    isChangingRef.current = true;
+    isProcessingRef.current = true;
+    const nextUpdate = pendingUpdatesRef.current.shift();
     
-    // Apply the state change
-    setter(value);
+    if (nextUpdate) {
+      nextUpdate();
+      // Wait a bit before processing the next update to avoid flickering
+      setTimeout(processNextUpdate, 50);
+    } else {
+      isProcessingRef.current = false;
+    }
+  };
+  
+  // Queue a state update
+  const queueStateUpdate = (updateFn: () => void) => {
+    pendingUpdatesRef.current.push(updateFn);
     
-    // Reset the changing flag after a short delay
-    timeoutRef.current = setTimeout(() => {
-      isChangingRef.current = false;
-      
-      // If there's a pending change, apply it
-      if (pendingChangeRef.current) {
-        const { setter: pendingSetter, value: pendingValue } = pendingChangeRef.current;
-        pendingChangeRef.current = null;
-        safelyUpdateState(pendingSetter as React.Dispatch<React.SetStateAction<boolean>>, pendingValue);
-      }
-    }, 50);
+    if (!isProcessingRef.current) {
+      processNextUpdate();
+    }
   };
   
   // Close all other dropdowns when one is opened
   const closeAllExcept = (keepOpen: string) => {
-    if (keepOpen !== 'business') setIsBusinessDialogOpen(false);
-    if (keepOpen !== 'location') setIsLocationDialogOpen(false);
-    if (keepOpen !== 'notifications') setIsNotificationsOpen(false);
-    if (keepOpen !== 'user') setIsUserMenuOpen(false);
+    queueStateUpdate(() => {
+      if (keepOpen !== 'business' && isBusinessDialogOpen) setIsBusinessDialogOpen(false);
+      if (keepOpen !== 'location' && isLocationDialogOpen) setIsLocationDialogOpen(false);
+      if (keepOpen !== 'notifications' && isNotificationsOpen) setIsNotificationsOpen(false);
+      if (keepOpen !== 'user' && isUserMenuOpen) setIsUserMenuOpen(false);
+    });
   };
   
-  // Specific handlers for each dropdown
+  // Handlers for each dropdown
   const handleBusinessDialogChange = (open: boolean) => {
-    if (open) {
-      closeAllExcept('business');
-    }
-    safelyUpdateState(setIsBusinessDialogOpen, open);
+    if (open) closeAllExcept('business');
+    queueStateUpdate(() => setIsBusinessDialogOpen(open));
   };
   
   const handleLocationDialogChange = (open: boolean) => {
-    if (open) {
-      closeAllExcept('location');
-    }
-    safelyUpdateState(setIsLocationDialogOpen, open);
+    if (open) closeAllExcept('location');
+    queueStateUpdate(() => setIsLocationDialogOpen(open));
   };
   
   const handleNotificationsChange = (open: boolean) => {
-    if (open) {
-      closeAllExcept('notifications');
-    }
-    safelyUpdateState(setIsNotificationsOpen, open);
+    if (open) closeAllExcept('notifications');
+    queueStateUpdate(() => setIsNotificationsOpen(open));
   };
   
   const handleUserMenuChange = (open: boolean) => {
-    if (open) {
-      closeAllExcept('user');
-    }
-    safelyUpdateState(setIsUserMenuOpen, open);
+    if (open) closeAllExcept('user');
+    queueStateUpdate(() => setIsUserMenuOpen(open));
   };
+  
+  // Clean up any pending timeouts
+  useEffect(() => {
+    return () => {
+      isProcessingRef.current = false;
+      pendingUpdatesRef.current = [];
+    };
+  }, []);
   
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">

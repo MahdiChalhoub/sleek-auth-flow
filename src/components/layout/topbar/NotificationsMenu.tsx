@@ -1,5 +1,5 @@
 
-import React, { useRef } from "react";
+import React, { useRef, useCallback } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,13 +21,13 @@ const NotificationsMenu: React.FC<NotificationsMenuProps> = ({
   // Use a ref to prevent auto-closing behavior
   const triggerRef = useRef<HTMLButtonElement>(null);
   
-  // Handler to prevent event propagation
-  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  // Handler to toggle menu state
+  const handleButtonClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     // Prevent event propagation to avoid auto-closing
     e.stopPropagation();
-    // Toggle the menu state manually
+    // Toggle the menu state manually, but don't allow it to close immediately
     onOpenChange(!isOpen);
-  };
+  }, [isOpen, onOpenChange]);
   
   return (
     <Popover open={isOpen} onOpenChange={onOpenChange}>
@@ -38,6 +38,8 @@ const NotificationsMenu: React.FC<NotificationsMenuProps> = ({
           className="relative"
           ref={triggerRef}
           onClick={handleButtonClick}
+          aria-expanded={isOpen}
+          aria-label="Notifications"
         >
           <Bell className="h-5 w-5" />
           <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] text-destructive-foreground">

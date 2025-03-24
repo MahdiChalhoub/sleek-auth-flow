@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import { X } from "lucide-react";
 import { useTabs, Tab } from "@/contexts/TabsContext";
 import { useLocation } from "react-router-dom";
@@ -8,29 +8,60 @@ import { cn } from "@/lib/utils";
 import { navItems } from "./sidebar/nav";
 
 const TabNavigation: React.FC = () => {
-  const { tabs, activeTabId, closeTab, activateTab, openTab } = useTabs();
+  const { tabs, activeTabId, closeTab, activateTab, openTab, findTabByPath } = useTabs();
   const location = useLocation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLDivElement>(null);
 
+  // Find the active tab based on the current location
+  const currentPath = location.pathname;
+  
+  // Effect to open a tab when navigating to a new route
   useEffect(() => {
     if (location.pathname === '/') return;
     
-    const matchingNavItem = navItems.find(item => item.path === location.pathname);
-    if (!tabs.some(tab => tab.path === location.pathname) && matchingNavItem) {
+    // Check if we already have a tab for this path
+    const existingTab = findTabByPath(location.pathname);
+    if (existingTab) {
+      if (existingTab.id !== activeTabId) {
+        activateTab(existingTab.id);
+      }
+      return;
+    }
+    
+    // Find matching nav item for the current path
+    const matchingNavItem = navItems.find(item => {
+      // Exact path match
+      if (item.path === location.pathname) return true;
+      
+      // Check pattern matching for dynamic routes
+      const pathSegments = location.pathname.split('/').filter(Boolean);
+      const itemSegments = item.path.split('/').filter(Boolean);
+      
+      if (pathSegments.length !== itemSegments.length) return false;
+      
+      return itemSegments.every((segment, i) => {
+        if (segment.startsWith(':')) return true;
+        return segment === pathSegments[i];
+      });
+    });
+    
+    if (matchingNavItem) {
       openTab({
         title: matchingNavItem.title,
-        path: matchingNavItem.path,
+        path: location.pathname,
         icon: matchingNavItem.icon
       });
     }
-  }, [location.pathname, openTab, tabs]);
+  }, [location.pathname, openTab, activateTab, findTabByPath, activeTabId]);
 
+  // Scroll to active tab when it changes
   useEffect(() => {
     if (activeTabRef.current && scrollContainerRef.current) {
       const tabElement = activeTabRef.current;
       const container = scrollContainerRef.current;
       
+      // Calculate if active tab is in view, if not, scroll to it
       if (tabElement.offsetLeft < container.scrollLeft) {
         container.scrollLeft = tabElement.offsetLeft;
       } else if (tabElement.offsetLeft + tabElement.offsetWidth > container.scrollLeft + container.offsetWidth) {
@@ -39,6 +70,7 @@ const TabNavigation: React.FC = () => {
     }
   }, [activeTabId]);
 
+  // Don't render anything if there are no tabs
   if (tabs.length === 0) {
     return null;
   }
@@ -87,19 +119,23 @@ const TabButton = React.forwardRef<HTMLDivElement, TabButtonProps>(
           isActive ? "bg-background text-foreground" : "text-muted-foreground"
         )}
         onClick={onClick}
+        role="button"
+        aria-selected={isActive}
+        tabIndex={0}
       >
         {hasValidIcon && <IconComponent className="h-4 w-4" />}
         <span>{tab.title}</span>
-        <div
-          className="ml-1 rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer"
+        <button
+          className="ml-1 rounded-sm opacity-60 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           onClick={(e) => {
             e.stopPropagation();
             onClose();
           }}
+          aria-label={`Close ${tab.title} tab`}
         >
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
-        </div>
+        </button>
       </div>
     );
   }

@@ -1,14 +1,40 @@
 
 import React from "react";
-import { Outlet, Navigate } from "react-router-dom";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AppSidebar from "./AppSidebar";
 import AppTopbar from "./AppTopbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useScreenSize } from "@/hooks/use-mobile";
 import { Toaster } from "@/components/ui/sonner";
-import { TabsProvider } from "@/contexts/TabsContext";
+import { TabsProvider, useTabs } from "@/contexts/TabsContext";
 import TabNavigation from "./TabNavigation";
+import TabContent from "./TabContent";
+
+// Component for tab-based layout
+const TabsLayout: React.FC = () => {
+  const { tabs, activeTabId } = useTabs();
+  const location = useLocation();
+  
+  return (
+    <>
+      <TabNavigation />
+      {activeTabId ? (
+        // When we have active tabs, render the TabContent component
+        <TabContent 
+          tabs={tabs} 
+          activeTabId={activeTabId} 
+          currentPath={location.pathname} 
+        />
+      ) : (
+        // When no tabs are active, use the router's outlet directly
+        <main className="flex-1 overflow-auto p-4 md:p-6">
+          <Outlet />
+        </main>
+      )}
+    </>
+  );
+};
 
 const AppLayout: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -33,10 +59,7 @@ const AppLayout: React.FC = () => {
           <AppSidebar />
           <div className="flex flex-1 flex-col">
             <AppTopbar />
-            <TabNavigation />
-            <main className="flex-1 overflow-auto p-4 md:p-6">
-              <Outlet />
-            </main>
+            <TabsLayout />
           </div>
         </div>
         <Toaster />

@@ -45,6 +45,7 @@ const App = () => {
             <Route path="/" element={<Navigate to="/home" replace />} />
             
             <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
+              {/* Preserve all routes as children of AppLayout */}
               <Route path="/home" element={<HomePage />} />
               <Route path="/inventory" element={<InventoryPage />} />
               <Route path="/pos-sales" element={<POSSales />} />

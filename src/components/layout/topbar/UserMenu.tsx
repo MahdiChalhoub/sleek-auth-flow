@@ -1,5 +1,5 @@
 
-import React, { useRef } from "react";
+import React, { useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserCircle, Building, MapPin } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,18 +32,18 @@ const UserMenu: React.FC<UserMenuProps> = ({
   const navigate = useNavigate();
   const buttonRef = useRef<HTMLButtonElement>(null);
   
-  const handleNavigate = (path: string) => {
+  const handleNavigate = useCallback((path: string) => {
     navigate(path);
     onOpenChange?.(false);
-  };
+  }, [navigate, onOpenChange]);
   
-  // Handler to prevent event propagation
-  const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  // Handler to toggle menu state
+  const handleButtonClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     // Prevent event propagation to avoid auto-closing
     e.stopPropagation();
     // Toggle the menu state manually
     onOpenChange?.(!isOpen);
-  };
+  }, [isOpen, onOpenChange]);
   
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
@@ -53,6 +53,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
           className="flex items-center gap-2"
           ref={buttonRef}
           onClick={handleButtonClick}
+          aria-expanded={isOpen}
         >
           <Avatar className="h-8 w-8">
             <AvatarImage src={user?.avatarUrl} alt={user?.name} />

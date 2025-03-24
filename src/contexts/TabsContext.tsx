@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export interface Tab {
@@ -7,6 +7,7 @@ export interface Tab {
   title: string;
   path: string;
   icon?: React.ElementType;
+  state?: Record<string, any>;
 }
 
 interface TabsContextType {
@@ -16,6 +17,9 @@ interface TabsContextType {
   closeTab: (tabId: string) => void;
   activateTab: (tabId: string) => void;
   isTabOpen: (path: string) => boolean;
+  findTabByPath: (path: string) => Tab | undefined;
+  getTabState: (tabId: string) => Record<string, any> | undefined;
+  updateTabState: (tabId: string, state: Record<string, any>) => void;
 }
 
 const TabsContext = createContext<TabsContextType | undefined>(undefined);
@@ -40,7 +44,7 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setActiveTabId(savedActiveTab);
           const activeTab = parsedTabs.find((tab: Tab) => tab.id === savedActiveTab);
           if (activeTab && activeTab.path !== location.pathname) {
-            navigate(activeTab.path);
+            navigate(activeTab.path, { replace: true });
           }
         }
       } catch (e) {
@@ -49,7 +53,7 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.removeItem('activeTabId');
       }
     }
-  }, [location.pathname, navigate]);
+  }, []);
 
   // Save tabs to localStorage when they change
   useEffect(() => {
@@ -59,29 +63,55 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [tabs, activeTabId]);
 
+  // Find a tab by path
+  const findTabByPath = useCallback((path: string): Tab | undefined => {
+    // Check for exact path match first
+    let tab = tabs.find(t => t.path === path);
+    
+    if (!tab) {
+      // Check for pattern matching (for dynamic routes)
+      // e.g., '/products/edit/123' should match a tab with path '/products/edit/:id'
+      const pathSegments = path.split('/').filter(Boolean);
+      
+      tab = tabs.find(t => {
+        const tabSegments = t.path.split('/').filter(Boolean);
+        
+        if (pathSegments.length !== tabSegments.length) return false;
+        
+        return tabSegments.every((segment, i) => {
+          // If the segment starts with ':', it's a parameter
+          if (segment.startsWith(':')) return true;
+          return segment === pathSegments[i];
+        });
+      });
+    }
+    
+    return tab;
+  }, [tabs]);
+
   // Open a tab if not already open
-  const openTab = (tab: Omit<Tab, "id">) => {
-    const existingTab = tabs.find(t => t.path === tab.path);
+  const openTab = useCallback((tab: Omit<Tab, "id">) => {
+    const existingTab = findTabByPath(tab.path);
     
     if (existingTab) {
       setActiveTabId(existingTab.id);
       if (location.pathname !== tab.path) {
-        navigate(tab.path);
+        navigate(tab.path, { replace: false });
       }
       return;
     }
     
-    const newTab = { ...tab, id: `tab-${Date.now()}` };
+    const newTab = { ...tab, id: `tab-${Date.now()}`, state: {} };
     setTabs(prev => [...prev, newTab]);
     setActiveTabId(newTab.id);
     
     if (location.pathname !== tab.path) {
-      navigate(tab.path);
+      navigate(tab.path, { replace: false });
     }
-  };
+  }, [findTabByPath, location.pathname, navigate]);
 
   // Close a tab
-  const closeTab = (tabId: string) => {
+  const closeTab = useCallback((tabId: string) => {
     const tabIndex = tabs.findIndex(t => t.id === tabId);
     if (tabIndex === -1) return;
     
@@ -93,38 +123,70 @@ export const TabsProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Try to activate the tab to the left, or the first tab if there isn't one
       const newActiveTab = newTabs[tabIndex > 0 ? tabIndex - 1 : 0];
       setActiveTabId(newActiveTab.id);
-      navigate(newActiveTab.path);
+      navigate(newActiveTab.path, { replace: true });
     } else if (newTabs.length === 0) {
       setActiveTabId(null);
-      navigate('/home');
+      navigate('/home', { replace: true });
     }
-  };
+  }, [tabs, activeTabId, navigate]);
 
   // Activate a tab
-  const activateTab = (tabId: string) => {
+  const activateTab = useCallback((tabId: string) => {
     const tab = tabs.find(t => t.id === tabId);
     if (tab) {
       setActiveTabId(tabId);
       if (location.pathname !== tab.path) {
-        navigate(tab.path);
+        navigate(tab.path, { replace: true });
       }
     }
-  };
+  }, [tabs, location.pathname, navigate]);
 
   // Check if a tab with the given path is already open
-  const isTabOpen = (path: string) => {
-    return tabs.some(t => t.path === path);
-  };
+  const isTabOpen = useCallback((path: string) => {
+    return !!findTabByPath(path);
+  }, [findTabByPath]);
+
+  // Get tab state
+  const getTabState = useCallback((tabId: string) => {
+    const tab = tabs.find(t => t.id === tabId);
+    return tab?.state;
+  }, [tabs]);
+
+  // Update tab state
+  const updateTabState = useCallback((tabId: string, state: Record<string, any>) => {
+    setTabs(prev => 
+      prev.map(tab => 
+        tab.id === tabId 
+          ? { ...tab, state: { ...tab.state, ...state } } 
+          : tab
+      )
+    );
+  }, []);
+
+  const contextValue = useMemo(() => ({ 
+    tabs, 
+    activeTabId, 
+    openTab, 
+    closeTab, 
+    activateTab,
+    isTabOpen,
+    findTabByPath,
+    getTabState,
+    updateTabState
+  }), [
+    tabs, 
+    activeTabId, 
+    openTab, 
+    closeTab, 
+    activateTab, 
+    isTabOpen, 
+    findTabByPath,
+    getTabState,
+    updateTabState
+  ]);
 
   return (
-    <TabsContext.Provider value={{ 
-      tabs, 
-      activeTabId, 
-      openTab, 
-      closeTab, 
-      activateTab,
-      isTabOpen 
-    }}>
+    <TabsContext.Provider value={contextValue}>
       {children}
     </TabsContext.Provider>
   );

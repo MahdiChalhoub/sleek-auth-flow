@@ -20,7 +20,7 @@ interface NavItemProps {
 
 const NavItem: React.FC<NavItemProps> = ({ item, isActive }) => {
   const navigate = useNavigate();
-  const { openTab } = useTabs();
+  const { openTab, isTabOpen, findTabByPath, activateTab } = useTabs();
   const [isGroupOpen, setIsGroupOpen] = useState(false);
   
   const hasChildren = item.children && item.children.length > 0;
@@ -33,13 +33,19 @@ const NavItem: React.FC<NavItemProps> = ({ item, isActive }) => {
       // Toggle the group open/closed
       setIsGroupOpen(!isGroupOpen);
     } else {
-      // Navigate and open tab
-      navigate(item.path);
-      openTab({
-        title: item.title,
-        path: item.path,
-        icon: item.icon
-      });
+      // Check if tab is already open
+      const existingTab = findTabByPath(item.path);
+      if (existingTab) {
+        // If tab exists, just activate it
+        activateTab(existingTab.id);
+      } else {
+        // If not, open a new tab
+        openTab({
+          title: item.title,
+          path: item.path,
+          icon: item.icon
+        });
+      }
     }
   };
   
@@ -93,8 +99,23 @@ interface SubNavItemsProps {
 }
 
 const SubNavItems: React.FC<SubNavItemsProps> = ({ items, isActive }) => {
-  const navigate = useNavigate();
-  const { openTab } = useTabs();
+  const { openTab, findTabByPath, activateTab } = useTabs();
+
+  const handleNavigation = (item: NavItemType) => {
+    // Check if tab is already open
+    const existingTab = findTabByPath(item.path);
+    if (existingTab) {
+      // If tab exists, just activate it
+      activateTab(existingTab.id);
+    } else {
+      // If not, open a new tab
+      openTab({
+        title: item.title,
+        path: item.path,
+        icon: item.icon
+      });
+    }
+  };
 
   return (
     <SidebarMenuSub>
@@ -103,14 +124,7 @@ const SubNavItems: React.FC<SubNavItemsProps> = ({ items, isActive }) => {
         return (
           <SidebarMenuSubItem key={child.path}>
             <SidebarMenuSubButton
-              onClick={() => {
-                navigate(child.path);
-                openTab({
-                  title: child.title,
-                  path: child.path,
-                  icon: child.icon
-                });
-              }}
+              onClick={() => handleNavigation(child)}
               isActive={isActive(child.path)}
             >
               {ChildIcon && <ChildIcon className="h-4 w-4 mr-2" />}
