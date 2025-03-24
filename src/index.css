@@ -1,3 +1,6 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,7 +16,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 222 89% 55%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -32,23 +35,7 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --radius: 1rem;
   }
 
   .dark {
@@ -61,7 +48,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -79,14 +66,6 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
@@ -96,6 +75,87 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased transition-colors duration-300;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-medium tracking-tight;
+  }
+}
+
+@layer components {
+  .glass-input {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-sm transition-all duration-200;
+  }
+  
+  .dark .glass-input {
+    @apply bg-black/10 border-white/10;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-lg;
+  }
+  
+  .dark .glass-card {
+    @apply bg-black/50 border-white/10;
+  }
+  
+  .auth-container {
+    @apply min-h-screen flex items-center justify-center p-4 sm:p-6 md:p-10 bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800;
+  }
+  
+  .form-container {
+    @apply w-full max-w-md mx-auto p-8 rounded-2xl glass-card animate-scale-in;
+  }
+  
+  .input-wrapper {
+    @apply relative mb-5;
+  }
+  
+  .auth-input {
+    @apply w-full px-4 py-3 rounded-xl glass-input focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50;
+  }
+  
+  .auth-checkbox {
+    @apply rounded-md border-2 text-primary focus:ring-primary/30 focus:ring-offset-0;
+  }
+  
+  .checkbox-wrapper {
+    @apply flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300;
+  }
+  
+  .auth-button {
+    @apply w-full mt-2 py-3 px-4 rounded-xl bg-primary text-white font-medium transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] shadow-md hover:shadow-lg;
+  }
+  
+  .auth-link {
+    @apply text-sm text-primary hover:text-primary/80 transition-colors duration-200;
+  }
+  
+  .auth-heading {
+    @apply text-2xl font-semibold mb-6 text-center;
+  }
+  
+  .auth-subheading {
+    @apply text-sm text-gray-500 dark:text-gray-400 mb-6 text-center;
+  }
+  
+  .form-divider {
+    @apply flex items-center my-6;
+  }
+  
+  .form-divider::before,
+  .form-divider::after {
+    @apply flex-1 border-t border-gray-200 dark:border-gray-700;
+    content: '';
+  }
+  
+  .form-divider-text {
+    @apply px-3 text-xs text-gray-500 dark:text-gray-400 uppercase;
+  }
+  
+  .input-icon {
+    @apply absolute right-3 top-3.5 text-gray-400;
   }
 }
