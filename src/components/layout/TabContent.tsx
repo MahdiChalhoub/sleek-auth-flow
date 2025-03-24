@@ -73,6 +73,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/audit-trail" element={<DynamicComponent componentPath="AuditTrail" />} />
       <Route path="/users" element={<DynamicComponent componentPath="Users" />} />
       <Route path="/contacts" element={<DynamicComponent componentPath="Contacts" />} />
+      <Route path="/notifications" element={<DynamicComponent componentPath="Notifications" />} />
       {/* Fallback route */}
       <Route path="*" element={<div>Page not found</div>} />
     </Routes>
@@ -84,11 +85,59 @@ const DynamicComponent = ({ componentPath }: { componentPath: string }) => {
   // Using React.lazy for code splitting
   const Component = React.useMemo(() => {
     try {
-      // Dynamic import of the component
-      return lazy(() => import(`@/pages/${componentPath}`));
+      // Fix the dynamic import path by using a direct import pattern
+      return lazy(() => {
+        // Handle each component path explicitly to ensure correct imports
+        switch (componentPath) {
+          case "Dashboard":
+            return import("@/pages/Dashboard");
+          case "Inventory":
+            return import("@/pages/Inventory");
+          case "POSSales":
+            return import("@/pages/POSSales");
+          case "Settings":
+            return import("@/pages/Settings");
+          case "Suppliers":
+            return import("@/pages/Suppliers");
+          case "PurchaseOrders":
+            return import("@/pages/PurchaseOrders");
+          case "StockTransfers":
+            return import("@/pages/StockTransfers");
+          case "Transactions":
+            return import("@/pages/Transactions");
+          case "POSRegister":
+            return import("@/pages/POSRegister");
+          case "RegisterSessions":
+            return import("@/pages/RegisterSessions");
+          case "TransactionPermissions":
+            return import("@/pages/TransactionPermissions");
+          case "StaffFinance":
+            return import("@/pages/StaffFinance");
+          case "Loyalty":
+            return import("@/pages/Loyalty");
+          case "Returns":
+            return import("@/pages/Returns");
+          case "RoleManagement":
+            return import("@/pages/RoleManagement");
+          case "Categories":
+            return import("@/pages/Categories");
+          case "ShiftReports":
+            return import("@/pages/ShiftReports");
+          case "AuditTrail":
+            return import("@/pages/AuditTrail");
+          case "Users":
+            return import("@/pages/Users");
+          case "Contacts":
+            return import("@/pages/Contacts");
+          case "Notifications":
+            return import("@/pages/Notifications");
+          default:
+            return import("@/pages/NotFound");
+        }
+      });
     } catch (error) {
       console.error(`Failed to load component: ${componentPath}`, error);
-      return () => <div>Error loading component</div>;
+      return () => <div>Error loading component: {String(error)}</div>;
     }
   }, [componentPath]);
 
