@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,13 +10,15 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { toast } from "sonner";
 import { mockProducts, Product, ComboComponent } from "@/models/product";
 import SecurityCodeDialog from "./SecurityCodeDialog";
+import { Branch } from "@/models/interfaces/businessInterfaces";
 
 interface ProductFormModalProps {
   product?: any;
   onClose?: () => void;
+  currentLocation?: Branch | null;
 }
 
-const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose }) => {
+const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, currentLocation }) => {
   const [formData, setFormData] = useState({
     name: product?.name || "",
     description: product?.description || "",
@@ -43,7 +44,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
   const [securityAction, setSecurityAction] = useState<string | null>(null);
   const [isComboSectionOpen, setIsComboSectionOpen] = useState(false);
 
-  // Calculate profit margin
   const calculateProfitMargin = (): number => {
     const cost = parseFloat(formData.unitCost) || 0;
     const retail = parseFloat(formData.retailPrice) || 0;
@@ -52,7 +52,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
     return ((retail - cost) / cost) * 100;
   };
 
-  // Get profit margin color
   const getProfitMarginColor = (): string => {
     const margin = calculateProfitMargin();
     
@@ -61,7 +60,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
     return "text-red-500";
   };
 
-  // Calculate combo cost from components
   const calculateComboCost = (): number => {
     return comboComponents.reduce((total, item) => {
       const productCost = parseFloat(((mockProducts.find(p => p.id === item.productId)?.price || 0) * 0.7).toFixed(2));
@@ -69,7 +67,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
     }, 0);
   };
 
-  // Update retail price based on combo components
   useEffect(() => {
     if (formData.isCombo && isAutoPrice && comboComponents.length > 0) {
       const comboCost = calculateComboCost();
@@ -119,7 +116,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
   };
 
   const generateBarcode = () => {
-    // Generate a random 10-digit barcode
     const randomBarcode = Math.floor(1000000000 + Math.random() * 9000000000).toString();
     setFormData(prev => ({ ...prev, barcode: randomBarcode }));
   };
@@ -128,7 +124,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
     const newComponent: ComboComponent = {
       productId: "",
       quantity: 1,
-      product: {} as Product
     };
     
     setComboComponents([...comboComponents, newComponent]);
@@ -175,7 +170,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Additional validation for combo products
     if (formData.isCombo) {
       if (comboComponents.length === 0) {
         toast.error("Combo products must have at least one component");
@@ -190,6 +184,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
     
     console.log("Product data:", formData);
     console.log("Combo components:", comboComponents);
+    console.log("Current location:", currentLocation);
     toast.success(`${product ? "Updated" : "Added"} product successfully`);
     onClose && onClose();
   };
@@ -232,7 +227,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
             />
           </div>
 
-          {/* Combo product toggle */}
           <div className="sm:col-span-2 flex items-center justify-between bg-blue-50/50 dark:bg-blue-950/20 p-3 rounded-lg border">
             <div>
               <h3 className="font-medium">This is a Combo Product</h3>
@@ -246,7 +240,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
 
           {formData.isCombo && (
             <>
-              {/* Combo Stock Behavior */}
               <div className="sm:col-span-2 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/20 p-3 rounded-lg border">
                 <div>
                   <h3 className="font-medium">Track Combo Stock</h3>
@@ -258,7 +251,6 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
                 />
               </div>
 
-              {/* Combo Components Section */}
               <div className="sm:col-span-2 border rounded-lg p-3">
                 <Collapsible 
                   open={isComboSectionOpen} 
@@ -297,7 +289,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
                             >
                               <option value="">Select Product</option>
                               {mockProducts
-                                .filter(p => !p.isCombo) // Don't allow combos inside combos
+                                .filter(p => !p.isCombo)
                                 .map(product => (
                                   <option key={product.id} value={product.id}>
                                     {product.name} (Stock: {product.stock})
@@ -351,8 +343,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
                   </CollapsibleContent>
                 </Collapsible>
               </div>
-              
-              {/* Combo Pricing Section */}
+
               <div className="sm:col-span-2 border rounded-lg p-4 bg-slate-50/50 dark:bg-slate-950/20">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-sm font-medium">Combo Pricing</h3>
@@ -523,113 +514,5 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose })
             </>
           )}
 
-          {/* Only show quantity and threshold for non-combo or combo with stock */}
-          {(!formData.isCombo || formData.hasStock) && (
-            <>
-              <div>
-                <Label htmlFor="quantity">Quantity</Label>
-                <Input
-                  id="quantity"
-                  name="quantity"
-                  type="number"
-                  min="0"
-                  value={formData.quantity}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+          {
 
-              <div>
-                <Label htmlFor="lowStockThreshold">Low Stock Threshold</Label>
-                <Input
-                  id="lowStockThreshold"
-                  name="lowStockThreshold"
-                  type="number"
-                  min="0"
-                  value={formData.lowStockThreshold}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </>
-          )}
-
-          <div className="sm:col-span-2">
-            <Label>Product Image</Label>
-            <div className="mt-2 flex flex-col sm:flex-row items-center gap-4">
-              {formData.image && (
-                <div className="w-32 h-32 rounded border overflow-hidden">
-                  <img 
-                    src={formData.image} 
-                    alt="Product" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <div className="flex-1 flex flex-col gap-2 w-full">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full border-dashed"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Image
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  Recommended: 500x500px JPG, PNG or GIF (max 2MB)
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Barcode Preview */}
-        {formData.barcode && (
-          <div className="border rounded-lg p-4">
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-sm font-medium">Barcode Preview</p>
-              <Button variant="outline" size="sm" className="h-8">
-                <Download className="h-3.5 w-3.5 mr-1" />
-                Download
-              </Button>
-            </div>
-            <div className="flex justify-center py-2 bg-white">
-              {/* Barcode representation (in real app, use a proper barcode library) */}
-              <div className="text-center">
-                <div className="h-16 bg-[url('https://t3.ftcdn.net/jpg/00/58/33/12/360_F_58331212_HcxnQJjV1a9hfyK0uUOp7xpO6SQC23rS.jpg')] bg-contain bg-no-repeat bg-center w-48"></div>
-                <p className="text-xs mt-1">{formData.barcode}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit">
-            {product ? "Update Product" : "Add Product"}
-          </Button>
-        </DialogFooter>
-      </form>
-
-      {/* Security Code Dialog */}
-      <Dialog open={isSecurityDialogOpen} onOpenChange={setIsSecurityDialogOpen}>
-        <SecurityCodeDialog
-          title={securityAction === "enableCombo" ? "Enable Combo Product" : "Manual Price Override"}
-          description={securityAction === "enableCombo" 
-            ? "Enter security code to create a combo product" 
-            : "Enter security code to manually set combo price"
-          }
-          onConfirm={handleSecurityConfirm}
-          onCancel={() => {
-            setIsSecurityDialogOpen(false);
-            setSecurityAction(null);
-          }}
-        />
-      </Dialog>
-    </DialogContent>
-  );
-};
-
-export default ProductFormModal;

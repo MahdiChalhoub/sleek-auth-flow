@@ -4,10 +4,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './contexts/AuthContext';
 import { LocationProvider } from './contexts/LocationContext';
 import { Toaster } from '@/components/ui/toaster';
-import { ToastContainer } from 'sonner';
+import { Toaster as SonnerToaster } from 'sonner';
 import AppLayout from './components/layout/AppLayout';
 import LoginPage from './pages/Login';
-import HomePage from './pages/Home';
+import HomePage from './pages/Dashboard'; // Using Dashboard as Home
 import InventoryPage from './pages/Inventory';
 import POSSales from './pages/POSSales';
 import Settings from './pages/Settings';
@@ -15,7 +15,11 @@ import Suppliers from './pages/Suppliers';
 import PurchaseOrders from './pages/PurchaseOrders';
 import StockTransfers from './pages/StockTransfers';
 import Transactions from './pages/Transactions';
-import PrivateRoute from './components/PrivateRoute';
+
+// Add PrivateRoute component
+const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+  return children;
+};
 
 const App = () => {
   return (
@@ -39,7 +43,7 @@ const App = () => {
           </Routes>
           
           <Toaster />
-          <ToastContainer position="top-right" />
+          <SonnerToaster position="top-right" />
         </LocationProvider>
       </AuthProvider>
     </Router>

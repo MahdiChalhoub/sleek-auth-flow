@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
@@ -8,12 +7,14 @@ import { Dialog } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import SecurityCodeDialog from "./SecurityCodeDialog";
 import { useScreenSize } from "@/hooks/use-mobile";
+import { Branch } from "@/models/interfaces/businessInterfaces";
 
 interface StockAdjustmentTableProps {
   products: any[];
+  currentLocation?: Branch | null;
 }
 
-const StockAdjustmentTable: React.FC<StockAdjustmentTableProps> = ({ products }) => {
+const StockAdjustmentTable: React.FC<StockAdjustmentTableProps> = ({ products, currentLocation }) => {
   const [counts, setCounts] = useState<Record<string, string>>({});
   const [showSecurityDialog, setShowSecurityDialog] = useState(false);
   const { isMobile, isTablet } = useScreenSize();
@@ -37,12 +38,11 @@ const StockAdjustmentTable: React.FC<StockAdjustmentTableProps> = ({ products })
   };
 
   const handleConfirmAdjustment = () => {
-    // Here you would update the stock in your database
     console.log("Stock adjusted:", counts);
+    console.log("For location:", currentLocation?.name);
     setShowSecurityDialog(false);
   };
 
-  // Responsive table content for mobile/tablet
   const renderMobileContent = () => {
     return (
       <div className="space-y-3">
@@ -107,7 +107,6 @@ const StockAdjustmentTable: React.FC<StockAdjustmentTableProps> = ({ products })
     );
   };
 
-  // Desktop table content
   const renderDesktopContent = () => {
     return (
       <div className="rounded-md border overflow-hidden">
@@ -169,6 +168,7 @@ const StockAdjustmentTable: React.FC<StockAdjustmentTableProps> = ({ products })
           <h2 className="text-lg font-medium">Physical Inventory Count</h2>
           <p className="text-sm text-muted-foreground">
             Enter the actual quantity on hand for each product. The system will calculate the difference compared to the system quantity.
+            {currentLocation && <span> Location: {currentLocation.name}</span>}
           </p>
         </div>
 
