@@ -14,6 +14,7 @@ import POSRegister from "./pages/POSRegister";
 import RegisterSessions from "./pages/RegisterSessions";
 import Transactions from "./pages/Transactions";
 import TransactionPermissions from "./pages/TransactionPermissions";
+import POSSales from "./pages/POSSales";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/register-sessions" element={<RegisterSessions />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/transaction-permissions" element={<TransactionPermissions />} />
+          <Route path="/pos-sales" element={<POSSales />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
