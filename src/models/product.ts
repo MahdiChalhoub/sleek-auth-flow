@@ -1,135 +1,176 @@
 
+// Product type definition
 export interface Product {
   id: string;
   name: string;
   description: string;
   price: number;
-  barcode: string;
   image: string;
-  category: string;
+  barcode: string;
   stock: number;
+  category: string;
 }
 
-// Mock products for testing
+// Mock product data
 export const mockProducts: Product[] = [
   {
     id: "1",
-    name: "MacBook Pro 16\"",
-    description: "Apple M2 Pro chip, 16GB RAM, 512GB SSD",
-    price: 2499.99,
-    barcode: "APPL001",
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?q=80&w=1000&auto=format&fit=crop",
-    category: "Computers",
-    stock: 15
+    name: "iPhone 15 Pro",
+    description: "Apple's latest flagship smartphone",
+    price: 999.99,
+    image: "https://images.unsplash.com/photo-1675785931406-6faf834d1e3d?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000001",
+    stock: 15,
+    category: "mobile"
   },
   {
     id: "2",
-    name: "iPhone 15 Pro",
-    description: "6.1\" Super Retina XDR display, A17 Pro chip",
-    price: 999.99,
-    barcode: "APPL002",
-    image: "https://images.unsplash.com/photo-1592286927505-1def25115558?q=80&w=1000&auto=format&fit=crop",
-    category: "Phones",
-    stock: 32
+    name: "MacBook Air M3",
+    description: "Ultralight laptop with Apple M3 chip",
+    price: 1299.99,
+    image: "https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000002",
+    stock: 10,
+    category: "electronics"
   },
   {
     id: "3",
-    name: "AirPods Pro",
-    description: "Active Noise Cancellation, Transparency mode",
+    name: "AirPods Pro 2",
+    description: "Wireless earbuds with noise cancellation",
     price: 249.99,
-    barcode: "APPL003",
-    image: "https://images.unsplash.com/photo-1603351154351-5e2d0600ff5a?q=80&w=1000&auto=format&fit=crop",
-    category: "Audio",
-    stock: 45
+    image: "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000003",
+    stock: 25,
+    category: "electronics"
   },
   {
     id: "4",
-    name: "iPad Pro 11\"",
-    description: "M2 chip, 11\" Liquid Retina display",
-    price: 799.99,
-    barcode: "APPL004",
-    image: "https://images.unsplash.com/photo-1542751110-97427bbecf20?q=80&w=1000&auto=format&fit=crop",
-    category: "Tablets",
-    stock: 20
+    name: "Samsung Galaxy S24",
+    description: "Samsung's flagship smartphone",
+    price: 899.99,
+    image: "https://images.unsplash.com/photo-1678911820864-e2c567c655d7?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000004",
+    stock: 20,
+    category: "mobile"
   },
   {
     id: "5",
-    name: "Apple Watch Series 9",
-    description: "Always-On Retina display, S9 chip",
-    price: 399.99,
-    barcode: "APPL005",
-    image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?q=80&w=1000&auto=format&fit=crop",
-    category: "Wearables",
-    stock: 28
+    name: "iPad Pro 12.9\"",
+    description: "Professional tablet with Apple M2 chip",
+    price: 1099.99,
+    image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000005",
+    stock: 8,
+    category: "electronics"
   },
   {
     id: "6",
-    name: "Apple TV 4K",
-    description: "A15 Bionic chip, 4K HDR with Dolby Vision",
-    price: 129.99,
-    barcode: "APPL006",
-    image: "https://images.unsplash.com/photo-1528695046320-dd808c80bb7c?q=80&w=1000&auto=format&fit=crop",
-    category: "Entertainment",
-    stock: 18
+    name: "Sony WH-1000XM5",
+    description: "Wireless noise cancelling headphones",
+    price: 349.99,
+    image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000006",
+    stock: 12,
+    category: "electronics"
   },
   {
     id: "7",
-    name: "HomePod mini",
-    description: "Compact smart speaker with Siri",
-    price: 99.99,
-    barcode: "APPL007",
-    image: "https://images.unsplash.com/photo-1617143207675-e7e6371f5f5d?q=80&w=1000&auto=format&fit=crop",
-    category: "Audio",
-    stock: 40
+    name: "Organic Avocado",
+    description: "Fresh organic avocados",
+    price: 2.99,
+    image: "https://images.unsplash.com/photo-1519162808019-7de1683fa2ad?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000007",
+    stock: 50,
+    category: "grocery"
   },
   {
     id: "8",
-    name: "Magic Keyboard",
-    description: "Wireless keyboard with numeric keypad",
-    price: 129.99,
-    barcode: "APPL008",
-    image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?q=80&w=1000&auto=format&fit=crop",
-    category: "Accessories",
-    stock: 25
+    name: "Coffee Beans",
+    description: "Premium arabica coffee beans",
+    price: 15.99,
+    image: "https://images.unsplash.com/photo-1562578406-7ea8e70fac3f?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000008",
+    stock: 30,
+    category: "beverages"
   },
   {
     id: "9",
-    name: "Magic Mouse",
-    description: "Wireless multi-touch mouse",
-    price: 79.99,
-    barcode: "APPL009",
-    image: "https://images.unsplash.com/photo-1629429408209-1f912961dbd8?q=80&w=1000&auto=format&fit=crop",
-    category: "Accessories",
-    stock: 30
+    name: "Craft Beer Set",
+    description: "Assorted craft beers",
+    price: 24.99,
+    image: "https://images.unsplash.com/photo-1574213424251-916245aad8dc?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000009",
+    stock: 15,
+    category: "beverages"
   },
   {
     id: "10",
-    name: "Apple Pencil",
-    description: "Precision stylus for iPad",
-    price: 129.99,
-    barcode: "APPL010",
-    image: "https://images.unsplash.com/photo-1551651639-927b595f9010?q=80&w=1000&auto=format&fit=crop",
-    category: "Accessories",
-    stock: 22
+    name: "Margherita Pizza",
+    description: "Classic Italian pizza",
+    price: 12.99,
+    image: "https://images.unsplash.com/photo-1604917877934-07d8d248d396?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000010",
+    stock: 8,
+    category: "food"
   },
   {
     id: "11",
-    name: "MacBook Air",
-    description: "M2 chip, 13.6\" Liquid Retina display",
-    price: 1199.99,
-    barcode: "APPL011",
-    image: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?q=80&w=1000&auto=format&fit=crop",
-    category: "Computers",
-    stock: 18
+    name: "Cotton T-Shirt",
+    description: "Premium cotton t-shirt",
+    price: 19.99,
+    image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000011",
+    stock: 25,
+    category: "clothing"
   },
   {
     id: "12",
-    name: "Mac mini",
-    description: "M2 chip, 8GB RAM, 256GB SSD",
-    price: 599.99,
-    barcode: "APPL012",
-    image: "https://images.unsplash.com/photo-1612815452865-e51d912edc78?q=80&w=1000&auto=format&fit=crop",
-    category: "Computers",
-    stock: 15
+    name: "Non-Stick Pan",
+    description: "High-quality non-stick cooking pan",
+    price: 39.99,
+    image: "https://images.unsplash.com/photo-1575262008029-439bdcf013cd?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000012",
+    stock: 10,
+    category: "kitchenware"
+  },
+  {
+    id: "13",
+    name: "The Alchemist",
+    description: "Paulo Coelho's bestselling novel",
+    price: 14.99,
+    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000013",
+    stock: 20,
+    category: "books"
+  },
+  {
+    id: "14",
+    name: "Throw Pillow",
+    description: "Decorative home pillow",
+    price: 24.99,
+    image: "https://images.unsplash.com/photo-1584637756754-14a1d01782df?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000014",
+    stock: 15,
+    category: "home"
+  },
+  {
+    id: "15",
+    name: "PlayStation 5",
+    description: "Sony's latest gaming console",
+    price: 499.99,
+    image: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000015",
+    stock: 5,
+    category: "gaming"
+  },
+  {
+    id: "16",
+    name: "Baby Onesie",
+    description: "Soft cotton baby onesie",
+    price: 12.99,
+    image: "https://images.unsplash.com/photo-1522771930-78848d9293e8?q=80&w=800&auto=format&fit=crop",
+    barcode: "100000016",
+    stock: 30,
+    category: "baby"
   }
 ];

@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   ArrowLeft, 
   Search, 
@@ -14,20 +15,15 @@ import {
   Percent,
   Printer, 
   Mail,
-  Plus,
-  Minus,
-  Trash,
-  CreditCard,
   DollarSign,
-  Wallet
 } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
 import ProductCard from "@/components/POS/ProductCard";
 import CartItem from "@/components/POS/CartItem";
 import PaymentMethodSelector from "@/components/POS/PaymentMethodSelector";
 import ClientSelector from "@/components/POS/ClientSelector";
+import CategorySidebar from "@/components/POS/CategorySidebar";
+import SecurityCheckDialog from "@/components/POS/SecurityCheckDialog";
 import { mockProducts, Product } from "@/models/product";
 
 const POSSales = () => {
@@ -45,22 +41,63 @@ const POSSales = () => {
   const [isClientSelectorOpen, setIsClientSelectorOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string | null>(null);
   const [globalDiscount, setGlobalDiscount] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [amountReceived, setAmountReceived] = useState<string>("");
+  
+  // Security dialog state
+  const [securityDialog, setSecurityDialog] = useState<{
+    isOpen: boolean;
+    actionType: 'delete' | 'discount';
+    callback: () => void;
+  }>({
+    isOpen: false,
+    actionType: 'delete',
+    callback: () => {}
+  });
+  
+  // Handle security check requests
+  const requireSecurityCheck = (actionType: 'delete' | 'discount', callback: () => void) => {
+    setSecurityDialog({
+      isOpen: true,
+      actionType,
+      callback
+    });
+  };
+  
+  // Handle category selection
+  const handleCategorySelect = (category: string | null) => {
+    setSelectedCategory(category);
+    
+    if (category === null) {
+      setFilteredProducts(products);
+    } else {
+      const filtered = products.filter(product => product.category === category);
+      setFilteredProducts(filtered);
+    }
+  };
   
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
     
-    if (query.trim() === "") {
-      setFilteredProducts(products);
-    } else {
-      const filtered = products.filter(
+    let filtered = products;
+    
+    // Apply category filter if selected
+    if (selectedCategory) {
+      filtered = filtered.filter(product => product.category === selectedCategory);
+    }
+    
+    // Apply search filter
+    if (query.trim() !== "") {
+      filtered = filtered.filter(
         product => 
           product.name.toLowerCase().includes(query) || 
           product.barcode.toLowerCase().includes(query)
       );
-      setFilteredProducts(filtered);
     }
+    
+    setFilteredProducts(filtered);
   };
   
   // Handle barcode input
@@ -130,6 +167,13 @@ const POSSales = () => {
     );
   };
   
+  // Apply global discount with security check
+  const handleGlobalDiscount = (value: number) => {
+    requireSecurityCheck('discount', () => {
+      setGlobalDiscount(value);
+    });
+  };
+  
   // Remove item from cart
   const removeFromCart = (productId: string) => {
     setCart(prevCart => prevCart.filter(item => item.product.id !== productId));
@@ -157,10 +201,25 @@ const POSSales = () => {
     return subtotal - globalDiscountAmount;
   };
   
+  // Calculate change amount
+  const calculateChangeAmount = () => {
+    const grandTotal = calculateGrandTotal();
+    const received = parseFloat(amountReceived) || 0;
+    return Math.max(0, received - grandTotal);
+  };
+  
+  // Calculate amount due
+  const calculateAmountDue = () => {
+    const grandTotal = calculateGrandTotal();
+    const received = parseFloat(amountReceived) || 0;
+    return Math.max(0, grandTotal - received);
+  };
+  
   // Clear cart
   const clearCart = () => {
     setCart([]);
     setGlobalDiscount(0);
+    setAmountReceived("");
   };
   
   // Hold sale
@@ -268,6 +327,8 @@ const POSSales = () => {
   // Calculate number of items in cart
   const itemCount = cart.reduce((total, item) => total + item.quantity, 0);
   const grandTotal = calculateGrandTotal();
+  const changeAmount = calculateChangeAmount();
+  const amountDue = calculateAmountDue();
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -308,50 +369,66 @@ const POSSales = () => {
         
         {/* Main Content */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Products Section (Left Side) */}
-          <div className="w-full lg:w-2/3 p-4 overflow-y-auto">
-            {/* Search and Barcode Input */}
-            <div className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  ref={searchInputRef}
-                  placeholder="Search products..." 
-                  className="pl-9"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                />
+          {/* Left Side: Products and Categories */}
+          <div className="w-full lg:w-3/5 flex">
+            {/* Category Sidebar */}
+            <CategorySidebar 
+              onSelectCategory={handleCategorySelect}
+              selectedCategory={selectedCategory}
+            />
+            
+            {/* Products Section */}
+            <div className="flex-1 p-4 overflow-y-auto">
+              {/* Search and Barcode Input */}
+              <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    ref={searchInputRef}
+                    placeholder="Search products..." 
+                    className="pl-9"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                  />
+                </div>
+                
+                <form onSubmit={handleBarcodeSubmit} className="relative flex-1">
+                  <ScanBarcode className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    ref={barcodeInputRef}
+                    placeholder="Scan barcode (Alt+B)" 
+                    className="pl-9"
+                    value={barcodeInput}
+                    onChange={e => setBarcodeInput(e.target.value)}
+                  />
+                </form>
               </div>
               
-              <form onSubmit={handleBarcodeSubmit} className="relative flex-1">
-                <ScanBarcode className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  ref={barcodeInputRef}
-                  placeholder="Scan barcode (Alt+B)" 
-                  className="pl-9"
-                  value={barcodeInput}
-                  onChange={e => setBarcodeInput(e.target.value)}
-                />
-              </form>
-            </div>
-            
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredProducts.map(product => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  onAddToCart={() => addToCart(product)} 
-                />
-              ))}
+              {/* Products Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {filteredProducts.map(product => (
+                  <ProductCard 
+                    key={product.id} 
+                    product={product} 
+                    onAddToCart={() => addToCart(product)} 
+                  />
+                ))}
+                
+                {filteredProducts.length === 0 && (
+                  <div className="col-span-full flex flex-col items-center justify-center h-40 text-muted-foreground">
+                    <Search className="h-10 w-10 mb-2 opacity-20" />
+                    <p>No products found</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           
           {/* Cart Section (Right Side) */}
-          <div className="hidden lg:block w-1/3 bg-white/60 dark:bg-black/30 backdrop-blur-lg border-l p-4 overflow-y-auto">
+          <div className="hidden lg:block lg:w-2/5 bg-white/60 dark:bg-black/30 backdrop-blur-lg border-l overflow-hidden">
             <div className="flex flex-col h-full">
               {/* Cart Header */}
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between p-4 border-b">
                 <h2 className="text-xl font-semibold flex items-center gap-2">
                   <ShoppingCart className="h-5 w-5" />
                   Cart ({itemCount} items)
@@ -362,19 +439,19 @@ const POSSales = () => {
                   onClick={clearCart}
                   disabled={cart.length === 0}
                 >
-                  <Trash className="h-4 w-4 text-muted-foreground" />
+                  Clear All
                 </Button>
               </div>
               
               {/* Cart Items */}
-              <div className="flex-grow overflow-y-auto mb-4">
+              <ScrollArea className="flex-grow p-4">
                 {cart.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                     <ShoppingCart className="h-12 w-12 mb-2 opacity-20" />
                     <p>Your cart is empty</p>
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div>
                     {cart.map(item => (
                       <CartItem 
                         key={item.product.id} 
@@ -382,14 +459,15 @@ const POSSales = () => {
                         onUpdateQuantity={updateQuantity} 
                         onRemove={removeFromCart}
                         onUpdateDiscount={updateItemDiscount}
+                        requireSecurityCheck={requireSecurityCheck}
                       />
                     ))}
                   </div>
                 )}
-              </div>
+              </ScrollArea>
               
               {/* Cart Footer */}
-              <div className="mt-auto pt-4 border-t">
+              <div className="border-t p-4">
                 {/* Global Discount */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
@@ -401,11 +479,26 @@ const POSSales = () => {
                       type="number" 
                       className="w-16 h-8 text-right"
                       value={globalDiscount}
-                      onChange={e => setGlobalDiscount(Number(e.target.value))}
+                      onChange={(e) => handleGlobalDiscount(Number(e.target.value))}
                       min={0}
                       max={100}
                     />
                     <span className="ml-1">%</span>
+                  </div>
+                </div>
+                
+                {/* Amount Received */}
+                <div className="flex items-center justify-between mb-3">
+                  <span>Amount Received:</span>
+                  <div className="relative w-32">
+                    <span className="absolute left-3 top-2">$</span>
+                    <Input 
+                      type="number" 
+                      className="pl-7 h-8 text-right"
+                      value={amountReceived}
+                      onChange={(e) => setAmountReceived(e.target.value)}
+                      min={0}
+                    />
                   </div>
                 </div>
                 
@@ -424,13 +517,29 @@ const POSSales = () => {
                 )}
                 
                 {/* Grand Total */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="font-medium text-lg">Grand Total:</span>
-                  <span className="font-bold text-xl">${grandTotal.toFixed(2)}</span>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">Grand Total:</span>
+                  <span className="font-bold text-lg">${grandTotal.toFixed(2)}</span>
                 </div>
                 
+                {/* Change Amount */}
+                {changeAmount > 0 && (
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-green-600 dark:text-green-400">Change:</span>
+                    <span className="text-green-600 dark:text-green-400 font-medium">${changeAmount.toFixed(2)}</span>
+                  </div>
+                )}
+                
+                {/* Amount Due */}
+                {amountDue > 0 && parseFloat(amountReceived) > 0 && (
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-blue-600 dark:text-blue-400">Amount Due:</span>
+                    <span className="text-blue-600 dark:text-blue-400 font-medium">${amountDue.toFixed(2)}</span>
+                  </div>
+                )}
+                
                 {/* Action Buttons */}
-                <div className="grid grid-cols-3 gap-2 mb-4">
+                <div className="grid grid-cols-3 gap-2 my-4">
                   <Button 
                     variant="outline" 
                     onClick={holdSale}
@@ -465,7 +574,7 @@ const POSSales = () => {
                 
                 {/* Payment Button */}
                 <Button 
-                  className="w-full h-14 text-lg" 
+                  className="w-full h-12 text-lg" 
                   onClick={processPayment}
                   disabled={cart.length === 0}
                 >
@@ -542,6 +651,14 @@ const POSSales = () => {
           clearCart();
           toast.success("Payment processed successfully");
         }}
+      />
+      
+      {/* Security Check Dialog */}
+      <SecurityCheckDialog
+        isOpen={securityDialog.isOpen}
+        onClose={() => setSecurityDialog(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={securityDialog.callback}
+        actionType={securityDialog.actionType}
       />
     </div>
   );
