@@ -7,7 +7,8 @@ import { Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AreaChart, BarChart, PieChart } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { AreaChart, BarChart, PieChart, CartesianGrid, Legend, XAxis, YAxis, Area, Tooltip, Bar, Pie, Cell } from "recharts";
 
 const ProfitLoss = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -59,6 +60,9 @@ const ProfitLoss = () => {
 
   // Calculate total expenses
   const totalExpenses = Object.values(summaryData.expenses).reduce((a, b) => a + b, 0);
+
+  // Chart colors
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
   return (
     <div className="space-y-6">
@@ -175,18 +179,23 @@ const ProfitLoss = () => {
               </CardHeader>
               <CardContent>
                 <div className="h-80">
-                  <BarChart 
-                    data={monthlyData}
-                    index="month"
-                    categories={["revenue", "expenses", "profit"]}
-                    colors={["blue", "red", "green"]}
-                    valueFormatter={(value) => `€${value.toLocaleString()}`}
-                    showLegend={true}
-                    showXAxis={true}
-                    showYAxis={true}
-                    yAxisWidth={60}
-                    showAnimation={true}
-                  />
+                  <ChartContainer className="h-full" config={{}}>
+                    <BarChart 
+                      data={monthlyData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip 
+                        formatter={(value: number) => [`€${value.toLocaleString()}`, undefined]}
+                      />
+                      <Legend />
+                      <Bar dataKey="revenue" name="Revenus" fill="#3b82f6" />
+                      <Bar dataKey="expenses" name="Dépenses" fill="#ef4444" />
+                      <Bar dataKey="profit" name="Profit" fill="#10b981" />
+                    </BarChart>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -200,14 +209,26 @@ const ProfitLoss = () => {
               </CardHeader>
               <CardContent>
                 <div className="h-80">
-                  <PieChart 
-                    data={categoryData}
-                    index="name"
-                    category="value"
-                    valueFormatter={(value) => `${value}%`}
-                    showLabel={true}
-                    showAnimation={true}
-                  />
+                  <ChartContainer className="h-full" config={{}}>
+                    <PieChart>
+                      <Pie
+                        data={categoryData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={true}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {categoryData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value}%`, 'Pourcentage']} />
+                      <Legend />
+                    </PieChart>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -219,14 +240,26 @@ const ProfitLoss = () => {
               </CardHeader>
               <CardContent>
                 <div className="h-80">
-                  <PieChart 
-                    data={expenseData}
-                    index="name"
-                    category="value"
-                    valueFormatter={(value) => `${value}%`}
-                    showLabel={true}
-                    showAnimation={true}
-                  />
+                  <ChartContainer className="h-full" config={{}}>
+                    <PieChart>
+                      <Pie
+                        data={expenseData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={true}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {expenseData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [`${value}%`, 'Pourcentage']} />
+                      <Legend />
+                    </PieChart>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -241,15 +274,18 @@ const ProfitLoss = () => {
             </CardHeader>
             <CardContent>
               <div className="h-80">
-                <AreaChart 
-                  data={monthlyData}
-                  index="month"
-                  categories={["revenue"]}
-                  colors={["blue"]}
-                  valueFormatter={(value) => `€${value.toLocaleString()}`}
-                  showLegend={false}
-                  showAnimation={true}
-                />
+                <ChartContainer className="h-full" config={{}}>
+                  <AreaChart 
+                    data={monthlyData}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value: number) => [`€${value.toLocaleString()}`, 'Revenus']} />
+                    <Area type="monotone" dataKey="revenue" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} />
+                  </AreaChart>
+                </ChartContainer>
               </div>
             </CardContent>
           </Card>
@@ -263,15 +299,18 @@ const ProfitLoss = () => {
             </CardHeader>
             <CardContent>
               <div className="h-80">
-                <AreaChart 
-                  data={monthlyData}
-                  index="month"
-                  categories={["expenses"]}
-                  colors={["red"]}
-                  valueFormatter={(value) => `€${value.toLocaleString()}`}
-                  showLegend={false}
-                  showAnimation={true}
-                />
+                <ChartContainer className="h-full" config={{}}>
+                  <AreaChart 
+                    data={monthlyData}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip formatter={(value: number) => [`€${value.toLocaleString()}`, 'Dépenses']} />
+                    <Area type="monotone" dataKey="expenses" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} />
+                  </AreaChart>
+                </ChartContainer>
               </div>
             </CardContent>
           </Card>
@@ -285,17 +324,29 @@ const ProfitLoss = () => {
             </CardHeader>
             <CardContent>
               <div className="h-80">
-                <AreaChart 
-                  data={monthlyData}
-                  index="month"
-                  categories={["revenue", "expenses", "profit"]}
-                  colors={["blue", "red", "green"]}
-                  valueFormatter={(value) => `€${value.toLocaleString()}`}
-                  showLegend={true}
-                  showXAxis={true}
-                  showYAxis={true}
-                  showAnimation={true}
-                />
+                <ChartContainer className="h-full" config={{}}>
+                  <AreaChart 
+                    data={monthlyData}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip 
+                      formatter={(value: number, name: string) => {
+                        let label = '';
+                        if (name === 'revenue') label = 'Revenus';
+                        if (name === 'expenses') label = 'Dépenses';
+                        if (name === 'profit') label = 'Profit';
+                        return [`€${value.toLocaleString()}`, label];
+                      }}
+                    />
+                    <Legend />
+                    <Area type="monotone" dataKey="revenue" name="Revenus" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} />
+                    <Area type="monotone" dataKey="expenses" name="Dépenses" stroke="#ef4444" fill="#ef4444" fillOpacity={0.2} />
+                    <Area type="monotone" dataKey="profit" name="Profit" stroke="#10b981" fill="#10b981" fillOpacity={0.2} />
+                  </AreaChart>
+                </ChartContainer>
               </div>
             </CardContent>
           </Card>

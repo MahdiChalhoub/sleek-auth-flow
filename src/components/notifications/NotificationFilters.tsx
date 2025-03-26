@@ -2,8 +2,9 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
+import { Notification } from "@/models/notification";
 
-type NotificationType = "inventory" | "shift" | "approval" | "system" | "client" | "supplier" | "transaction";
+type NotificationType = Notification["type"];
 
 interface NotificationFiltersProps {
   filter: NotificationType | "all";
