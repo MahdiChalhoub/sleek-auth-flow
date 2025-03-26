@@ -188,7 +188,7 @@ const Transactions = () => {
       // Create the new transaction object
       const newTransaction: Transaction = {
         id: newId,
-        amount: data.amount,
+        amount: data.amount, // This is now correctly typed as a number through the zod transform
         status: "open",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
