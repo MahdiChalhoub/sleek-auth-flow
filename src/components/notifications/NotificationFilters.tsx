@@ -8,7 +8,7 @@ type NotificationType = Notification["type"];
 
 interface NotificationFiltersProps {
   filter: NotificationType | "all";
-  setFilter: (filter: NotificationType | "all") => void;
+  setFilter: React.Dispatch<React.SetStateAction<NotificationType | "all">>;
 }
 
 const NotificationFilters: React.FC<NotificationFiltersProps> = ({

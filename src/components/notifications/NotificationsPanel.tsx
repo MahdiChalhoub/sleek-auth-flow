@@ -103,7 +103,7 @@ const NotificationsPanel: React.FC<NotificationsPanelProps> = ({
         <TabsContent value="all" className="mt-0">
           <NotificationFilters 
             filter={filter} 
-            setFilter={(newFilter) => setFilter(newFilter)} 
+            setFilter={setFilter} 
           />
           
           <CardContent className="p-0">

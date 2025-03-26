@@ -1,228 +1,109 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './providers/AuthProvider';
-import { LocationProvider } from './contexts/LocationContext';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as SonnerToaster } from 'sonner';
+import './App.css';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from './components/theme-provider';
 import AppLayout from './components/layout/AppLayout';
-import LoginPage from './pages/Login';
-import HomePage from './pages/Dashboard'; // Using Dashboard as Home
-import InventoryPage from './pages/Inventory';
-import POSSales from './pages/POSSales';
-import Settings from './pages/Settings';
-import Suppliers from './pages/Suppliers';
+import Dashboard from './pages/Dashboard';
+import Inventory from './pages/Inventory';
 import PurchaseOrders from './pages/PurchaseOrders';
+import Suppliers from './pages/Suppliers';
 import StockTransfers from './pages/StockTransfers';
-import Transactions from './pages/Transactions';
-import RegisterPage from './pages/POSRegister';
-import RegisterSessions from './pages/RegisterSessions';
+import Login from './pages/Login';
 import Signup from './pages/Signup';
-import TransactionPermissions from './pages/TransactionPermissions';
-import StaffFinance from './pages/StaffFinance';
-import Loyalty from './pages/Loyalty';
-import Returns from './pages/Returns';
-import RoleManagement from './pages/RoleManagement';
-import Categories from './pages/Categories';
-import ShiftReports from './pages/ShiftReports';
-import AuditTrail from './pages/AuditTrail';
-import Users from './pages/Users';
-import Contacts from './pages/Contacts';
-import NotificationsPage from './pages/Notifications';
+import NotFound from './pages/NotFound';
+import Index from './pages/Index';
+import POSSales from './pages/POSSales';
+import POSRegister from './pages/POSRegister';
 import ForgotPassword from './pages/ForgotPassword';
-import PrivateRoute from './components/auth/PrivateRoute';
-import { ROUTES } from './constants/routes';
-
-// New pages for Dashboard, Ledger and Backup
-import FinanceDashboard from './pages/FinanceDashboard';
-import Ledger from './pages/Ledger';
+import Settings from './pages/Settings';
+import Categories from './pages/Categories';
+import StockAdjustments from './pages/StockAdjustments';
+import Units from './pages/Units';
+import Contacts from './pages/Contacts';
+import Expenses from './pages/Expenses';
+import Returns from './pages/Returns';
+import Transactions from './pages/Transactions';
+import TransactionsPage from './pages/TransactionsPage';
+import AuditTrail from './pages/AuditTrail';
+import UserActivity from './pages/UserActivity';
+import RoleManagement from './pages/RoleManagement';
+import Users from './pages/Users';
+import RegisterSessions from './pages/RegisterSessions';
+import Loyalty from './pages/Loyalty';
+import StaffFinance from './pages/StaffFinance';
+import ShiftReports from './pages/ShiftReports';
+import Notifications from './pages/Notifications';
 import BackupRestore from './pages/BackupRestore';
+import Exports from './pages/Exports';
+import FinanceDashboard from './pages/FinanceDashboard';
+import GeneralLedger from './pages/accounting/GeneralLedger';
+import JournalEntries from './pages/accounting/JournalEntries';
+import AccountsReceivable from './pages/accounting/AccountsReceivable';
+import AccountsPayable from './pages/accounting/AccountsPayable';
+import ProfitLoss from './pages/accounting/ProfitLoss';
+import { QueryProvider } from './providers/QueryProvider';
+import { AuthProvider } from './providers/AuthProvider';
+import PackagingManagement from './pages/PackagingManagement';
+import BarcodePrinting from './pages/BarcodePrinting';
+import ExpirationManagement from './pages/ExpirationManagement';
 
-const App = () => {
+function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <LocationProvider>
-          <Routes>
-            {/* Public routes */}
-            <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-            <Route path={ROUTES.SIGNUP} element={<Signup />} />
-            <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
-            <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />
-            
-            {/* Protected routes with role-based access */}
-            <Route path="/*" element={
-              <PrivateRoute>
-                <AppLayout />
-              </PrivateRoute>
-            }>
-              <Route path="home" element={<HomePage />} />
-              <Route path="inventory" element={
-                <PrivateRoute 
-                  requiredRole="manager"
-                  requiredPermissions={["can_view_inventory"]}
-                >
-                  <InventoryPage />
-                </PrivateRoute>
-              } />
-              <Route path="pos-sales" element={<POSSales />} />
-              <Route path="settings" element={
-                <PrivateRoute 
-                  requiredRole="admin"
-                  requiredPermissions={["can_manage_settings"]}
-                >
-                  <Settings />
-                </PrivateRoute>
-              } />
-              <Route path="suppliers" element={
-                <PrivateRoute 
-                  requiredRole="manager"
-                  requiredPermissions={["can_manage_suppliers"]}
-                >
-                  <Suppliers />
-                </PrivateRoute>
-              } />
-              <Route path="purchase-orders" element={
-                <PrivateRoute 
-                  requiredRole="manager"
-                  requiredPermissions={["can_manage_purchase_orders"]}
-                >
-                  <PurchaseOrders />
-                </PrivateRoute>
-              } />
-              <Route path="stock-transfers" element={
-                <PrivateRoute 
-                  requiredRole="manager"
-                  requiredPermissions={["can_manage_stock_transfers"]}
-                >
-                  <StockTransfers />
-                </PrivateRoute>
-              } />
-              <Route path="transactions" element={
-                <PrivateRoute requiredPermissions={["can_view_transactions"]}>
-                  <Transactions />
-                </PrivateRoute>
-              } />
-              <Route path="register" element={
-                <PrivateRoute requiredPermissions={["can_view_transactions"]}>
-                  <RegisterPage />
-                </PrivateRoute>
-              } />
-              <Route path="register-sessions" element={
-                <PrivateRoute requiredPermissions={["can_view_transactions"]}>
-                  <RegisterSessions />
-                </PrivateRoute>
-              } />
-              <Route path="transaction-permissions" element={
-                <PrivateRoute 
-                  requiredRole="admin"
-                  requiredPermissions={["can_manage_permissions"]}
-                >
-                  <TransactionPermissions />
-                </PrivateRoute>
-              } />
-              <Route path="staff-finance" element={
-                <PrivateRoute 
-                  requiredRole="admin"
-                  requiredPermissions={["can_manage_staff_finance"]}
-                >
-                  <StaffFinance />
-                </PrivateRoute>
-              } />
-              <Route path="loyalty" element={
-                <PrivateRoute requiredPermissions={["can_manage_loyalty"]}>
-                  <Loyalty />
-                </PrivateRoute>
-              } />
-              <Route path="returns" element={
-                <PrivateRoute requiredPermissions={["can_manage_returns"]}>
-                  <Returns />
-                </PrivateRoute>
-              } />
-              <Route path="roles" element={
-                <PrivateRoute 
-                  requiredRole="admin"
-                  requiredPermissions={["can_manage_roles"]}
-                >
-                  <RoleManagement />
-                </PrivateRoute>
-              } />
-              <Route path="categories" element={
-                <PrivateRoute 
-                  requiredRole="manager"
-                  requiredPermissions={["can_manage_categories"]}
-                >
-                  <Categories />
-                </PrivateRoute>
-              } />
-              <Route path="shift-reports" element={
-                <PrivateRoute requiredPermissions={["can_view_shift_reports"]}>
-                  <ShiftReports />
-                </PrivateRoute>
-              } />
-              <Route path="audit-trail" element={
-                <PrivateRoute 
-                  requiredRole="admin"
-                  requiredPermissions={["can_view_audit_trail"]}
-                >
-                  <AuditTrail />
-                </PrivateRoute>
-              } />
-              <Route path="users" element={
-                <PrivateRoute 
-                  requiredRole="admin"
-                  requiredPermissions={["can_manage_users"]}
-                >
-                  <Users />
-                </PrivateRoute>
-              } />
-              <Route path="contacts" element={
-                <PrivateRoute requiredPermissions={["can_manage_contacts"]}>
-                  <Contacts />
-                </PrivateRoute>
-              } />
-              <Route path="notifications" element={<NotificationsPage />} />
-              
-              {/* New Routes for Dashboard, Ledger and Backup */}
-              <Route path="dashboard" element={
-                <PrivateRoute requiredRole="manager">
-                  <FinanceDashboard />
-                </PrivateRoute>
-              } />
-              <Route path="ledger" element={
-                <PrivateRoute requiredRole="manager">
-                  <Ledger />
-                </PrivateRoute>
-              } />
-              <Route path="accounts-receivable" element={
-                <PrivateRoute requiredRole="manager">
-                  <Ledger />
-                </PrivateRoute>
-              } />
-              <Route path="accounts-payable" element={
-                <PrivateRoute requiredRole="manager">
-                  <Ledger />
-                </PrivateRoute>
-              } />
-              <Route path="profit-loss" element={
-                <PrivateRoute requiredRole="manager">
-                  <Ledger />
-                </PrivateRoute>
-              } />
-              <Route path="backup-restore" element={
-                <PrivateRoute requiredRole="admin">
-                  <BackupRestore />
-                </PrivateRoute>
-              } />
-            </Route>
-          </Routes>
-          
-          <Toaster />
-          <SonnerToaster position="top-right" />
-        </LocationProvider>
-      </AuthProvider>
-    </Router>
+    <BrowserRouter>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <QueryProvider>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/" element={<AppLayout />}>
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="inventory" element={<Inventory />} />
+                <Route path="purchase-orders" element={<PurchaseOrders />} />
+                <Route path="suppliers" element={<Suppliers />} />
+                <Route path="stock-transfers" element={<StockTransfers />} />
+                <Route path="sales" element={<POSSales />} />
+                <Route path="register" element={<POSRegister />} />
+                <Route path="categories" element={<Categories />} />
+                <Route path="stock-adjustments" element={<StockAdjustments />} />
+                <Route path="units" element={<Units />} />
+                <Route path="contacts" element={<Contacts />} />
+                <Route path="expenses" element={<Expenses />} />
+                <Route path="returns" element={<Returns />} />
+                <Route path="transactions" element={<Transactions />} />
+                <Route path="transactions-page" element={<TransactionsPage />} />
+                <Route path="audit-trail" element={<AuditTrail />} />
+                <Route path="user-activity" element={<UserActivity />} />
+                <Route path="role-management" element={<RoleManagement />} />
+                <Route path="users" element={<Users />} />
+                <Route path="register-sessions" element={<RegisterSessions />} />
+                <Route path="loyalty" element={<Loyalty />} />
+                <Route path="staff-finance" element={<StaffFinance />} />
+                <Route path="shift-reports" element={<ShiftReports />} />
+                <Route path="notifications" element={<Notifications />} />
+                <Route path="backup-restore" element={<BackupRestore />} />
+                <Route path="exports" element={<Exports />} />
+                <Route path="finance-dashboard" element={<FinanceDashboard />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="general-ledger" element={<GeneralLedger />} />
+                <Route path="journal-entries" element={<JournalEntries />} />
+                <Route path="accounts-receivable" element={<AccountsReceivable />} />
+                <Route path="accounts-payable" element={<AccountsPayable />} />
+                <Route path="profit-loss" element={<ProfitLoss />} />
+                <Route path="packaging-management" element={<PackagingManagement />} />
+                <Route path="barcode-printing" element={<BarcodePrinting />} />
+                <Route path="expiration-management" element={<ExpirationManagement />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </QueryProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
-};
+}
 
 export default App;
