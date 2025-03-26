@@ -38,7 +38,7 @@ export const useCategoryTree = () => {
         const { data: categoryCounts, error: countsError } = await supabase
           .from('products')
           .select('category_id, count(*)')
-          .groupBy('category_id');
+          .group('category_id');
           
         if (countsError) throw new Error(countsError.message);
         

@@ -67,6 +67,3 @@ export function createClient(data: Partial<Client>): Client {
     updatedAt: data.updatedAt || now
   };
 }
-
-// Instead of importing from client.ts, we'll create mock clients directly here if needed
-// For now, we'll rely on the mockClients from client.ts

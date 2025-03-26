@@ -4,6 +4,7 @@ import { Client, createClient } from '@/models/client';
 import { Supplier } from '@/models/supplier';
 import { StockTransfer } from '@/models/stockTransfer';
 import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
+import { Client as ClientModel } from '@/models/clientModel';
 
 // Clients API
 export const clientsApi = {
@@ -23,7 +24,6 @@ export const clientsApi = {
       email: item.email,
       phone: item.phone,
       address: item.address,
-      loyaltyPoints: item.loyalty_points,
       type: 'regular', // Default type
       status: 'active', // Default status
       createdAt: item.created_at,
@@ -51,7 +51,6 @@ export const clientsApi = {
       email: data.email,
       phone: data.phone,
       address: data.address,
-      loyaltyPoints: data.loyalty_points,
       type: 'regular', // Default type
       status: 'active', // Default status
       createdAt: data.created_at,
@@ -66,8 +65,7 @@ export const clientsApi = {
         name: client.name,
         email: client.email,
         phone: client.phone,
-        address: client.address,
-        loyalty_points: client.loyaltyPoints || 0
+        address: client.address
       }])
       .select()
       .single();
@@ -83,7 +81,6 @@ export const clientsApi = {
       email: data.email,
       phone: data.phone,
       address: data.address,
-      loyaltyPoints: data.loyalty_points,
       type: 'regular', // Default type
       status: 'active', // Default status
       createdAt: data.created_at,
@@ -97,7 +94,6 @@ export const clientsApi = {
     if (updates.email) dbUpdates.email = updates.email;
     if (updates.phone) dbUpdates.phone = updates.phone;
     if (updates.address) dbUpdates.address = updates.address;
-    if (updates.loyaltyPoints) dbUpdates.loyalty_points = updates.loyaltyPoints;
     
     const { data, error } = await supabase
       .from('clients')
@@ -117,7 +113,6 @@ export const clientsApi = {
       email: data.email,
       phone: data.phone,
       address: data.address,
-      loyaltyPoints: data.loyalty_points,
       type: 'regular', // Default type
       status: 'active', // Default status
       createdAt: data.created_at,
@@ -136,6 +131,24 @@ export const clientsApi = {
       throw error;
     }
   }
+};
+
+// Map database client to ClientModel for POS and other components that need loyalty data
+export const mapDbClientToModel = (dbClient: Client): ClientModel => {
+  return {
+    id: dbClient.id,
+    name: dbClient.name,
+    email: dbClient.email,
+    phone: dbClient.phone,
+    address: dbClient.address,
+    isVip: dbClient.type === 'vip',
+    creditLimit: dbClient.creditLimit,
+    outstandingBalance: dbClient.outstandingBalance,
+    lastVisit: dbClient.lastVisit,
+    loyaltyPoints: 0, // Default value
+    createdAt: dbClient.createdAt,
+    updatedAt: dbClient.updatedAt
+  };
 };
 
 // Suppliers API
