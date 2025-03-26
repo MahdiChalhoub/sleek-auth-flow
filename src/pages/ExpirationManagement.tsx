@@ -170,7 +170,9 @@ const ExpirationManagement: React.FC = () => {
     return mockProducts.find(p => p.id === productId)?.name || "Produit inconnu";
   };
   
-  const getBatchStatus = (batch: ProductBatch) => {
+  const getBatchStatus = (batch: ProductBatch | null) => {
+    if (!batch) return "unknown";
+    
     if (isExpired(batch.expiryDate)) {
       return "expired";
     } else if (isApproachingExpiry(batch.expiryDate, daysBeforeWarning)) {
@@ -816,3 +818,4 @@ const BatchFormDialog: React.FC<BatchFormDialogProps> = ({
 };
 
 export default ExpirationManagement;
+

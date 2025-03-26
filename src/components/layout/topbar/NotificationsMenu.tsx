@@ -57,9 +57,7 @@ const NotificationsMenu: React.FC = () => {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent 
-          className="max-w-md p-0 sm:rounded-xl overflow-hidden max-h-[90vh] flex flex-col"
-        >
+        <DialogContent className="max-w-md p-0 sm:rounded-xl overflow-hidden max-h-[90vh] flex flex-col">
           <div className="flex-1 overflow-auto">
             <NotificationsPanel 
               onMarkAllAsRead={handleMarkAllAsRead}
