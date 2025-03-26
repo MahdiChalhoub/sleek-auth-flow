@@ -1,18 +1,32 @@
 
-import { DollarSign, CreditCard, ReceiptText } from "lucide-react";
+import { DollarSign, CreditCard, ReceiptText, Wallet, PiggyBank, FileText } from "lucide-react";
 import { NavItem } from "./index";
 
 export const financeItems: NavItem[] = [
   {
-    title: "Caisse enregistreuse",
-    path: "/register",
-    icon: ReceiptText,
-    roles: ["admin", "manager", "cashier"]
-  },
-  {
-    title: "Sessions de caisse",
+    title: "Comptes de paiement",
     path: "/register-sessions",
     icon: CreditCard,
+    roles: ["admin", "manager"],
+    children: [
+      {
+        title: "Caisse",
+        path: "/register",
+        icon: ReceiptText,
+        roles: ["admin", "manager", "cashier"]
+      },
+      {
+        title: "Sessions",
+        path: "/register-sessions", 
+        icon: FileText,
+        roles: ["admin", "manager"]
+      }
+    ]
+  },
+  {
+    title: "Transactions",
+    path: "/transactions",
+    icon: Wallet,
     roles: ["admin", "manager"]
   },
   {
@@ -20,5 +34,11 @@ export const financeItems: NavItem[] = [
     path: "/transaction-permissions",
     icon: DollarSign,
     roles: ["admin"]
+  },
+  {
+    title: "Finance Personnel",
+    path: "/staff-finance",
+    icon: PiggyBank,
+    roles: ["admin", "manager"]
   }
 ];
