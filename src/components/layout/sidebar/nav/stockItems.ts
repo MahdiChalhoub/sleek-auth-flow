@@ -11,7 +11,7 @@ export const stockItems: NavItem[] = [
   },
   {
     title: "Ajustement des stocks",
-    path: "/categories",
+    path: "/stock-adjustments",
     icon: Scale,
     roles: ["admin", "manager"]
   }

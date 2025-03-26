@@ -1,5 +1,5 @@
 
-import { DollarSign, CreditCard, ReceiptText, Wallet, PiggyBank, FileText, BarChart3, BookOpen, FileSpreadsheet, Scale } from "lucide-react";
+import { DollarSign, CreditCard, ReceiptText, Wallet, PiggyBank, FileText, BarChart3, BookOpen, FileSpreadsheet, Scale, CircleDollarSign } from "lucide-react";
 import { NavItem } from "./index";
 
 export const financeItems: NavItem[] = [
@@ -63,8 +63,8 @@ export const financeItems: NavItem[] = [
   },
   {
     title: "Dépenses",
-    path: "/transaction-permissions",
-    icon: DollarSign,
+    path: "/expenses",
+    icon: CircleDollarSign,
     roles: ["admin"]
   },
   {
