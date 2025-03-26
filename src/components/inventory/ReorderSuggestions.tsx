@@ -60,7 +60,11 @@ const nonSellingProducts = enhancedProducts
   .filter(product => new Date(product.lastSold || "").getTime() < new Date("2023-09-01").getTime())
   .sort((a, b) => new Date(a.lastSold || "").getTime() - new Date(b.lastSold || "").getTime());
 
-const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({ locationId, showAll, onReorderAll }) => {
+const ReorderSuggestions: React.FC<Partial<ReorderSuggestionsProps>> = ({ 
+  locationId = "default", 
+  showAll = false, 
+  onReorderAll = () => {} 
+}) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   

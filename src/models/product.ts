@@ -39,7 +39,7 @@ export interface ComboComponent {
   id: string;
   comboProductId: string;
   componentProductId: string; // Use this for referencing products
-  productId: string; // Required for backward compatibility
+  productId?: string; // Made optional but kept for backward compatibility
   quantity: number;
   product?: Product; // Reference to the full product
   createdAt: string;

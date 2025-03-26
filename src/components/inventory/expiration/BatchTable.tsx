@@ -4,21 +4,29 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, PlusCircle, Trash2 } from 'lucide-react';
-import { ProductBatch } from '@/models/product';
+import { ProductBatch, Product } from '@/models/product';
 import BatchStatusBadge from './BatchStatusBadge';
 import { format } from 'date-fns';
 
 export interface BatchTableProps {
   refresh?: boolean;
   onDelete?: (batchId: string) => void;
+  batches?: ProductBatch[];
+  product?: Product;
+  onDeleteBatch?: (batchId: string) => void;
 }
 
-const BatchTable: React.FC<BatchTableProps> = ({ refresh, onDelete }) => {
+const BatchTable: React.FC<BatchTableProps> = ({ refresh, onDelete, batches: propBatches, product, onDeleteBatch }) => {
   const [batches, setBatches] = useState<ProductBatch[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Mock data for demonstration
+  // Use provided batches or load mock data
   useEffect(() => {
+    if (propBatches) {
+      setBatches(propBatches);
+      return;
+    }
+    
     // In a real app, this would fetch from an API
     const mockBatches: ProductBatch[] = [
       {
@@ -48,7 +56,7 @@ const BatchTable: React.FC<BatchTableProps> = ({ refresh, onDelete }) => {
     ];
     
     setBatches(mockBatches);
-  }, [refresh]);
+  }, [refresh, propBatches]);
   
   // Filter batches based on search query
   const filteredBatches = batches.filter(batch => 
@@ -56,7 +64,9 @@ const BatchTable: React.FC<BatchTableProps> = ({ refresh, onDelete }) => {
   );
   
   const handleDeleteBatch = (batchId: string) => {
-    if (onDelete) {
+    if (onDeleteBatch) {
+      onDeleteBatch(batchId);
+    } else if (onDelete) {
       onDelete(batchId);
     } else {
       // Mock delete operation

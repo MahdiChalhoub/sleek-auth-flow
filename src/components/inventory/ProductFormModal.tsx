@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -126,6 +125,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
       id: Math.random().toString(36).substring(7),
       comboProductId: "",
       componentProductId: "",
+      productId: "",
       quantity: 1,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

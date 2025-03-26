@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Plus, Eye, FileText, Download, Filter, Search, ScanLine, Clock, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +21,7 @@ const statusColors: Record<string, string> = {
   received: "bg-orange-100 text-orange-800",
   completed: "bg-green-100 text-green-800",
   cancelled: "bg-red-100 text-red-800",
-  ordered: "bg-blue-100 text-blue-800" // Adding ordered status to match CreatePurchaseOrderModal
+  ordered: "bg-blue-100 text-blue-800"
 };
 
 const PurchaseOrders: React.FC = () => {
@@ -34,7 +33,6 @@ const PurchaseOrders: React.FC = () => {
   const [scannerOpen, setScannerOpen] = useState(false);
   const { toast } = useToast();
 
-  // Handle keyboard shortcut for barcode scanning
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.altKey && event.key === 'b') {
@@ -61,7 +59,6 @@ const PurchaseOrders: React.FC = () => {
     setCreateOpen(true);
   };
 
-  // Filter POs based on search query and status
   const filteredPOs = mockPurchaseOrders.filter(po => {
     const matchesSearch = 
       po.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -72,7 +69,6 @@ const PurchaseOrders: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Get unique statuses for filter
   const statuses = ["all", ...Array.from(new Set(mockPurchaseOrders.map(po => po.status)))];
 
   return (
@@ -224,7 +220,16 @@ const PurchaseOrders: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="suggestions">
-          <ReorderSuggestions />
+          <ReorderSuggestions 
+            locationId="default" 
+            showAll={false} 
+            onReorderAll={() => {
+              toast({
+                title: "Reordering all items",
+                description: "A purchase order for all suggested items has been created",
+              });
+            }} 
+          />
         </TabsContent>
 
         <TabsContent value="recent">
@@ -268,7 +273,6 @@ const PurchaseOrders: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* View PO Modal */}
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
         <PurchaseOrderViewModal 
           purchaseOrder={selectedPO} 
@@ -276,12 +280,10 @@ const PurchaseOrders: React.FC = () => {
         />
       </Dialog>
 
-      {/* Barcode Scanner Modal */}
       <Dialog open={scannerOpen} onOpenChange={setScannerOpen}>
         <BarcodeScannerModal onScan={handleBarcodeScanned} onClose={() => setScannerOpen(false)} />
       </Dialog>
 
-      {/* Floating Action Button */}
       <div className="fixed bottom-6 right-6">
         <Button 
           onClick={() => setCreateOpen(true)}

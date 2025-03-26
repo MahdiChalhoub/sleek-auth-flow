@@ -10,13 +10,16 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { ProductBatch } from '@/models/product';
 
 export interface BatchFormProps {
   productId?: string;
   onBatchAdded?: () => void;
+  onSubmit?: (newBatch: Omit<ProductBatch, "id">) => void;
+  onCancel?: () => void;
 }
 
-const BatchForm: React.FC<BatchFormProps> = ({ productId, onBatchAdded }) => {
+const BatchForm: React.FC<BatchFormProps> = ({ productId, onBatchAdded, onSubmit, onCancel }) => {
   const [batchNumber, setBatchNumber] = useState('');
   const [quantity, setQuantity] = useState<number>(1);
   const [expiryDate, setExpiryDate] = useState<Date | undefined>(
@@ -41,24 +44,31 @@ const BatchForm: React.FC<BatchFormProps> = ({ productId, onBatchAdded }) => {
       return;
     }
     
-    // In a real app, this would make an API call
-    console.log("Batch added:", {
-      productId,
+    const newBatch = {
+      productId: productId || '',
       batchNumber,
       quantity,
       expiryDate: format(expiryDate, 'yyyy-MM-dd'),
-    });
+      createdAt: new Date().toISOString()
+    };
     
-    toast.success("Lot ajouté avec succès");
-    
-    // Reset form
-    setBatchNumber('');
-    setQuantity(1);
-    setExpiryDate(new Date(new Date().setMonth(new Date().getMonth() + 6)));
-    
-    // Notify parent component
-    if (onBatchAdded) {
-      onBatchAdded();
+    // Use onSubmit if provided, otherwise log
+    if (onSubmit) {
+      onSubmit(newBatch);
+    } else {
+      // In a real app, this would make an API call
+      console.log("Batch added:", newBatch);
+      toast.success("Lot ajouté avec succès");
+      
+      // Reset form
+      setBatchNumber('');
+      setQuantity(1);
+      setExpiryDate(new Date(new Date().setMonth(new Date().getMonth() + 6)));
+      
+      // Notify parent component
+      if (onBatchAdded) {
+        onBatchAdded();
+      }
     }
   };
   
@@ -114,9 +124,16 @@ const BatchForm: React.FC<BatchFormProps> = ({ productId, onBatchAdded }) => {
             </Popover>
           </div>
           
-          <Button type="submit" className="w-full">
-            Ajouter le lot
-          </Button>
+          <div className="flex gap-2 justify-end">
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Annuler
+              </Button>
+            )}
+            <Button type="submit" className="w-full">
+              Ajouter le lot
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>
