@@ -1,257 +1,166 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { format, addDays, isAfter, isBefore } from 'date-fns';
-import { ProductBatch } from '@/models/product';
-import { AlertCircle, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import BatchStatusBadge from './BatchStatusBadge';
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProductBatch, productsService } from "@/models/product";
+import { format, parseISO, addDays, isBefore, isAfter } from "date-fns";
+import { supabase } from "@/lib/supabase";
 
-interface ExpiryDashboardProps {
-  refresh?: boolean;
-}
-
-const ExpiryDashboard: React.FC<ExpiryDashboardProps> = ({ refresh }) => {
+const ExpiryDashboard: React.FC = () => {
   const [batches, setBatches] = useState<ProductBatch[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("all");
-  
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    // In a real app, this would fetch from an API
-    const mockBatches: ProductBatch[] = [
-      {
-        id: '1',
-        productId: '1',
-        batchNumber: 'BT-001-2023',
-        quantity: 20,
-        expiryDate: '2023-12-31',
-        createdAt: '2023-06-15T10:00:00Z',
-      },
-      {
-        id: '2',
-        productId: '1',
-        batchNumber: 'BT-002-2023',
-        quantity: 15,
-        expiryDate: format(addDays(new Date(), 20), 'yyyy-MM-dd'),
-        createdAt: '2023-06-20T10:00:00Z',
-      },
-      {
-        id: '3',
-        productId: '2',
-        batchNumber: 'BT-003-2023',
-        quantity: 8,
-        expiryDate: format(addDays(new Date(), -5), 'yyyy-MM-dd'),
-        createdAt: '2023-07-01T10:00:00Z',
-      },
-      {
-        id: '4',
-        productId: '3',
-        batchNumber: 'BT-004-2023',
-        quantity: 12,
-        expiryDate: format(addDays(new Date(), 5), 'yyyy-MM-dd'),
-        createdAt: '2023-07-10T10:00:00Z',
-      },
-    ];
-    
-    setBatches(mockBatches);
-  }, [refresh]);
-  
-  // Classification functions
-  const isExpired = (expiryDate: string) => {
-    return isBefore(new Date(expiryDate), new Date());
-  };
-  
-  const isExpiringSoon = (expiryDate: string) => {
-    const today = new Date();
-    const thirtyDaysFromNow = addDays(today, 30);
-    const expiry = new Date(expiryDate);
-    
-    return !isBefore(expiry, today) && !isAfter(expiry, thirtyDaysFromNow);
-  };
-  
-  // Filter batches based on tab
-  const filteredBatches = batches.filter(batch => {
-    switch (activeTab) {
-      case "expired":
-        return isExpired(batch.expiryDate);
-      case "expiring":
-        return isExpiringSoon(batch.expiryDate);
-      case "valid":
-        return !isExpired(batch.expiryDate) && !isExpiringSoon(batch.expiryDate);
-      default:
-        return true;
-    }
-  });
-  
-  // Counts
-  const expiredCount = batches.filter(batch => isExpired(batch.expiryDate)).length;
-  const expiringSoonCount = batches.filter(batch => isExpiringSoon(batch.expiryDate)).length;
-  const validCount = batches.filter(batch => !isExpired(batch.expiryDate) && !isExpiringSoon(batch.expiryDate)).length;
-  
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Produits expirés</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">{expiredCount}</div>
-              <Badge variant="destructive" className="ml-auto">{expiredCount > 0 ? "Action requise" : "Aucun"}</Badge>
-            </div>
-          </CardContent>
-        </Card>
+    const fetchAllBatches = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('product_batches')
+          .select('*, products:product_id(name)')
+          .order('expiry_date', { ascending: true });
+          
+        if (error) throw error;
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Expirant bientôt</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">{expiringSoonCount}</div>
-              <Badge 
-                variant={expiringSoonCount > 0 ? "outline" : "default"}
-                className={expiringSoonCount > 0 ? "ml-auto text-amber-500 border-amber-500" : "ml-auto"}
-              >
-                {expiringSoonCount > 0 ? "Attention" : "Aucun"}
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
+        const formattedBatches = data.map((batch: any) => ({
+          id: batch.id,
+          productId: batch.product_id,
+          productName: batch.products?.name || 'Unknown Product',
+          batchNumber: batch.batch_number,
+          quantity: batch.quantity,
+          expiryDate: batch.expiry_date,
+          createdAt: batch.created_at,
+          updatedAt: batch.updated_at
+        }));
         
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Produits valides</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold">{validCount}</div>
-              <Badge variant="default" className="ml-auto bg-green-500 hover:bg-green-600">{validCount > 0 ? "En stock" : "Aucun"}</Badge>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 mb-4">
-          <TabsTrigger value="all">Tous</TabsTrigger>
-          <TabsTrigger value="expired">Expirés</TabsTrigger>
-          <TabsTrigger value="expiring">Bientôt expirés</TabsTrigger>
-          <TabsTrigger value="valid">Valides</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="all" className="space-y-4">
-          {batches.length === 0 ? (
-            <Card>
-              <CardContent className="py-6">
-                <div className="text-center text-muted-foreground">
-                  Aucun lot trouvé
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {filteredBatches.map(batch => (
-                <BatchCard key={batch.id} batch={batch} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="expired" className="space-y-4">
-          {filteredBatches.length === 0 ? (
-            <Alert>
-              <CheckCircle2 className="h-4 w-4" />
-              <AlertTitle>Aucun produit expiré</AlertTitle>
-              <AlertDescription>
-                Tous vos produits sont à jour. Aucune action n'est requise.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <div className="space-y-4">
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Action requise</AlertTitle>
-                <AlertDescription>
-                  {filteredBatches.length} produit(s) expiré(s). Veuillez les retirer de la vente immédiatement.
-                </AlertDescription>
-              </Alert>
-              {filteredBatches.map(batch => (
-                <BatchCard key={batch.id} batch={batch} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="expiring" className="space-y-4">
-          {filteredBatches.length === 0 ? (
-            <Alert>
-              <CheckCircle2 className="h-4 w-4" />
-              <AlertTitle>Aucun produit expirant bientôt</AlertTitle>
-              <AlertDescription>
-                Aucun produit n'expirera dans les 30 prochains jours.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <div className="space-y-4">
-              <Alert>
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <AlertTitle>Attention</AlertTitle>
-                <AlertDescription>
-                  {filteredBatches.length} produit(s) expirera(ont) dans les 30 prochains jours.
-                </AlertDescription>
-              </Alert>
-              {filteredBatches.map(batch => (
-                <BatchCard key={batch.id} batch={batch} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="valid" className="space-y-4">
-          {filteredBatches.length === 0 ? (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Aucun produit valide</AlertTitle>
-              <AlertDescription>
-                Tous vos produits sont expirés ou expirent bientôt.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <div className="space-y-4">
-              {filteredBatches.map(batch => (
-                <BatchCard key={batch.id} batch={batch} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
+        setBatches(formattedBatches);
+      } catch (error) {
+        console.error('Error fetching batches:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAllBatches();
+  }, []);
+
+  // Sort batches by expiry date
+  const now = new Date();
+  const in30Days = addDays(now, 30);
+  const in60Days = addDays(now, 60);
+  const in90Days = addDays(now, 90);
+
+  // Filter batches based on expiry timeframes
+  const expired = batches.filter(batch => 
+    isBefore(parseISO(batch.expiryDate), now)
   );
-};
+  
+  const expiringSoon = batches.filter(batch => 
+    isAfter(parseISO(batch.expiryDate), now) && 
+    isBefore(parseISO(batch.expiryDate), in30Days)
+  );
+  
+  const expiringIn30To60Days = batches.filter(batch => 
+    isAfter(parseISO(batch.expiryDate), in30Days) && 
+    isBefore(parseISO(batch.expiryDate), in60Days)
+  );
+  
+  const expiringIn60To90Days = batches.filter(batch => 
+    isAfter(parseISO(batch.expiryDate), in60Days) && 
+    isBefore(parseISO(batch.expiryDate), in90Days)
+  );
 
-interface BatchCardProps {
-  batch: ProductBatch;
-}
-
-const BatchCard: React.FC<BatchCardProps> = ({ batch }) => {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <h3 className="font-medium">{batch.batchNumber}</h3>
-            <p className="text-sm text-muted-foreground">
-              Quantité: {batch.quantity}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm">Expire le: {format(new Date(batch.expiryDate), 'dd/MM/yyyy')}</p>
-            <BatchStatusBadge expiryDate={batch.expiryDate} />
-          </div>
+  const renderBatchList = (batchList: ProductBatch[]) => {
+    if (batchList.length === 0) {
+      return (
+        <div className="py-6 text-center text-muted-foreground">
+          No products found in this timeframe.
         </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {batchList.map(batch => (
+          <div key={batch.id} className="rounded-lg border p-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-medium">{batch.productName}</h3>
+                <p className="text-sm text-muted-foreground">
+                  Batch: {batch.batchNumber}
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="font-medium">{format(parseISO(batch.expiryDate), 'PPP')}</div>
+                <p className="text-sm text-muted-foreground">
+                  Qty: {batch.quantity}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Expiration Dashboard</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Expiration Dashboard</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="expired">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="expired" className="relative">
+              Expired
+              {expired.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] text-white">
+                  {expired.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="soon" className="relative">
+              Within 30 Days
+              {expiringSoon.length > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] text-white">
+                  {expiringSoon.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="30-60">30-60 Days</TabsTrigger>
+            <TabsTrigger value="60-90">60-90 Days</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="expired" className="pt-4">
+            {renderBatchList(expired)}
+          </TabsContent>
+          
+          <TabsContent value="soon" className="pt-4">
+            {renderBatchList(expiringSoon)}
+          </TabsContent>
+          
+          <TabsContent value="30-60" className="pt-4">
+            {renderBatchList(expiringIn30To60Days)}
+          </TabsContent>
+          
+          <TabsContent value="60-90" className="pt-4">
+            {renderBatchList(expiringIn60To90Days)}
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

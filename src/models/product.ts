@@ -38,12 +38,23 @@ export interface ProductPrice {
   updatedAt: string;
 }
 
+export interface ProductLocationStock {
+  id: string;
+  productId: string;
+  locationId: string;
+  stock: number;
+  minStockLevel?: number;
+  updatedAt: string;
+  createdAt: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   description?: string;
   barcode?: string;
   categoryId?: string;
+  category?: string; // Added for backward compatibility
   price: number;
   cost?: number;
   stock: number;
@@ -52,10 +63,12 @@ export interface Product {
   isCombo?: boolean;
   hasStock?: boolean;
   imageUrl?: string;
+  image?: string; // Added for backward compatibility with existing code
   comboComponents?: ComboComponent[];
   batches?: ProductBatch[];
   costs?: ProductCost[];
   prices?: ProductPrice[];
+  locationStock?: ProductLocationStock[];
   createdAt: string;
   updatedAt: string;
 }
@@ -68,6 +81,7 @@ export const createProduct = (data: Partial<Product>): Product => {
     description: data.description,
     barcode: data.barcode,
     categoryId: data.categoryId,
+    category: data.category,
     price: data.price || 0,
     cost: data.cost,
     stock: data.stock || 0,
@@ -76,11 +90,108 @@ export const createProduct = (data: Partial<Product>): Product => {
     isCombo: data.isCombo || false,
     hasStock: data.hasStock !== undefined ? data.hasStock : true,
     imageUrl: data.imageUrl,
+    image: data.imageUrl, // Map imageUrl to image for compatibility
     comboComponents: data.comboComponents || [],
     batches: data.batches || [],
     costs: data.costs || [],
     prices: data.prices || [],
+    locationStock: data.locationStock || [],
     createdAt: data.createdAt || now,
     updatedAt: data.updatedAt || now
   };
+};
+
+// Create a products service to fetch from Supabase instead of mock data
+import { supabase } from '@/lib/supabase';
+
+export const productsService = {
+  async getAll(): Promise<Product[]> {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, categories(name)');
+      
+      if (error) throw error;
+      
+      return data.map((product: any) => createProduct({
+        ...product,
+        category: product.categories?.name,
+        image: product.image_url,
+        imageUrl: product.image_url
+      }));
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return [];
+    }
+  },
+  
+  async getById(id: string): Promise<Product | null> {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, categories(name)')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      
+      return createProduct({
+        ...data,
+        category: data.categories?.name,
+        image: data.image_url,
+        imageUrl: data.image_url
+      });
+    } catch (error) {
+      console.error(`Error fetching product ${id}:`, error);
+      return null;
+    }
+  },
+  
+  async getProductBatches(productId: string): Promise<ProductBatch[]> {
+    try {
+      const { data, error } = await supabase
+        .from('product_batches')
+        .select('*')
+        .eq('product_id', productId);
+      
+      if (error) throw error;
+      
+      return data.map((batch: any) => ({
+        id: batch.id,
+        productId: batch.product_id,
+        batchNumber: batch.batch_number,
+        quantity: batch.quantity,
+        expiryDate: batch.expiry_date,
+        createdAt: batch.created_at,
+        updatedAt: batch.updated_at
+      }));
+    } catch (error) {
+      console.error(`Error fetching batches for product ${productId}:`, error);
+      return [];
+    }
+  },
+  
+  async getProductStockByLocation(productId: string): Promise<ProductLocationStock[]> {
+    try {
+      const { data, error } = await supabase
+        .from('product_location_stock')
+        .select('*')
+        .eq('product_id', productId);
+      
+      if (error) throw error;
+      
+      return data.map((stock: any) => ({
+        id: stock.id,
+        productId: stock.product_id,
+        locationId: stock.location_id,
+        stock: stock.stock,
+        minStockLevel: stock.min_stock_level,
+        createdAt: stock.created_at,
+        updatedAt: stock.updated_at
+      }));
+    } catch (error) {
+      console.error(`Error fetching location stock for product ${productId}:`, error);
+      return [];
+    }
+  }
 };

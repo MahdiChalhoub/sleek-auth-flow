@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Plus, Eye, Edit, Trash2, FileText, Download, Printer, ArrowUpDown, Filter, Search, Menu, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { mockProducts } from "@/models/product";
+import useProducts from "@/hooks/useProducts";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import ProductViewModal from "@/components/inventory/ProductViewModal";
 import ProductFormModal from "@/components/inventory/ProductFormModal";
@@ -24,6 +23,7 @@ import { useScreenSize, useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
 
 const Inventory: React.FC = () => {
+  const { products: allProducts, isLoading: productsLoading, error: productsError } = useProducts();
   const [selectedTab, setSelectedTab] = useState("inventory");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
@@ -36,19 +36,16 @@ const Inventory: React.FC = () => {
   const [deleteProductId, setDeleteProductId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  // Use our enhanced responsive hooks
   const { isMobile, isTablet } = useScreenSize();
   const isSmallScreen = isMobile || isTablet;
   const { currentLocation, availableLocations } = useLocationContext();
 
-  // If no location is explicitly selected, use the current location
   useEffect(() => {
     if (currentLocation && !filterLocationId) {
       setFilterLocationId(currentLocation.id);
     }
   }, [currentLocation]);
   
-  // Redirect if no location is selected and warn user
   useEffect(() => {
     if (!currentLocation && availableLocations.length > 0) {
       toast.error("Please select a location to view inventory");
@@ -75,9 +72,7 @@ const Inventory: React.FC = () => {
     setBarcodeOpen(true);
   };
 
-  // Filter products based on location, search query and category
-  const filteredProducts = mockProducts.filter(product => {
-    // First filter by location if specified
+  const filteredProducts = allProducts.filter(product => {
     if (filterLocationId) {
       const locationStock = product.locationStock?.find(ls => ls.locationId === filterLocationId);
       if (!locationStock) return false;
@@ -85,18 +80,16 @@ const Inventory: React.FC = () => {
 
     const matchesSearch = 
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.barcode.toLowerCase().includes(searchQuery.toLowerCase());
+      (product.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (product.barcode?.toLowerCase() || '').includes(searchQuery.toLowerCase());
     
     const matchesCategory = filterCategory === "all" || product.category === filterCategory;
     
     return matchesSearch && matchesCategory;
   });
 
-  // Get unique categories for filter
-  const categories = ["all", ...Array.from(new Set(mockProducts.map(p => p.category)))];
+  const categories = ["all", ...Array.from(new Set(allProducts.map(p => p.category || 'Uncategorized').filter(Boolean)))];
 
-  // Get stock for the selected location
   const getLocationStock = (product: any) => {
     if (!filterLocationId) return product.stock;
     
@@ -104,7 +97,6 @@ const Inventory: React.FC = () => {
     return locationStock ? locationStock.stock : 0;
   };
 
-  // Check if stock is low for the selected location
   const isLowStock = (product: any) => {
     if (!filterLocationId) return product.stock <= 10;
     
@@ -114,7 +106,6 @@ const Inventory: React.FC = () => {
     return locationStock.stock <= (locationStock.minStockLevel || 5);
   };
 
-  // Conditional rendering for mobile view of product actions
   const renderProductActions = (product: any) => {
     if (isSmallScreen) {
       return (
@@ -148,7 +139,6 @@ const Inventory: React.FC = () => {
       );
     }
 
-    // Desktop view
     return (
       <div className="flex justify-end gap-2">
         <Button variant="ghost" size="icon" onClick={() => handleViewProduct(product)}>
@@ -172,7 +162,6 @@ const Inventory: React.FC = () => {
     );
   };
 
-  // Responsive rendering of product table
   const renderProductTable = () => {
     if (isSmallScreen) {
       return (
@@ -231,7 +220,6 @@ const Inventory: React.FC = () => {
       );
     }
 
-    // Desktop view
     return (
       <div className="rounded-md border overflow-auto">
         <Table>
@@ -406,7 +394,6 @@ const Inventory: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Modals */}
       <Dialog open={viewOpen} onOpenChange={setViewOpen}>
         <ProductViewModal 
           product={selectedProduct} 
@@ -440,7 +427,6 @@ const Inventory: React.FC = () => {
         <BarcodeModal product={selectedProduct} onClose={() => setBarcodeOpen(false)} />
       </Dialog>
 
-      {/* Floating Action Button - only visible on mobile */}
       {isSmallScreen && (
         <div className="fixed bottom-6 right-6 z-10">
           <Dialog>
