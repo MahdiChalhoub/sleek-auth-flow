@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -15,7 +15,7 @@ import { Business } from "@/models/interfaces/businessInterfaces";
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  businessId: z.string().uuid({ message: "Please select a business" }),
+  businessId: z.string().min(1, { message: "Please select a business" }),
   rememberMe: z.boolean().default(true)
 });
 
@@ -50,6 +50,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
       rememberMe: initialRememberMe
     }
   });
+
+  // Update the businessId when businesses change
+  useEffect(() => {
+    if (businesses.length > 0 && !form.getValues().businessId) {
+      form.setValue('businessId', businesses[0].id);
+    }
+  }, [businesses, form]);
   
   const handleSubmit = (data: LoginFormValues) => {
     // Store remember me preference and email if checked
@@ -116,7 +123,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Business</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select business" />

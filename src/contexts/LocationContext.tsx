@@ -26,24 +26,25 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // In a real application, this would be fetched from an API based on the user's permissions
   useEffect(() => {
-    if (currentBusiness) {
-      // Filter locations by current business
-      const businessLocations = mockBranches.filter(branch => branch.businessId === currentBusiness.id);
-      
-      setAvailableLocations(businessLocations);
-      
-      // If user has only one location, auto-select it
-      if (businessLocations.length === 1) {
-        setCurrentLocation(businessLocations[0]);
-      } 
-      // Otherwise, try to find the default location or just use the first one
-      else if (businessLocations.length > 0) {
-        const defaultLocation = businessLocations.find(loc => loc.isDefault) || businessLocations[0];
-        setCurrentLocation(defaultLocation);
-      }
-    } else {
+    if (!user || !currentBusiness) {
       setAvailableLocations([]);
       setCurrentLocation(null);
+      return;
+    }
+
+    // Filter locations by current business
+    const businessLocations = mockBranches.filter(branch => branch.businessId === currentBusiness.id);
+    
+    setAvailableLocations(businessLocations);
+    
+    // If user has only one location, auto-select it
+    if (businessLocations.length === 1) {
+      setCurrentLocation(businessLocations[0]);
+    } 
+    // Otherwise, try to find the default location or just use the first one
+    else if (businessLocations.length > 0) {
+      const defaultLocation = businessLocations.find(loc => loc.isDefault) || businessLocations[0];
+      setCurrentLocation(defaultLocation);
     }
   }, [currentBusiness, user]);
 

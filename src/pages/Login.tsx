@@ -34,6 +34,12 @@ const Login: React.FC = () => {
   const handleSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     try {
+      if (!data.businessId || data.businessId.trim() === "") {
+        toast.error("Please select a business to continue");
+        setIsSubmitting(false);
+        return;
+      }
+      
       await login(data.email, data.password, data.businessId, data.rememberMe);
       toast.success("Login successful");
     } catch (error) {

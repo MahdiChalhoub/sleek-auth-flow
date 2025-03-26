@@ -79,8 +79,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const parsedUser = JSON.parse(savedUser);
           setUser(parsedUser);
           
-          // Initialize business selection
-          initializeBusinessSelection(parsedUser, savedBusinessId);
+          // Initialize business selection if user exists
+          if (parsedUser) {
+            initializeBusinessSelection(parsedUser, savedBusinessId);
+          }
         } catch (e) {
           console.error("Failed to parse user data", e);
           storage.removeItem("pos_user");
@@ -123,6 +125,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
+      if (!businessId || businessId.trim() === "") {
+        throw new Error("Please select a business to continue");
+      }
+
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
@@ -165,7 +171,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       setUser(mockUser);
-      initializeBusinessSelection(mockUser, businessId);
       
       // Use appropriate storage based on rememberMe setting
       const storage = rememberMe ? localStorage : sessionStorage;
@@ -174,6 +179,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Store the storage type preference
       localStorage.setItem("auth_storage_type", rememberMe ? "local" : "session");
+      
+      // Initialize business selection after user is set
+      initializeBusinessSelection(mockUser, businessId);
       
       // Navigate to the appropriate page based on role
       const redirectPath = localStorage.getItem("intended_redirect") || getRoleDefaultPage(mockUser.role);
