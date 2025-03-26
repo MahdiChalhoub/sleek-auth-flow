@@ -30,7 +30,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { BarcodeScannerModal } from "@/components/inventory/BarcodeScannerModal";
+import BarcodeScannerModal from "@/components/inventory/BarcodeScannerModal";
 import { mockProducts } from "@/models/product";
 
 interface PrintTemplate {

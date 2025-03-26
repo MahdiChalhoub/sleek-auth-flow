@@ -1,7 +1,6 @@
-
 import React, { useState } from "react";
 import { 
-  Package, Package2, BoxesIcon, BarChart, Scan, History, CornerRightDown, ArrowDownUp, Plus, PlusCircle, MinusCircle
+  Package, Package2, BoxesIcon, BarChart, Scan, History, CornerRightDown, ArrowDownUp, Plus, PlusCircle, MinusCircle, Printer
 } from "lucide-react";
 import { 
   Card, 
@@ -598,3 +597,4 @@ const BarcodeCard: React.FC<BarcodeCardProps> = ({
 };
 
 export default PackagingManagement;
+

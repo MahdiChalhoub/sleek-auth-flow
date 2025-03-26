@@ -108,10 +108,7 @@ const AppTopbar: React.FC = () => {
           </div>
         )}
         
-        <NotificationsMenu 
-          isOpen={isNotificationsOpen} 
-          onOpenChange={handleNotificationsChange} 
-        />
+        <NotificationsMenu />
         
         <UserMenu 
           isOpen={isUserMenuOpen}

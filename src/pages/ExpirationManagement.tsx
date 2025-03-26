@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Calendar, CalendarClock, AlertTriangle, Clock, CheckCircle, XCircle, 
@@ -44,7 +43,6 @@ interface ProductBatch {
   notes?: string;
 }
 
-// Helper function to determine if a date is approaching expiry
 const isApproachingExpiry = (expiryDate: string, daysThreshold: number = 30) => {
   const today = new Date();
   const expiry = new Date(expiryDate);
@@ -54,21 +52,17 @@ const isApproachingExpiry = (expiryDate: string, daysThreshold: number = 30) => 
   return diffDays > 0 && diffDays <= daysThreshold;
 };
 
-// Helper function to check if a product is expired
 const isExpired = (expiryDate: string) => {
   const today = new Date();
   const expiry = new Date(expiryDate);
   return expiry < today;
 };
 
-// Generate mock data
 const generateMockBatches = (): ProductBatch[] => {
   const mockBatches: ProductBatch[] = [];
   
-  // Current date for reference
   const today = new Date();
   
-  // Product 1: Milk - some batches nearly expired, some good
   mockBatches.push({
     id: "b1",
     productId: "1",
@@ -92,7 +86,6 @@ const generateMockBatches = (): ProductBatch[] => {
     supplier: "Dairy Farms Inc"
   });
   
-  // Product 2: Bread - some expired, some good
   mockBatches.push({
     id: "b3",
     productId: "2",
@@ -116,7 +109,6 @@ const generateMockBatches = (): ProductBatch[] => {
     supplier: "Fresh Bakery Ltd"
   });
   
-  // Product 3: Canned food - longer expiry date
   mockBatches.push({
     id: "b5",
     productId: "3",
@@ -128,7 +120,6 @@ const generateMockBatches = (): ProductBatch[] => {
     supplier: "Global Foods Co."
   });
   
-  // Product 4: Medicine - various expiry dates
   mockBatches.push({
     id: "b6",
     productId: "4",
@@ -215,7 +206,6 @@ const ExpirationManagement: React.FC = () => {
   const freshPercentage = (expiryStats.fresh / totalBatches) * 100;
   
   const handleAddBatch = (newBatch: Partial<ProductBatch>) => {
-    // This is a simplified implementation
     const batch: ProductBatch = {
       id: `b${batches.length + 1}`,
       productId: newBatch.productId || "",
@@ -427,7 +417,6 @@ const ExpirationManagement: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Batch Detail Dialog */}
       <Dialog open={!!selectedBatch} onOpenChange={(open) => !open && setSelectedBatch(null)}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -517,7 +506,6 @@ const ExpirationManagement: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Expiry Report Dialog */}
       <Dialog open={showReport} onOpenChange={setShowReport}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -673,7 +661,9 @@ const ExpiryStatCard: React.FC<ExpiryStatCardProps> = ({
           <div className="text-sm opacity-80">sur {total} lots</div>
           <div className="text-sm font-medium">{percentage.toFixed(1)}%</div>
         </div>
-        <Progress className="h-1.5 mt-2" value={percentage} indicatorClassName={getProgressColor()} />
+        <Progress className="h-1.5 mt-2" value={percentage}>
+          <div className={`h-full ${getProgressColor()}`} style={{ width: `${percentage}%` }} />
+        </Progress>
       </CardContent>
     </Card>
   );
