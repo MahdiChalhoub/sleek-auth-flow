@@ -9,6 +9,8 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
+import { AlertTriangle } from "lucide-react";
 
 interface DiscrepancyDialogProps {
   isOpen: boolean;
@@ -31,11 +33,17 @@ export const DiscrepancyDialog: React.FC<DiscrepancyDialogProps> = ({
   setDiscrepancyNotes,
   onApproveResolution
 }) => {
+  const { hasPermission } = useAuth();
+  const canApproveDiscrepancy = hasPermission?.("can_approve_discrepancy") || false;
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md glass-card">
         <DialogHeader>
-          <DialogTitle>Resolve Discrepancy</DialogTitle>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-yellow-500" />
+            <DialogTitle>Resolve Discrepancy</DialogTitle>
+          </div>
           <DialogDescription>
             Total discrepancy: ${totalDiscrepancy.toFixed(2)}
           </DialogDescription>
@@ -66,6 +74,15 @@ export const DiscrepancyDialog: React.FC<DiscrepancyDialogProps> = ({
                 onChange={(e) => setDiscrepancyNotes(e.target.value)}
               />
             </div>
+            
+            {!canApproveDiscrepancy && (
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-3 rounded-md">
+                <p className="text-sm text-yellow-700 dark:text-yellow-400 flex items-center gap-1">
+                  <AlertTriangle className="h-4 w-4" />
+                  You need manager or admin privileges to approve discrepancy resolutions.
+                </p>
+              </div>
+            )}
           </div>
         </div>
         
@@ -73,7 +90,10 @@ export const DiscrepancyDialog: React.FC<DiscrepancyDialogProps> = ({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={onApproveResolution}>
+          <Button 
+            onClick={onApproveResolution} 
+            disabled={!canApproveDiscrepancy}
+          >
             Approve Resolution
           </Button>
         </DialogFooter>

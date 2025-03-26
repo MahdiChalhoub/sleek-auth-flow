@@ -16,7 +16,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   requiredRole = null,
   requiredPermissions = []
 }) => {
-  const { user, isLoading, currentBusiness } = useAuth();
+  const { user, isLoading, currentBusiness, hasPermission } = useAuth();
   const location = useLocation();
 
   // Store the current location to redirect back after login
@@ -56,11 +56,13 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     return <Navigate to={redirectTo} replace />;
   }
 
-  // Check for specific permissions (to be implemented with the permission system)
+  // Check for specific permissions
   if (requiredPermissions.length > 0) {
-    // This would be replaced with actual permission checking logic
-    // For now, we'll just allow admins to have all permissions
-    if (user.role !== 'admin') {
+    const missingPermissions = requiredPermissions.filter(
+      permission => !hasPermission(permission)
+    );
+    
+    if (missingPermissions.length > 0) {
       toast.error("You don't have the required permissions to access this page");
       return <Navigate to="/home" replace />;
     }
@@ -72,7 +74,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     return <Navigate to="/business-selection" replace />;
   }
 
-  // If authenticated and has the required role, render the children components
+  // If authenticated and has the required role/permissions, render the children components
   return <>{children}</>;
 };
 

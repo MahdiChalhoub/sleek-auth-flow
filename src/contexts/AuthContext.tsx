@@ -28,12 +28,15 @@ export const useAuth = () => {
     }
     
     // Default role-based permissions for backward compatibility
-    if (permissionName.startsWith('can_view') && context.user.role === 'cashier') {
+    if (permissionName === 'can_view_transactions' && context.user.role === 'cashier') {
       return true;
     }
     
-    if ((permissionName.startsWith('can_view') || permissionName.startsWith('can_edit')) 
-        && context.user.role === 'manager') {
+    if (permissionName === 'can_edit_transactions' && context.user.role === 'cashier') {
+      return true;
+    }
+    
+    if (permissionName.startsWith('can_') && context.user.role === 'manager') {
       return true;
     }
     
