@@ -50,23 +50,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Only redirect on initial login, not on every render
   useEffect(() => {
     if (!isLoading && user && location.pathname === "/login") {
-      switch (user.role) {
-        case "admin":
-          navigate("/home");
-          break;
-        case "cashier":
-          navigate("/pos-sales");
-          break;
-        case "manager":
-          navigate("/inventory");
-          break;
-        default:
-          navigate("/home");
-      }
+      // Get the intended redirect path from localStorage or use default based on role
+      const redirectPath = localStorage.getItem("intended_redirect") || getRoleDefaultPage(user.role);
+      localStorage.removeItem("intended_redirect"); // Clear the stored path
+      
+      navigate(redirectPath);
     }
   }, [user, isLoading, navigate, location.pathname]);
 
-  const login = async (email: string, password: string, businessId: string): Promise<void> => {
+  // Helper function to get default page by role
+  const getRoleDefaultPage = (role: User["role"]): string => {
+    switch (role) {
+      case "admin":
+        return "/home";
+      case "cashier":
+        return "/pos-sales";
+      case "manager":
+        return "/inventory";
+      default:
+        return "/home";
+    }
+  };
+
+  const login = async (email: string, password: string, businessId: string, rememberMe: boolean = true): Promise<void> => {
     setIsLoading(true);
     
     try {
@@ -84,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role = "manager";
       }
       
-      // Create a unique ID that's deterministic based on the email
+      // Create a unique ID based on the email for consistency
       const userId = `user-${email.split("@")[0].toLowerCase()}`;
       
       const mockUser: User = {
@@ -98,7 +104,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Check if user has access to the selected business
       const userAssignments = mockUserBusinessAssignments.filter(
-        assignment => assignment.userId === `user-${role}`
+        assignment => assignment.userId === userId
       );
       
       const userBusinessIds = userAssignments.map(a => a.businessId);
@@ -110,19 +116,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(mockUser);
       initializeBusinessSelection(mockUser, businessId);
       
-      localStorage.setItem("pos_user", JSON.stringify(mockUser));
-      localStorage.setItem("pos_current_business", businessId);
+      // Use appropriate storage based on rememberMe setting
+      const storage = rememberMe ? localStorage : sessionStorage;
+      storage.setItem("pos_user", JSON.stringify(mockUser));
+      storage.setItem("pos_current_business", businessId);
+      
+      // Store the storage type preference
+      localStorage.setItem("auth_storage_type", rememberMe ? "local" : "session");
     } catch (error) {
       console.error("Login failed", error);
-      throw new Error("Authentication failed");
+      // Re-throw the original error message for better error handling
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
   const logout = () => {
-    localStorage.removeItem("pos_user");
-    localStorage.removeItem("pos_current_business");
+    // Get the storage type that was used for login
+    const storageType = localStorage.getItem("auth_storage_type") || "local";
+    const storage = storageType === "local" ? localStorage : sessionStorage;
+    
+    // Clear auth data from the appropriate storage
+    storage.removeItem("pos_user");
+    storage.removeItem("pos_current_business");
+    
+    // Also clear from the other storage type to be safe
+    if (storageType === "local") {
+      sessionStorage.removeItem("pos_user");
+      sessionStorage.removeItem("pos_current_business");
+    } else {
+      localStorage.removeItem("pos_user");
+      localStorage.removeItem("pos_current_business");
+    }
+    
+    // Clear storage type preference
+    localStorage.removeItem("auth_storage_type");
+    
     setUser(null);
     navigate("/login");
   };

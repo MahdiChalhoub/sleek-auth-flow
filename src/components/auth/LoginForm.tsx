@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Building } from "lucide-react";
 import { Business } from "@/models/interfaces/businessInterfaces";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const formSchema = z.object({
   businessId: z.string({
@@ -18,6 +19,7 @@ const formSchema = z.object({
   }),
   email: z.string().email({ message: "Please enter a valid email" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  rememberMe: z.boolean().default(true),
 });
 
 export type LoginFormValues = z.infer<typeof formSchema>;
@@ -35,6 +37,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, businesses, isSubmittin
       businessId: "",
       email: "",
       password: "",
+      rememberMe: true,
     },
   });
   
@@ -50,7 +53,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, businesses, isSubmittin
       await onSubmit(data);
     } catch (error) {
       console.error(error);
-      toast.error("Login failed. Please check your credentials.");
+      // Error handling is now in the parent component
     }
   };
   
@@ -134,6 +137,24 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, businesses, isSubmittin
                 />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="rememberMe"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>Remember me</FormLabel>
+              </div>
             </FormItem>
           )}
         />

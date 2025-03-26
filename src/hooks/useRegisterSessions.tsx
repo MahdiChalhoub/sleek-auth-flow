@@ -110,9 +110,19 @@ export const useRegisterSessions = () => {
         dbModel.name = register.name || 'New Register';
       }
       
+      // Ensure the object has all required properties
+      const insertObject = {
+        name: dbModel.name,
+        is_open: dbModel.is_open !== undefined ? dbModel.is_open : false,
+        opening_balance: dbModel.opening_balance || { cash: 0, card: 0, bank: 0, wave: 0, mobile: 0, not_specified: 0 },
+        current_balance: dbModel.current_balance || { cash: 0, card: 0, bank: 0, wave: 0, mobile: 0, not_specified: 0 },
+        expected_balance: dbModel.expected_balance || { cash: 0, card: 0, bank: 0, wave: 0, mobile: 0, not_specified: 0 },
+        ...dbModel
+      };
+      
       const { data, error } = await supabase
         .from('register_sessions')
-        .insert(dbModel)  // Pass a single object, not an array
+        .insert(insertObject)
         .select()
         .single();
       

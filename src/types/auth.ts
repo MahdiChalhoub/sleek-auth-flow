@@ -17,7 +17,7 @@ export interface AuthContextType {
   isLoading: boolean;
   currentBusiness: Business | null;
   userBusinesses: Business[];
-  login: (email: string, password: string, businessId: string) => Promise<void>;
+  login: (email: string, password: string, businessId: string, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
   switchBusiness: (businessId: string) => void;
 }

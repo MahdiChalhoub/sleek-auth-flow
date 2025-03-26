@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { Navigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,20 +13,33 @@ const Login: React.FC = () => {
   const { user, login, isLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableBusinesses, setAvailableBusinesses] = useState(mockBusinesses);
+  const location = useLocation();
+  
+  // Store the current path as the intended redirect if it's not a public route
+  useEffect(() => {
+    const from = location.state?.from?.pathname;
+    if (from && !['/login', '/signup', '/forgot-password'].includes(from)) {
+      localStorage.setItem("intended_redirect", from);
+    }
+  }, [location]);
   
   // If already logged in, redirect to appropriate page
   if (user) {
-    return <Navigate to="/home" replace />;
+    // Check for an intended redirect path or use the default
+    const redirectTo = localStorage.getItem("intended_redirect") || "/home";
+    localStorage.removeItem("intended_redirect");
+    return <Navigate to={redirectTo} replace />;
   }
   
   const handleSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     try {
-      await login(data.email, data.password, data.businessId);
+      await login(data.email, data.password, data.businessId, data.rememberMe);
       toast.success("Login successful");
     } catch (error) {
       console.error(error);
-      toast.error("Login failed. Please check your credentials.");
+      // Display the actual error message from the authentication process
+      toast.error(error instanceof Error ? error.message : "Login failed. Please check your credentials.");
     } finally {
       setIsSubmitting(false);
     }

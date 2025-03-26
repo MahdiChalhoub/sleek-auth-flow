@@ -29,11 +29,9 @@ import AuditTrail from './pages/AuditTrail';
 import Users from './pages/Users';
 import Contacts from './pages/Contacts';
 import NotificationsPage from './pages/Notifications';
-
-// Add PrivateRoute component
-const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  return children;
-};
+import ForgotPassword from './pages/ForgotPassword';
+import PrivateRoute from './components/auth/PrivateRoute';
+import { ROUTES } from './constants/routes';
 
 const App = () => {
   return (
@@ -41,12 +39,18 @@ const App = () => {
       <AuthProvider>
         <LocationProvider>
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/" element={<Navigate to="/home" replace />} />
+            {/* Public routes */}
+            <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+            <Route path={ROUTES.SIGNUP} element={<Signup />} />
+            <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+            <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />
             
-            <Route path="/*" element={<PrivateRoute><AppLayout /></PrivateRoute>}>
-              {/* These routes are used when no tabs are active */}
+            {/* Protected routes */}
+            <Route path="/*" element={
+              <PrivateRoute>
+                <AppLayout />
+              </PrivateRoute>
+            }>
               <Route path="home" element={<HomePage />} />
               <Route path="inventory" element={<InventoryPage />} />
               <Route path="pos-sales" element={<POSSales />} />
