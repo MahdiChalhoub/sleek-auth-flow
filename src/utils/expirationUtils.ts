@@ -1,73 +1,74 @@
 
-import { differenceInDays, parseISO } from 'date-fns';
+import { addDays, isBefore, isAfter } from 'date-fns';
 
-type BatchStatus = 'fresh' | 'expiring_soon' | 'expired';
+export type BatchStatus = 'fresh' | 'expiring_soon' | 'expired' | 'unknown';
 
-/**
- * Determine the status of a batch based on its expiry date
- * @param expiryDateStr ISO Date string for expiry
- * @returns Status of the batch (fresh, expiring_soon, expired)
- */
-export const getBatchStatus = (expiryDateStr: string | null): BatchStatus => {
-  if (!expiryDateStr) {
-    return 'fresh'; // Default to fresh if no expiry date
-  }
+export const getBatchStatus = (expiryDate: string | null): BatchStatus => {
+  if (!expiryDate) return 'unknown';
   
   try {
-    const expiryDate = parseISO(expiryDateStr);
-    const daysUntilExpiry = differenceInDays(expiryDate, new Date());
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    const thirtyDaysFromNow = addDays(today, 30);
     
-    if (daysUntilExpiry < 0) {
+    if (isBefore(expiry, today)) {
       return 'expired';
-    } else if (daysUntilExpiry <= 30) {
+    } else if (isBefore(expiry, thirtyDaysFromNow)) {
       return 'expiring_soon';
     } else {
       return 'fresh';
     }
   } catch (error) {
-    console.error('Error parsing expiry date:', error);
-    return 'fresh'; // Default to fresh if parsing fails
+    console.error("Error parsing expiry date:", error);
+    return 'unknown';
   }
 };
 
-/**
- * Get appropriate color for batch status badge
- * @param status Batch status
- * @returns Tailwind color class
- */
 export const getBatchStatusColor = (status: BatchStatus): string => {
   switch (status) {
     case 'fresh':
-      return 'bg-green-100 text-green-800 border-green-200';
+      return 'text-green-500 border-green-500';
     case 'expiring_soon':
-      return 'bg-amber-100 text-amber-800 border-amber-200';
+      return 'text-amber-500 border-amber-500';
     case 'expired':
-      return 'bg-red-100 text-red-800 border-red-200';
+      return 'text-destructive border-destructive';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'text-muted-foreground border-muted-foreground';
   }
 };
 
-/**
- * Format days until expiry for display
- * @param expiryDateStr ISO Date string for expiry
- * @returns Formatted string showing days until expiry
- */
-export const formatDaysUntilExpiry = (expiryDateStr: string): string => {
+export const getExpirySortValue = (expiryDate: string | null): number => {
+  if (!expiryDate) return Infinity;
+  
   try {
-    const expiryDate = parseISO(expiryDateStr);
-    const daysUntilExpiry = differenceInDays(expiryDate, new Date());
+    const expiry = new Date(expiryDate);
+    return expiry.getTime();
+  } catch (error) {
+    return Infinity;
+  }
+};
+
+export const getExpiryLevel = (
+  expiryDate: string | null
+): 'critical' | 'warning' | 'normal' | 'unknown' => {
+  if (!expiryDate) return 'unknown';
+  
+  try {
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    const sevenDaysFromNow = addDays(today, 7);
+    const thirtyDaysFromNow = addDays(today, 30);
     
-    if (daysUntilExpiry < 0) {
-      return `Expiré depuis ${Math.abs(daysUntilExpiry)} jours`;
-    } else if (daysUntilExpiry === 0) {
-      return 'Expire aujourd\'hui';
-    } else if (daysUntilExpiry === 1) {
-      return 'Expire demain';
+    if (isBefore(expiry, today)) {
+      return 'critical';
+    } else if (isBefore(expiry, sevenDaysFromNow)) {
+      return 'critical';
+    } else if (isBefore(expiry, thirtyDaysFromNow)) {
+      return 'warning';
     } else {
-      return `Expire dans ${daysUntilExpiry} jours`;
+      return 'normal';
     }
   } catch (error) {
-    return 'Date invalide';
+    return 'unknown';
   }
 };

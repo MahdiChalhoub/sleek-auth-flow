@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,7 +22,12 @@ interface Product {
   turnoverRate?: number;
 }
 
-// Enhanced mock data with AI-related fields
+interface ReorderSuggestionsProps {
+  locationId: string;
+  showAll: boolean;
+  onReorderAll: () => void;
+}
+
 const enhancedProducts: Product[] = [
   ...mockProducts.map(product => ({
     ...product,
@@ -56,7 +60,31 @@ const nonSellingProducts = enhancedProducts
   .filter(product => new Date(product.lastSold || "").getTime() < new Date("2023-09-01").getTime())
   .sort((a, b) => new Date(a.lastSold || "").getTime() - new Date(b.lastSold || "").getTime());
 
-const ReorderSuggestions: React.FC = () => {
+const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({ locationId, showAll, onReorderAll }) => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // In a real app, this would be an API call
+    setTimeout(() => {
+      // Create products with required properties from type definition
+      const mockProductsWithAnalytics: Product[] = mockProducts.map(product => ({
+        ...product,
+        sold: Math.floor(Math.random() * 100),
+        expiry: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+        lastSold: new Date(Date.now() - Math.random() * 10 * 24 * 60 * 60 * 1000).toISOString(),
+        restockSuggestion: Math.floor(Math.random() * 30) + 5,
+        profitMargin: Math.random() * 0.4 + 0.1,
+        turnoverRate: Math.random() * 5 + 0.5,
+        category: product.category || product.categoryId || 'Uncategorized',  // Ensure category is set
+        hasStock: true,
+      }));
+      
+      setProducts(mockProductsWithAnalytics);
+      setLoading(false);
+    }, 1000);
+  }, [locationId]);
+  
   const [activeTab, setActiveTab] = useState("low-stock");
   const [isGeneratingForecast, setIsGeneratingForecast] = useState(false);
   const [forecastGenerated, setForecastGenerated] = useState(false);

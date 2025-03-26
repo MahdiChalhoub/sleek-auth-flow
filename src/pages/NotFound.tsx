@@ -1,41 +1,39 @@
 
-import React from "react";
-import { useLocation, Link } from "react-router-dom";
-import { useEffect } from "react";
-import { AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ROUTES } from "@/constants/routes";
+import React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, Home, Search } from 'lucide-react';
 
 const NotFound: React.FC = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
-  }, [location.pathname]);
-
+  const navigate = useNavigate();
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/20">
-      <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-sm">
-        <AlertTriangle className="w-16 h-16 mx-auto text-amber-500 mb-4" />
-        <h1 className="text-4xl font-bold mb-2">404</h1>
-        <p className="text-xl text-gray-600 mb-6">Cette page n'existe pas</p>
-        <p className="text-muted-foreground mb-6">
-          La page que vous recherchez n'a pas été trouvée ou n'existe plus.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button asChild>
-            <Link to={ROUTES.HOME}>
-              Retour à l'accueil
-            </Link>
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <Card className="w-full max-w-md mx-auto shadow-lg animate-fade-in">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-6xl font-extrabold text-primary">404</CardTitle>
+          <CardDescription className="text-xl">Page non trouvée</CardDescription>
+        </CardHeader>
+        <CardContent className="text-center space-y-4">
+          <p className="text-muted-foreground">
+            La page que vous recherchez n'existe pas ou a été déplacée.
+          </p>
+          <div className="flex items-center justify-center p-6">
+            <Search className="h-24 w-24 text-muted-foreground/30" />
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-2">
+          <Button className="w-full" onClick={() => navigate('/')} variant="default">
+            <Home className="mr-2 h-4 w-4" />
+            Retour à l'accueil
           </Button>
-          <Button variant="outline" onClick={() => window.history.back()}>
+          <Button className="w-full" onClick={() => navigate(-1)} variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Retour à la page précédente
           </Button>
-        </div>
-      </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 };

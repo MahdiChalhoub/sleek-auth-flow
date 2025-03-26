@@ -9,7 +9,7 @@ export interface ProductBase {
   cost: number;
   stock: number;
   categoryId?: string;
-  category?: string; // Adding category for backward compatibility
+  category: string; // Required field
   imageUrl?: string;
   image?: string; // Adding image for backward compatibility
   createdAt: string;
@@ -20,7 +20,14 @@ export interface ProductBase {
 export interface Product extends ProductBase {
   isCombo?: boolean;
   hasStock: boolean;
-  locationStock?: ProductLocationStock[]; // Adding locationStock for compatibility
+  locationStock?: ProductLocationStock[]; // Required for some components
+  // Analytics data - added for ReorderSuggestions
+  sold?: number;
+  expiry?: string;
+  lastSold?: string;
+  restockSuggestion?: number;
+  profitMargin?: number;
+  turnoverRate?: number;
 }
 
 export interface ComboProduct extends Product {
@@ -32,7 +39,7 @@ export interface ComboComponent {
   id: string;
   comboProductId: string;
   componentProductId: string; // Use this for referencing products
-  productId?: string; // Adding for backward compatibility with existing code
+  productId: string; // Required for backward compatibility
   quantity: number;
   product?: Product; // Reference to the full product
   createdAt: string;
@@ -76,7 +83,18 @@ export const mockProducts: Product[] = [
     image: "https://example.com/milk.jpg", // Adding image for compatibility
     createdAt: "2023-01-15T08:00:00Z",
     updatedAt: "2023-01-15T08:00:00Z",
-    hasStock: true
+    hasStock: true,
+    locationStock: [
+      {
+        id: "ls1",
+        productId: "1",
+        locationId: "loc1",
+        stock: 45,
+        minStockLevel: 10,
+        createdAt: "2023-01-15T08:00:00Z",
+        updatedAt: "2023-01-15T08:00:00Z"
+      }
+    ]
   },
   {
     id: "2",
@@ -92,7 +110,18 @@ export const mockProducts: Product[] = [
     image: "https://example.com/bread.jpg",
     createdAt: "2023-01-15T08:05:00Z",
     updatedAt: "2023-01-15T08:05:00Z",
-    hasStock: true
+    hasStock: true,
+    locationStock: [
+      {
+        id: "ls2",
+        productId: "2",
+        locationId: "loc1",
+        stock: 20,
+        minStockLevel: 5,
+        createdAt: "2023-01-15T08:05:00Z",
+        updatedAt: "2023-01-15T08:05:00Z"
+      }
+    ]
   },
   {
     id: "3",
@@ -108,7 +137,18 @@ export const mockProducts: Product[] = [
     image: "https://example.com/bananas.jpg",
     createdAt: "2023-01-15T08:10:00Z",
     updatedAt: "2023-01-15T08:10:00Z",
-    hasStock: true
+    hasStock: true,
+    locationStock: [
+      {
+        id: "ls3",
+        productId: "3",
+        locationId: "loc1",
+        stock: 30,
+        minStockLevel: 8,
+        createdAt: "2023-01-15T08:10:00Z",
+        updatedAt: "2023-01-15T08:10:00Z"
+      }
+    ]
   },
   {
     id: "4",
@@ -128,10 +168,10 @@ export const mockProducts: Product[] = [
     hasStock: true,
     locationStock: [
       {
-        id: "ls1",
+        id: "ls4",
         productId: "4",
         locationId: "loc1",
-        stock: 5,
+        stock: 10,
         minStockLevel: 2,
         createdAt: "2023-01-15T08:15:00Z",
         updatedAt: "2023-01-15T08:15:00Z"

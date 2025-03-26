@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useNavigate } from 'react-router-dom';
 
 interface BarcodeScannerModalProps {
   onScan: (barcode: string) => void;
@@ -13,6 +14,7 @@ interface BarcodeScannerModalProps {
 }
 
 const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ onScan, onClose }) => {
+  const navigate = useNavigate();
   const [barcode, setBarcode] = useState('');
   const [scanMode, setScanMode] = useState<'camera' | 'manual'>('manual');
   const [error, setError] = useState<string | null>(null);
