@@ -3,28 +3,20 @@ import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import NotificationItem from "./NotificationItem";
 import NotificationEmptyState from "./NotificationEmptyState";
-
-type NotificationType = "inventory" | "shift" | "approval" | "system";
-
-interface Notification {
-  id: string;
-  type: NotificationType;
-  message: string;
-  timestamp: string;
-  link?: string;
-  read: boolean;
-}
+import { Notification } from "@/models/notification";
 
 interface NotificationListProps {
   notifications: Notification[];
   onMarkAsRead: (id: string) => void;
   isUnreadTab?: boolean;
+  filterName?: string;
 }
 
 const NotificationList: React.FC<NotificationListProps> = ({ 
   notifications, 
   onMarkAsRead,
-  isUnreadTab = false
+  isUnreadTab = false,
+  filterName
 }) => {
   return (
     <ScrollArea className="h-[400px]">
@@ -39,7 +31,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
           />
         ))
       ) : (
-        <NotificationEmptyState isUnreadTab={isUnreadTab} />
+        <NotificationEmptyState isUnreadTab={isUnreadTab} filterName={filterName} />
       )}
     </ScrollArea>
   );

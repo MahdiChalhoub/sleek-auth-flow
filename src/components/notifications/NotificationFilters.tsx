@@ -3,7 +3,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Filter } from "lucide-react";
 
-type NotificationType = "inventory" | "shift" | "approval" | "system";
+type NotificationType = "inventory" | "shift" | "approval" | "system" | "client" | "supplier" | "transaction";
 
 interface NotificationFiltersProps {
   filter: NotificationType | "all";
@@ -20,7 +20,7 @@ const NotificationFilters: React.FC<NotificationFiltersProps> = ({
         <Filter className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground">Filtrer par:</span>
       </div>
-      <div className="flex gap-1">
+      <div className="flex gap-1 flex-wrap">
         <Button 
           size="sm" 
           variant={filter === "all" ? "default" : "outline"} 
@@ -60,6 +60,30 @@ const NotificationFilters: React.FC<NotificationFiltersProps> = ({
           onClick={() => setFilter("system")}
         >
           Système
+        </Button>
+        <Button 
+          size="sm" 
+          variant={filter === "client" ? "default" : "outline"} 
+          className="h-7 px-2 text-xs"
+          onClick={() => setFilter("client")}
+        >
+          Clients
+        </Button>
+        <Button 
+          size="sm" 
+          variant={filter === "supplier" ? "default" : "outline"} 
+          className="h-7 px-2 text-xs"
+          onClick={() => setFilter("supplier")}
+        >
+          Fournisseurs
+        </Button>
+        <Button 
+          size="sm" 
+          variant={filter === "transaction" ? "default" : "outline"} 
+          className="h-7 px-2 text-xs"
+          onClick={() => setFilter("transaction")}
+        >
+          Transactions
         </Button>
       </div>
     </div>
