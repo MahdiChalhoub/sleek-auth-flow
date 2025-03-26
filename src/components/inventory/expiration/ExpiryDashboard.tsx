@@ -6,8 +6,13 @@ import { ProductBatch, productsService } from "@/models/product";
 import { format, parseISO, addDays, isBefore, isAfter } from "date-fns";
 import { supabase } from "@/lib/supabase";
 
+// Extended interface that includes product name
+interface BatchWithProductName extends ProductBatch {
+  productName: string;
+}
+
 const ExpiryDashboard: React.FC = () => {
-  const [batches, setBatches] = useState<ProductBatch[]>([]);
+  const [batches, setBatches] = useState<BatchWithProductName[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -69,7 +74,7 @@ const ExpiryDashboard: React.FC = () => {
     isBefore(parseISO(batch.expiryDate), in90Days)
   );
 
-  const renderBatchList = (batchList: ProductBatch[]) => {
+  const renderBatchList = (batchList: BatchWithProductName[]) => {
     if (batchList.length === 0) {
       return (
         <div className="py-6 text-center text-muted-foreground">
