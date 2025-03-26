@@ -47,6 +47,8 @@ import { AuthProvider } from './providers/AuthProvider';
 import PackagingManagement from './pages/PackagingManagement';
 import BarcodePrinting from './pages/BarcodePrinting';
 import ExpirationManagement from './pages/ExpirationManagement';
+import RecurringExpenses from './pages/RecurringExpenses';
+import TransactionPermissions from './pages/TransactionPermissions';
 
 function App() {
   return (
@@ -89,6 +91,7 @@ function App() {
                 <Route path="finance-dashboard" element={<FinanceDashboard />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="general-ledger" element={<GeneralLedger />} />
+                <Route path="ledger" element={<GeneralLedger />} />
                 <Route path="journal-entries" element={<JournalEntries />} />
                 <Route path="accounts-receivable" element={<AccountsReceivable />} />
                 <Route path="accounts-payable" element={<AccountsPayable />} />
@@ -96,6 +99,9 @@ function App() {
                 <Route path="packaging-management" element={<PackagingManagement />} />
                 <Route path="barcode-printing" element={<BarcodePrinting />} />
                 <Route path="expiration-management" element={<ExpirationManagement />} />
+                <Route path="pos-sales" element={<POSSales />} />
+                <Route path="transaction-permissions" element={<TransactionPermissions />} />
+                <Route path="recurring-expenses" element={<RecurringExpenses />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

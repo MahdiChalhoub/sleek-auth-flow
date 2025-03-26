@@ -20,15 +20,20 @@ export const ROUTES = {
   PURCHASE_ORDERS: '/purchase-orders',
   STOCK_TRANSFERS: '/stock-transfers',
   STOCK_ADJUSTMENTS: '/stock-adjustments',
+  PACKAGING_MANAGEMENT: '/packaging-management',
+  BARCODE_PRINTING: '/barcode-printing',
+  EXPIRATION_MANAGEMENT: '/expiration-management',
   
   // Financial
   TRANSACTIONS: '/transactions',
   STAFF_FINANCE: '/staff-finance',
   LEDGER: '/ledger',
+  GENERAL_LEDGER: '/general-ledger',
   ACCOUNTS_RECEIVABLE: '/accounts-receivable',
   ACCOUNTS_PAYABLE: '/accounts-payable',
   PROFIT_LOSS: '/profit-loss',
   EXPENSES: '/expenses',
+  RECURRING_EXPENSES: '/recurring-expenses',
   TRANSACTION_PERMISSIONS: '/transaction-permissions',
   
   // Customers

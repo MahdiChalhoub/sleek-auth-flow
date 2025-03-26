@@ -32,12 +32,17 @@ const getPageTitle = (pathname: string): string => {
     "/contacts": "Gestion des Clients",
     "/notifications": "Notifications",
     "/ledger": "Grand Livre",
+    "/general-ledger": "Grand Livre",
     "/accounts-receivable": "Comptes Clients",
     "/accounts-payable": "Comptes Fournisseurs",
     "/profit-loss": "Profit & Pertes",
     "/backup-restore": "Sauvegarde & Restauration",
     "/exports": "Exports de Données",
     "/expenses": "Gestion des Dépenses",
+    "/recurring-expenses": "Dépenses Récurrentes",
+    "/packaging-management": "Gestion des Emballages",
+    "/barcode-printing": "Impression de Codes-barres",
+    "/expiration-management": "Gestion des Expirations",
   };
   
   return routes[pathname] || "Système POS";

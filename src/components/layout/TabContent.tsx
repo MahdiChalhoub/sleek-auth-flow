@@ -62,6 +62,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/register-sessions" element={<DynamicComponent componentPath="RegisterSessions" />} />
       <Route path="/transaction-permissions" element={<DynamicComponent componentPath="TransactionPermissions" />} />
       <Route path="/expenses" element={<DynamicComponent componentPath="Expenses" />} />
+      <Route path="/recurring-expenses" element={<DynamicComponent componentPath="RecurringExpenses" />} />
       <Route path="/staff-finance" element={<DynamicComponent componentPath="StaffFinance" />} />
       <Route path="/loyalty" element={<DynamicComponent componentPath="Loyalty" />} />
       <Route path="/returns" element={<DynamicComponent componentPath="Returns" />} />
@@ -74,12 +75,16 @@ const AppRoutes: React.FC = () => {
       <Route path="/users" element={<DynamicComponent componentPath="Users" />} />
       <Route path="/contacts" element={<DynamicComponent componentPath="Contacts" />} />
       <Route path="/notifications" element={<DynamicComponent componentPath="Notifications" />} />
-      <Route path="/ledger" element={<DynamicComponent componentPath="Ledger" />} />
-      <Route path="/accounts-receivable" element={<DynamicComponent componentPath="Ledger" />} />
-      <Route path="/accounts-payable" element={<DynamicComponent componentPath="Ledger" />} />
-      <Route path="/profit-loss" element={<DynamicComponent componentPath="Ledger" />} />
+      <Route path="/ledger" element={<DynamicComponent componentPath="GeneralLedger" />} />
+      <Route path="/general-ledger" element={<DynamicComponent componentPath="GeneralLedger" />} />
+      <Route path="/accounts-receivable" element={<DynamicComponent componentPath="AccountsReceivable" />} />
+      <Route path="/accounts-payable" element={<DynamicComponent componentPath="AccountsPayable" />} />
+      <Route path="/profit-loss" element={<DynamicComponent componentPath="ProfitLoss" />} />
       <Route path="/backup-restore" element={<DynamicComponent componentPath="BackupRestore" />} />
       <Route path="/exports" element={<DynamicComponent componentPath="Exports" />} />
+      <Route path="/packaging-management" element={<DynamicComponent componentPath="PackagingManagement" />} />
+      <Route path="/barcode-printing" element={<DynamicComponent componentPath="BarcodePrinting" />} />
+      <Route path="/expiration-management" element={<DynamicComponent componentPath="ExpirationManagement" />} />
       <Route path="*" element={<div>Page not found</div>} />
     </Routes>
   );
@@ -141,12 +146,26 @@ const DynamicComponent = ({ componentPath }: { componentPath: string }) => {
           return lazy(() => import("../../../src/pages/Contacts"));
         case "Notifications":
           return lazy(() => import("../../../src/pages/Notifications"));
-        case "Ledger":
-          return lazy(() => import("../../../src/pages/Ledger"));
+        case "GeneralLedger":
+          return lazy(() => import("../../../src/pages/accounting/GeneralLedger"));
+        case "AccountsReceivable":
+          return lazy(() => import("../../../src/pages/accounting/AccountsReceivable"));
+        case "AccountsPayable":
+          return lazy(() => import("../../../src/pages/accounting/AccountsPayable"));
+        case "ProfitLoss":
+          return lazy(() => import("../../../src/pages/accounting/ProfitLoss"));
         case "BackupRestore":
           return lazy(() => import("../../../src/pages/BackupRestore"));
         case "Exports":
           return lazy(() => import("../../../src/pages/Exports"));
+        case "PackagingManagement":
+          return lazy(() => import("../../../src/pages/PackagingManagement"));
+        case "BarcodePrinting":
+          return lazy(() => import("../../../src/pages/BarcodePrinting"));
+        case "ExpirationManagement":
+          return lazy(() => import("../../../src/pages/ExpirationManagement"));
+        case "RecurringExpenses":
+          return lazy(() => import("../../../src/pages/RecurringExpenses"));
         default:
           return lazy(() => import("../../../src/pages/NotFound"));
       }
