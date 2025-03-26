@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockTransactions, Transaction, mockLedgerEntries, mockBranches } from "@/models/transaction";
+import { mockTransactions, Transaction, mockLedgerEntries, mockBranches, Branch } from "@/models/transaction";
 import TransactionFilters from "@/components/transactions/TransactionFilters";
 import TransactionsList from "@/components/transactions/TransactionsList";
 import TransactionLedgerDialog from "@/components/transactions/TransactionLedgerDialog";
@@ -13,6 +13,22 @@ import { useTransactionOperations } from "@/hooks/useTransactionOperations";
 import { toast } from "sonner";
 import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
+// Create a type adapter function to convert Branch to Business
+const adaptBranchToBusiness = (branch: Branch) => {
+  return {
+    ...branch,
+    active: branch.status === "active",
+    createdAt: new Date().toISOString(),
+    // Adding other potentially missing Business properties
+    logoUrl: undefined,
+    description: branch.name,
+    type: branch.type,
+    country: undefined,
+    currency: undefined,
+    timezone: undefined
+  };
+};
 
 const Transactions = () => {
   const [showBackupDialog, setShowBackupDialog] = useState(false);
@@ -45,6 +61,9 @@ const Transactions = () => {
     setBranchFilter,
     filteredTransactions
   } = useTransactionFilters(transactions);
+
+  // Convert Branch[] to Business[] for compatibility with TransactionFormDialog
+  const businessBranches = mockBranches.map(adaptBranchToBusiness);
   
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -167,7 +186,7 @@ const Transactions = () => {
         onOpenChange={setIsDialogOpen}
         onSubmit={handleSubmitTransaction}
         isSubmitting={isSubmittingTransaction}
-        branches={mockBranches}
+        branches={businessBranches}
       />
     </div>
   );

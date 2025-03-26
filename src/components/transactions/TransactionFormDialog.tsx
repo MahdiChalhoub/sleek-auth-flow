@@ -15,7 +15,7 @@ import { Business } from "@/models/transaction";
 // Improved form schema with data transformation
 export const transactionFormSchema = z.object({
   description: z.string().min(3, "Description must be at least 3 characters"),
-  amount: z.string().min(1, "Amount is required").transform(value => parseFloat(value)), // Transform string to number
+  amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
   paymentMethod: z.enum(["cash", "card", "bank", "wave", "mobile", "not_specified"], {
     required_error: "Please select a payment method",
   }),
@@ -43,7 +43,7 @@ const TransactionFormDialog: React.FC<TransactionFormDialogProps> = ({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
       description: "",
-      amount: "",
+      amount: 0,
       paymentMethod: "cash",
       branchId: branches.length > 0 ? branches[0].id : ""
     }
@@ -88,7 +88,17 @@ const TransactionFormDialog: React.FC<TransactionFormDialogProps> = ({
                   <FormControl>
                     <div className="relative">
                       <span className="absolute left-3 top-2.5">$</span>
-                      <Input placeholder="0.00" className="pl-7" {...field} type="number" step="0.01" min="0" />
+                      <Input 
+                        placeholder="0.00" 
+                        className="pl-7" 
+                        type="number" 
+                        step="0.01" 
+                        min="0"
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e.target.valueAsNumber);
+                        }}
+                      />
                     </div>
                   </FormControl>
                   <FormDescription>Enter the transaction amount</FormDescription>
