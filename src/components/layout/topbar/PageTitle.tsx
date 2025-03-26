@@ -8,26 +8,36 @@ import MobileDrawerMenu from "../MobileDrawerMenu";
 const getPageTitle = (pathname: string): string => {
   const routes: Record<string, string> = {
     "/home": "Dashboard",
-    "/pos-sales": "POS Sales",
-    "/inventory": "Inventory",
-    "/purchase-orders": "Purchase Orders",
-    "/returns": "Returns",
-    "/settings": "Settings",
-    "/register": "Register",
-    "/register-sessions": "Register Sessions",
+    "/dashboard": "Tableau de Bord",
+    "/pos-sales": "Ventes POS",
+    "/inventory": "Inventaire",
+    "/purchase-orders": "Commandes d'Achat",
+    "/returns": "Retours",
+    "/settings": "Paramètres",
+    "/register": "Caisse Enregistreuse",
+    "/register-sessions": "Sessions de Caisse",
     "/transactions": "Transactions",
-    "/transaction-permissions": "Transaction Permissions",
-    "/suppliers": "Suppliers",
-    "/stock-transfers": "Stock Transfers",
-    "/staff-finance": "Staff Finance",
-    "/loyalty": "Loyalty & Rewards",
-    "/categories": "Category Management",
-    "/shift-reports": "Shift Reports",
-    "/audit-trail": "Audit Trail",
-    "/users": "User Management",
+    "/transaction-permissions": "Permissions de Transaction",
+    "/suppliers": "Fournisseurs",
+    "/stock-transfers": "Transferts de Stock",
+    "/staff-finance": "Finance Personnel",
+    "/loyalty": "Programme de Fidélité",
+    "/categories": "Gestion des Catégories",
+    "/shift-reports": "Rapports de Shift",
+    "/audit-trail": "Journal d'Activité",
+    "/user-activity": "Activité Utilisateurs",
+    "/users": "Gestion des Utilisateurs",
+    "/contacts": "Contacts",
+    "/notifications": "Notifications",
+    "/ledger": "Grand Livre",
+    "/accounts-receivable": "Comptes Clients",
+    "/accounts-payable": "Comptes Fournisseurs",
+    "/profit-loss": "Profit & Pertes",
+    "/backup-restore": "Sauvegarde & Restauration",
+    "/exports": "Exports",
   };
   
-  return routes[pathname] || "POS System";
+  return routes[pathname] || "Système POS";
 };
 
 const PageTitle: React.FC = () => {

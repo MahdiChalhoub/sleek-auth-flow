@@ -4,19 +4,19 @@ import { NavItem } from "./index";
 
 export const financeItems: NavItem[] = [
   {
-    title: "Caisse Enregistreuse",
+    title: "Caisse",
     path: "/register",
     icon: ReceiptText,
     roles: ["admin", "manager", "cashier"],
     children: [
       {
-        title: "Caisse",
+        title: "Caisse Enregistreuse",
         path: "/register",
         icon: ReceiptText,
         roles: ["admin", "manager", "cashier"]
       },
       {
-        title: "Sessions",
+        title: "Sessions de Caisse",
         path: "/register-sessions", 
         icon: FileText,
         roles: ["admin", "manager"]
