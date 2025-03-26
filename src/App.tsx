@@ -98,8 +98,16 @@ const App = () => {
                   <Transactions />
                 </PrivateRoute>
               } />
-              <Route path="register" element={<RegisterPage />} />
-              <Route path="register-sessions" element={<RegisterSessions />} />
+              <Route path="register" element={
+                <PrivateRoute requiredPermissions={["can_view_transactions"]}>
+                  <RegisterPage />
+                </PrivateRoute>
+              } />
+              <Route path="register-sessions" element={
+                <PrivateRoute requiredPermissions={["can_view_transactions"]}>
+                  <RegisterSessions />
+                </PrivateRoute>
+              } />
               <Route path="transaction-permissions" element={
                 <PrivateRoute 
                   requiredRole="admin"
