@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -68,14 +67,10 @@ const Transactions = () => {
     filteredTransactions
   } = useTransactionFilters(transactions);
   
-  // Fetch transactions (simulated)
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // In a real app, fetch from API
         setTransactions(mockTransactions);
       } catch (error) {
         toast.error("Failed to load transactions");
@@ -91,7 +86,6 @@ const Transactions = () => {
   const handleChangeStatus = (transactionId: string, newStatus: "open" | "locked" | "verified" | "secure") => {
     setTransactions(transactions.map(transaction => {
       if (transaction.id === transactionId) {
-        // Check for valid status transitions
         if (
           (transaction.status === "open" && newStatus !== "verified") || 
           (transaction.status === "locked" && newStatus !== "open") ||
@@ -101,12 +95,10 @@ const Transactions = () => {
             ...transaction,
             status: newStatus,
             updatedAt: new Date().toISOString(),
-            // Add additional metadata for audit purposes
             ...(newStatus === "locked" && { lockedAt: new Date().toISOString(), lockedBy: "Current User" }),
             ...(newStatus === "verified" && { verifiedAt: new Date().toISOString(), verifiedBy: "Current User" })
           };
         } else {
-          // Invalid transition
           toast.error(`Invalid status transition from ${transaction.status} to ${newStatus}`);
           return transaction;
         }
@@ -135,7 +127,6 @@ const Transactions = () => {
   const handleToggleOfflineMode = () => {
     setIsSyncing(true);
     
-    // Simulate sync process
     setTimeout(() => {
       setIsOfflineMode(!isOfflineMode);
       setIsSyncing(false);
@@ -179,16 +170,13 @@ const Transactions = () => {
     setIsSubmittingTransaction(true);
     
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1200));
       
-      // Generate a new transaction ID
       const newId = `txn-${Date.now().toString(36)}`;
       
-      // Create the new transaction object
       const newTransaction: Transaction = {
         id: newId,
-        amount: data.amount, // This is now correctly typed as a number through the zod transform
+        amount: data.amount,
         status: "open",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -199,7 +187,6 @@ const Transactions = () => {
         journalEntries: []
       };
       
-      // Add the new transaction to the state
       setTransactions(prev => [newTransaction, ...prev]);
       
       toast.success("Transaction created successfully");
