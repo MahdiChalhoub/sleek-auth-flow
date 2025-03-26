@@ -41,6 +41,11 @@ export interface Client {
   transactions?: ClientTransaction[];
   createdAt: string;
   updatedAt: string;
+  // Additional fields needed by ClientSelector
+  isVip?: boolean;
+  creditLimit?: number;
+  outstandingBalance?: number;
+  lastVisit?: string;
 }
 
 export const createClient = (data: Partial<Client>): Client => {
@@ -61,9 +66,77 @@ export const createClient = (data: Partial<Client>): Client => {
     financialAccount: data.financialAccount,
     transactions: data.transactions || [],
     createdAt: data.createdAt || now,
-    updatedAt: data.updatedAt || now
+    updatedAt: data.updatedAt || now,
+    isVip: data.isVip,
+    creditLimit: data.creditLimit,
+    outstandingBalance: data.outstandingBalance,
+    lastVisit: data.lastVisit
   };
 };
+
+// Add mock client data for use in ClientSelector
+export const mockClients: Client[] = [
+  {
+    id: uuidv4(),
+    name: "John Smith",
+    email: "john.smith@example.com",
+    phone: "+1 (555) 123-4567",
+    address: "123 Main St, Anytown, USA",
+    type: "regular",
+    status: "active",
+    isVip: false,
+    creditLimit: 1000,
+    outstandingBalance: 250,
+    lastVisit: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+    createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: uuidv4(),
+    name: "Jane Doe",
+    email: "jane.doe@example.com",
+    phone: "+1 (555) 987-6543",
+    address: "456 Oak Ave, Somewhere, USA",
+    type: "vip",
+    status: "active",
+    isVip: true,
+    creditLimit: 5000,
+    outstandingBalance: 750,
+    lastVisit: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: uuidv4(),
+    name: "Robert Johnson",
+    email: "robert.j@example.com",
+    phone: "+1 (555) 333-2222",
+    address: "789 Pine St, Elsewhere, USA",
+    type: "credit",
+    status: "active",
+    isVip: false,
+    creditLimit: 3000,
+    outstandingBalance: 3000, // Credit limit reached
+    lastVisit: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
+    createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: uuidv4(),
+    name: "Sarah Williams",
+    email: "sarah.w@example.com",
+    phone: "+1 (555) 444-5555",
+    address: "101 Elm St, Nowhere, USA",
+    type: "wholesale",
+    status: "active",
+    isVip: true,
+    creditLimit: 10000,
+    outstandingBalance: 2500,
+    lastVisit: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
 
 // Client Service for Supabase
 export const clientService = {

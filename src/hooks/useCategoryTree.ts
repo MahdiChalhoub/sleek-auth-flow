@@ -11,6 +11,11 @@ interface Category {
   count?: number;
 }
 
+interface CategoryCount {
+  category_id: string;
+  count: string;
+}
+
 export const useCategoryTree = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,18 +34,17 @@ export const useCategoryTree = () => {
         
         if (error) throw new Error(error.message);
         
-        // Fetch product counts per category
+        // Fetch product counts per category - fixed query
         const { data: categoryCounts, error: countsError } = await supabase
           .from('products')
-          .select('category_id, count')
           .select('category_id, count(*)')
-          .group('category_id');
+          .groupBy('category_id');
           
         if (countsError) throw new Error(countsError.message);
         
         // Create a map of category ID to product count
         const countMap = new Map();
-        categoryCounts?.forEach((item: any) => {
+        (categoryCounts as CategoryCount[] || []).forEach((item) => {
           countMap.set(item.category_id, parseInt(item.count));
         });
         

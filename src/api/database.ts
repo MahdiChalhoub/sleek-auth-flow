@@ -1,5 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { Client } from '@/models/client';
+import { Client, createClient } from '@/models/client';
 import { Supplier } from '@/models/supplier';
 import { StockTransfer } from '@/models/stockTransfer';
 import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
@@ -16,7 +17,18 @@ export const clientsApi = {
       throw error;
     }
     
-    return data || [];
+    return (data || []).map(item => createClient({
+      id: item.id,
+      name: item.name,
+      email: item.email,
+      phone: item.phone,
+      address: item.address,
+      loyaltyPoints: item.loyalty_points,
+      type: 'regular', // Default type
+      status: 'active', // Default status
+      createdAt: item.created_at,
+      updatedAt: item.updated_at
+    }));
   },
   
   getById: async (id: string): Promise<Client | null> => {
@@ -31,13 +43,32 @@ export const clientsApi = {
       throw error;
     }
     
-    return data;
+    if (!data) return null;
+    
+    return createClient({
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      loyaltyPoints: data.loyalty_points,
+      type: 'regular', // Default type
+      status: 'active', // Default status
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    });
   },
   
   create: async (client: Omit<Client, 'id'>): Promise<Client> => {
     const { data, error } = await supabase
       .from('clients')
-      .insert([client])
+      .insert([{
+        name: client.name,
+        email: client.email,
+        phone: client.phone,
+        address: client.address,
+        loyalty_points: client.loyaltyPoints || 0
+      }])
       .select()
       .single();
     
@@ -46,13 +77,31 @@ export const clientsApi = {
       throw error;
     }
     
-    return data;
+    return createClient({
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      loyaltyPoints: data.loyalty_points,
+      type: 'regular', // Default type
+      status: 'active', // Default status
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    });
   },
   
   update: async (id: string, updates: Partial<Client>): Promise<Client> => {
+    const dbUpdates: any = {};
+    if (updates.name) dbUpdates.name = updates.name;
+    if (updates.email) dbUpdates.email = updates.email;
+    if (updates.phone) dbUpdates.phone = updates.phone;
+    if (updates.address) dbUpdates.address = updates.address;
+    if (updates.loyaltyPoints) dbUpdates.loyalty_points = updates.loyaltyPoints;
+    
     const { data, error } = await supabase
       .from('clients')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', id)
       .select()
       .single();
@@ -62,7 +111,18 @@ export const clientsApi = {
       throw error;
     }
     
-    return data;
+    return createClient({
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      loyaltyPoints: data.loyalty_points,
+      type: 'regular', // Default type
+      status: 'active', // Default status
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    });
   },
   
   delete: async (id: string): Promise<void> => {

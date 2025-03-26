@@ -68,5 +68,5 @@ export function createClient(data: Partial<Client>): Client {
   };
 }
 
-// Export the mock clients array used elsewhere
-export { mockClients } from "./client";
+// Instead of importing from client.ts, we'll create mock clients directly here if needed
+// For now, we'll rely on the mockClients from client.ts
