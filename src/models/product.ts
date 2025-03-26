@@ -1,3 +1,4 @@
+
 export interface Product {
   id: string;
   name: string;
@@ -8,11 +9,39 @@ export interface Product {
   stock: number;
   image?: string;
   barcode: string;
-  locationStock?: {
-    locationId: string;
-    stock: number;
-    minStockLevel?: number;
-  }[];
+  locationStock?: LocationStock[];
+  isCombo?: boolean;
+  comboComponents?: ComboComponent[];
+  hasStock?: boolean;
+}
+
+export interface LocationStock {
+  locationId: string;
+  stock: number;
+  minStockLevel?: number;
+}
+
+export interface ComboComponent {
+  productId: string;
+  quantity: number;
+  product?: Product;
+}
+
+export interface ProductBatch {
+  id: string;
+  productId: string;
+  batchNumber: string;
+  expiryDate: string;
+  quantity: number;
+  createdAt: string;
+}
+
+export interface ProductPackaging {
+  id: string;
+  productId: string;
+  packagingLevel: 'unit' | 'paquet' | 'carton';
+  barcode: string;
+  quantity: number; // How many lower-level items make up this packaging
 }
 
 export const mockProducts: Product[] = [
@@ -177,31 +206,3 @@ export const mockProducts: Product[] = [
     ]
   }
 ];
-
-// Add ComboComponent interface
-export interface ComboComponent {
-  productId: string;
-  quantity: number;
-  product?: Product;
-}
-
-// Update Product interface to include isCombo property
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  price: number;
-  cost?: number;
-  stock: number;
-  image?: string;
-  barcode: string;
-  locationStock?: {
-    locationId: string;
-    stock: number;
-    minStockLevel?: number;
-  }[];
-  isCombo?: boolean;
-  comboComponents?: ComboComponent[];
-  hasStock?: boolean;
-}

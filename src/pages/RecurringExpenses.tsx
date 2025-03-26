@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -78,6 +77,10 @@ const RecurringExpenses: React.FC = () => {
     } catch (error) {
       console.error("Error updating expense:", error);
     }
+  };
+  
+  const handleAddRecurringExpense = async (data: Omit<RecurringExpense, 'id' | 'createdAt' | 'updatedAt'>) => {
+    await addRecurringExpense(data);
   };
   
   const filteredExpenses = recurringExpenses.filter(expense => 
@@ -320,7 +323,7 @@ const RecurringExpenses: React.FC = () => {
       <RecurringExpenseDialog
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
-        onSubmit={addRecurringExpense}
+        onSubmit={handleAddRecurringExpense}
         isSubmitting={isLoading}
       />
       
