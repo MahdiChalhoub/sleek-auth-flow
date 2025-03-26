@@ -1,141 +1,137 @@
 
 import React, { useState } from 'react';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import ExpiryDatePicker from './ExpiryDatePicker';
 import { ProductBatch } from '@/models/product';
 
+// Define schema for batch form
+const batchFormSchema = z.object({
+  batchNumber: z.string().min(1, "Le numéro de lot est requis"),
+  quantity: z.coerce.number().positive("La quantité doit être positive"),
+  expiryDate: z.date().refine(date => date > new Date(), {
+    message: "La date d'expiration doit être future"
+  })
+});
+
+export type BatchFormValues = z.infer<typeof batchFormSchema>;
+
 export interface BatchFormProps {
-  productId?: string;
-  onBatchAdded?: () => void;
-  onSubmit?: (newBatch: Omit<ProductBatch, "id">) => void;
-  onCancel?: () => void;
+  onSubmit: (newBatch: Omit<ProductBatch, "id">) => void;
+  onCancel: () => void;
+  productId: string;
 }
 
-const BatchForm: React.FC<BatchFormProps> = ({ productId, onBatchAdded, onSubmit, onCancel }) => {
-  const [batchNumber, setBatchNumber] = useState('');
-  const [quantity, setQuantity] = useState<number>(1);
-  const [expiryDate, setExpiryDate] = useState<Date | undefined>(
-    new Date(new Date().setMonth(new Date().getMonth() + 6))
-  );
+const BatchForm: React.FC<BatchFormProps> = ({ onSubmit, onCancel, productId }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!batchNumber.trim()) {
-      toast.error("Veuillez saisir un numéro de lot");
-      return;
+  const form = useForm<BatchFormValues>({
+    resolver: zodResolver(batchFormSchema),
+    defaultValues: {
+      batchNumber: '',
+      quantity: 1,
+      expiryDate: new Date(new Date().setMonth(new Date().getMonth() + 3)) // Default 3 months ahead
     }
-    
-    if (!expiryDate) {
-      toast.error("Veuillez sélectionner une date d'expiration");
-      return;
-    }
-    
-    if (quantity < 1) {
-      toast.error("La quantité doit être supérieure à zéro");
-      return;
-    }
-    
-    const newBatch = {
-      productId: productId || '',
-      batchNumber,
-      quantity,
-      expiryDate: format(expiryDate, 'yyyy-MM-dd'),
-      createdAt: new Date().toISOString()
-    };
-    
-    // Use onSubmit if provided, otherwise log
-    if (onSubmit) {
+  });
+  
+  const handleSubmit = async (values: BatchFormValues) => {
+    setIsSubmitting(true);
+    try {
+      const newBatch: Omit<ProductBatch, "id"> = {
+        productId,
+        batchNumber: values.batchNumber,
+        quantity: values.quantity,
+        expiryDate: values.expiryDate.toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
       onSubmit(newBatch);
-    } else {
-      // In a real app, this would make an API call
-      console.log("Batch added:", newBatch);
-      toast.success("Lot ajouté avec succès");
-      
-      // Reset form
-      setBatchNumber('');
-      setQuantity(1);
-      setExpiryDate(new Date(new Date().setMonth(new Date().getMonth() + 6)));
-      
-      // Notify parent component
-      if (onBatchAdded) {
-        onBatchAdded();
-      }
+      form.reset();
+    } catch (error) {
+      console.error('Failed to add batch:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="batchNumber">Numéro de lot</Label>
-            <Input
-              id="batchNumber"
-              placeholder="ex: BT-001-2023"
-              value={batchNumber}
-              onChange={(e) => setBatchNumber(e.target.value)}
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Ajouter un lot</CardTitle>
+      </CardHeader>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)}>
+          <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="batchNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Numéro de lot</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="EX123456" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="quantity">Quantité</Label>
-            <Input
-              id="quantity"
-              type="number"
-              min={1}
-              value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
+            
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Quantité</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="number" min={1} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
+            
+            <FormField
+              control={form.control}
+              name="expiryDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Date d'expiration</FormLabel>
+                  <FormControl>
+                    <ExpiryDatePicker 
+                      date={field.value} 
+                      onDateChange={field.onChange} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
           
-          <div className="space-y-2">
-            <Label>Date d'expiration</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !expiryDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {expiryDate ? format(expiryDate, 'dd/MM/yyyy') : <span>Sélectionner une date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={expiryDate}
-                  onSelect={setExpiryDate}
-                  initialFocus
-                  disabled={(date) => date < new Date()}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          <div className="flex gap-2 justify-end">
-            {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel}>
-                Annuler
-              </Button>
-            )}
-            <Button type="submit" className="w-full">
-              Ajouter le lot
+          <CardFooter className="flex justify-between">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
+              Annuler
             </Button>
-          </div>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Ajout en cours...' : 'Ajouter'}
+            </Button>
+          </CardFooter>
         </form>
-      </CardContent>
+      </Form>
     </Card>
   );
 };

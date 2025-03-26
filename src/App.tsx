@@ -50,6 +50,7 @@ import ExpirationManagement from './pages/ExpirationManagement';
 import RecurringExpenses from './pages/RecurringExpenses';
 import TransactionPermissions from './pages/TransactionPermissions';
 import { ROUTES } from './constants/routes';
+import PrivateRoute from './components/auth/PrivateRoute';
 
 function App() {
   return (
@@ -58,16 +59,19 @@ function App() {
         <QueryProvider>
           <AuthProvider>
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<Index />} />
+              <Route path="/index" element={<Navigate to="/" replace />} />
               <Route path={ROUTES.LOGIN} element={<Login />} />
               <Route path={ROUTES.SIGNUP} element={<Signup />} />
               <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
               
-              {/* Redirect from root to home */}
-              <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />
-              
               {/* Main layout with protected routes */}
-              <Route path="/" element={<AppLayout />}>
+              <Route path="/" element={
+                <PrivateRoute>
+                  <AppLayout />
+                </PrivateRoute>
+              }>
                 <Route path={ROUTES.HOME} element={<Dashboard />} />
                 <Route path={ROUTES.DASHBOARD} element={<FinanceDashboard />} />
                 <Route path={ROUTES.INVENTORY} element={<Inventory />} />
