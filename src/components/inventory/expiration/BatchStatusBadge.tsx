@@ -22,6 +22,8 @@ const BatchStatusBadge: React.FC<BatchStatusBadgeProps> = ({ expiryDate }) => {
     case 'expired':
       label = 'Expiré';
       break;
+    default:
+      label = 'Inconnu';
   }
   
   return (

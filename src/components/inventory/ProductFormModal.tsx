@@ -63,7 +63,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
 
   const calculateComboCost = (): number => {
     return comboComponents.reduce((total, item) => {
-      const productCost = parseFloat(((mockProducts.find(p => p.id === item.productId)?.price || 0) * 0.7).toFixed(2));
+      const productCost = parseFloat(((mockProducts.find(p => p.id === item.componentProductId)?.price || 0) * 0.7).toFixed(2));
       return total + (productCost * item.quantity);
     }, 0);
   };
@@ -123,8 +123,12 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
 
   const addComboComponent = () => {
     const newComponent: ComboComponent = {
-      productId: "",
+      id: Math.random().toString(36).substring(7),
+      comboProductId: "",
+      componentProductId: "",
       quantity: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     
     setComboComponents([...comboComponents, newComponent]);
@@ -139,7 +143,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
   const updateComboComponent = (index: number, field: string, value: string | number) => {
     const updatedComponents = [...comboComponents];
     
-    if (field === "productId" && typeof value === "string") {
+    if (field === "componentProductId" && typeof value === "string") {
       const selectedProduct = mockProducts.find(p => p.id === value);
       updatedComponents[index] = {
         ...updatedComponents[index],
@@ -160,9 +164,9 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
     if (comboComponents.length === 0) return "No components added";
     
     return comboComponents
-      .filter(item => item.productId)
+      .filter(item => item.componentProductId)
       .map(item => {
-        const product = mockProducts.find(p => p.id === item.productId);
+        const product = mockProducts.find(p => p.id === item.componentProductId);
         return `${item.quantity}x ${product?.name || "Unknown product"}`;
       })
       .join(", ");
@@ -177,7 +181,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
         return;
       }
       
-      if (comboComponents.some(item => !item.productId)) {
+      if (comboComponents.some(item => !item.componentProductId)) {
         toast.error("All combo components must have a selected product");
         return;
       }
@@ -283,8 +287,8 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
                             <Label htmlFor={`component-${index}`} className="text-xs">Product</Label>
                             <select
                               id={`component-${index}`}
-                              value={component.productId}
-                              onChange={(e) => updateComboComponent(index, "productId", e.target.value)}
+                              value={component.componentProductId}
+                              onChange={(e) => updateComboComponent(index, "componentProductId", e.target.value)}
                               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                               required
                             >
@@ -313,7 +317,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
                           <div className="col-span-2">
                             <Label className="text-xs">Unit Cost</Label>
                             <div className="py-2 px-3 border rounded-md h-10 bg-muted/50 text-sm">
-                              ${(mockProducts.find(p => p.id === component.productId)?.price || 0) * 0.7 * component.quantity}
+                              ${(mockProducts.find(p => p.id === component.componentProductId)?.price || 0) * 0.7 * component.quantity}
                             </div>
                           </div>
                           <div className="col-span-1">

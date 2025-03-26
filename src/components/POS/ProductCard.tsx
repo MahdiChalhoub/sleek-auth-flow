@@ -12,11 +12,14 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
+  // Use imageUrl or image property, depending on what's available
+  const imageSource = product.imageUrl || product.image || "";
+  
   return (
     <Card className="overflow-hidden transition-all duration-200 hover:shadow-md glass-card animate-fade-in">
       <div 
         className="h-28 bg-cover bg-center relative" 
-        style={{ backgroundImage: `url(${product.image})` }}
+        style={{ backgroundImage: `url(${imageSource})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
           <div className="text-white">

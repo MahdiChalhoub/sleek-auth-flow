@@ -9,7 +9,9 @@ export interface ProductBase {
   cost: number;
   stock: number;
   categoryId?: string;
+  category?: string; // Adding category for backward compatibility
   imageUrl?: string;
+  image?: string; // Adding image for backward compatibility
   createdAt: string;
   updatedAt: string;
 }
@@ -18,6 +20,7 @@ export interface ProductBase {
 export interface Product extends ProductBase {
   isCombo?: boolean;
   hasStock: boolean;
+  locationStock?: ProductLocationStock[]; // Adding locationStock for compatibility
 }
 
 export interface ComboProduct extends Product {
@@ -28,8 +31,10 @@ export interface ComboProduct extends Product {
 export interface ComboComponent {
   id: string;
   comboProductId: string;
-  componentProductId: string;
+  componentProductId: string; // Use this for referencing products
+  productId?: string; // Adding for backward compatibility with existing code
   quantity: number;
+  product?: Product; // Reference to the full product
   createdAt: string;
   updatedAt: string;
 }
@@ -66,7 +71,9 @@ export const mockProducts: Product[] = [
     cost: 0.8,
     stock: 45,
     categoryId: "dairy",
+    category: "dairy", // Adding category for compatibility
     imageUrl: "https://example.com/milk.jpg",
+    image: "https://example.com/milk.jpg", // Adding image for compatibility
     createdAt: "2023-01-15T08:00:00Z",
     updatedAt: "2023-01-15T08:00:00Z",
     hasStock: true
@@ -80,7 +87,9 @@ export const mockProducts: Product[] = [
     cost: 1.2,
     stock: 20,
     categoryId: "bakery",
+    category: "bakery",
     imageUrl: "https://example.com/bread.jpg",
+    image: "https://example.com/bread.jpg",
     createdAt: "2023-01-15T08:05:00Z",
     updatedAt: "2023-01-15T08:05:00Z",
     hasStock: true
@@ -94,7 +103,9 @@ export const mockProducts: Product[] = [
     cost: 1.75,
     stock: 30,
     categoryId: "produce",
+    category: "produce",
     imageUrl: "https://example.com/bananas.jpg",
+    image: "https://example.com/bananas.jpg",
     createdAt: "2023-01-15T08:10:00Z",
     updatedAt: "2023-01-15T08:10:00Z",
     hasStock: true
@@ -108,10 +119,23 @@ export const mockProducts: Product[] = [
     cost: 5.5,
     stock: 10,
     categoryId: "combos",
+    category: "combos",
     imageUrl: "https://example.com/breakfast.jpg",
+    image: "https://example.com/breakfast.jpg",
     createdAt: "2023-01-15T08:15:00Z",
     updatedAt: "2023-01-15T08:15:00Z",
     isCombo: true,
-    hasStock: true
+    hasStock: true,
+    locationStock: [
+      {
+        id: "ls1",
+        productId: "4",
+        locationId: "loc1",
+        stock: 5,
+        minStockLevel: 2,
+        createdAt: "2023-01-15T08:15:00Z",
+        updatedAt: "2023-01-15T08:15:00Z"
+      }
+    ]
   }
 ];

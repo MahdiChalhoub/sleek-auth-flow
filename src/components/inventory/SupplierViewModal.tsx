@@ -92,7 +92,7 @@ const SupplierViewModal: React.FC<SupplierViewModalProps> = ({ supplier, onClose
                 {suppliedProducts.map(product => (
                   <tr key={product.id} className="border-t">
                     <td className="p-2 pl-4 font-medium">{product.name}</td>
-                    <td className="p-2">{product.category}</td>
+                    <td className="p-2">{product.categoryId || product.category}</td>
                     <td className="p-2 pr-4 text-right">${product.price.toFixed(2)}</td>
                   </tr>
                 ))}

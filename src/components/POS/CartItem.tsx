@@ -63,12 +63,15 @@ const CartItem = ({
     });
   };
   
+  // Use imageUrl or image property, depending on what's available
+  const imageSource = item.product.imageUrl || item.product.image || "";
+  
   return (
     <div className="border-b p-2 animate-fade-in">
       <div className="flex items-center gap-2">
         <div className="relative h-10 w-10 rounded-md overflow-hidden flex-shrink-0">
           <img 
-            src={item.product.image} 
+            src={imageSource} 
             alt={item.product.name} 
             className="h-full w-full object-cover"
           />
