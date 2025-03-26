@@ -4,10 +4,10 @@ import { NavItem } from "./index";
 
 export const financeItems: NavItem[] = [
   {
-    title: "Comptes de paiement",
-    path: "/register-sessions",
-    icon: CreditCard,
-    roles: ["admin", "manager"],
+    title: "Caisse Enregistreuse",
+    path: "/register",
+    icon: ReceiptText,
+    roles: ["admin", "manager", "cashier"],
     children: [
       {
         title: "Caisse",
