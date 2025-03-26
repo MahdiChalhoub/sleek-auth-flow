@@ -1,44 +1,34 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Clock, CheckCircle, AlertTriangle } from 'lucide-react';
-import { getBatchStatus, BatchStatus } from '@/utils/expirationUtils';
+import { getBatchStatus, getBatchStatusColor } from '@/utils/expirationUtils';
 
 interface BatchStatusBadgeProps {
   expiryDate: string | null;
-  className?: string;
 }
 
-const BatchStatusBadge: React.FC<BatchStatusBadgeProps> = ({ expiryDate, className }) => {
-  if (!expiryDate) return null;
-  
+const BatchStatusBadge: React.FC<BatchStatusBadgeProps> = ({ expiryDate }) => {
   const status = getBatchStatus(expiryDate);
+  const colorClass = getBatchStatusColor(status);
   
+  let label = '';
   switch (status) {
     case 'fresh':
-      return (
-        <Badge variant="outline" className={`bg-green-100 text-green-800 flex items-center gap-1 ${className}`}>
-          <CheckCircle className="h-3 w-3" />
-          Frais
-        </Badge>
-      );
+      label = 'Frais';
+      break;
     case 'expiring_soon':
-      return (
-        <Badge variant="outline" className={`bg-amber-100 text-amber-800 flex items-center gap-1 ${className}`}>
-          <Clock className="h-3 w-3" />
-          Expire Bientôt
-        </Badge>
-      );
+      label = 'Expire bientôt';
+      break;
     case 'expired':
-      return (
-        <Badge variant="outline" className={`bg-red-100 text-red-800 flex items-center gap-1 ${className}`}>
-          <AlertTriangle className="h-3 w-3" />
-          Expiré
-        </Badge>
-      );
-    default:
-      return null;
+      label = 'Expiré';
+      break;
   }
+  
+  return (
+    <Badge variant="outline" className={`${colorClass} font-medium`}>
+      {label}
+    </Badge>
+  );
 };
 
 export default BatchStatusBadge;

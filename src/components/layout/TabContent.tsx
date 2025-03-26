@@ -2,6 +2,7 @@
 import React, { Suspense, lazy } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Tab } from "@/contexts/tabs";
+import { ROUTES } from "@/constants/routes";
 
 interface TabContentProps {
   tabs: Tab[];
@@ -48,43 +49,43 @@ const TabContent: React.FC<TabContentProps> = ({
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/home" element={<DynamicComponent componentPath="Dashboard" />} />
-      <Route path="/dashboard" element={<DynamicComponent componentPath="FinanceDashboard" />} />
-      <Route path="/inventory" element={<DynamicComponent componentPath="Inventory" />} />
-      <Route path="/pos-sales" element={<DynamicComponent componentPath="POSSales" />} />
-      <Route path="/settings" element={<DynamicComponent componentPath="Settings" />} />
-      <Route path="/suppliers" element={<DynamicComponent componentPath="Suppliers" />} />
-      <Route path="/purchase-orders" element={<DynamicComponent componentPath="PurchaseOrders" />} />
-      <Route path="/stock-transfers" element={<DynamicComponent componentPath="StockTransfers" />} />
-      <Route path="/stock-adjustments" element={<DynamicComponent componentPath="StockAdjustments" />} />
-      <Route path="/transactions" element={<DynamicComponent componentPath="Transactions" />} />
-      <Route path="/register" element={<DynamicComponent componentPath="POSRegister" />} />
-      <Route path="/register-sessions" element={<DynamicComponent componentPath="RegisterSessions" />} />
-      <Route path="/transaction-permissions" element={<DynamicComponent componentPath="TransactionPermissions" />} />
-      <Route path="/expenses" element={<DynamicComponent componentPath="Expenses" />} />
-      <Route path="/recurring-expenses" element={<DynamicComponent componentPath="RecurringExpenses" />} />
-      <Route path="/staff-finance" element={<DynamicComponent componentPath="StaffFinance" />} />
-      <Route path="/loyalty" element={<DynamicComponent componentPath="Loyalty" />} />
-      <Route path="/returns" element={<DynamicComponent componentPath="Returns" />} />
-      <Route path="/roles" element={<DynamicComponent componentPath="RoleManagement" />} />
-      <Route path="/categories" element={<DynamicComponent componentPath="Categories" />} />
-      <Route path="/units" element={<DynamicComponent componentPath="Units" />} />
-      <Route path="/shift-reports" element={<DynamicComponent componentPath="ShiftReports" />} />
-      <Route path="/audit-trail" element={<DynamicComponent componentPath="AuditTrail" />} />
-      <Route path="/user-activity" element={<DynamicComponent componentPath="UserActivity" />} />
-      <Route path="/users" element={<DynamicComponent componentPath="Users" />} />
-      <Route path="/contacts" element={<DynamicComponent componentPath="Contacts" />} />
-      <Route path="/notifications" element={<DynamicComponent componentPath="Notifications" />} />
-      <Route path="/ledger" element={<DynamicComponent componentPath="GeneralLedger" />} />
-      <Route path="/general-ledger" element={<DynamicComponent componentPath="GeneralLedger" />} />
-      <Route path="/accounts-receivable" element={<DynamicComponent componentPath="AccountsReceivable" />} />
-      <Route path="/accounts-payable" element={<DynamicComponent componentPath="AccountsPayable" />} />
-      <Route path="/profit-loss" element={<DynamicComponent componentPath="ProfitLoss" />} />
-      <Route path="/backup-restore" element={<DynamicComponent componentPath="BackupRestore" />} />
-      <Route path="/exports" element={<DynamicComponent componentPath="Exports" />} />
-      <Route path="/packaging-management" element={<DynamicComponent componentPath="PackagingManagement" />} />
-      <Route path="/barcode-printing" element={<DynamicComponent componentPath="BarcodePrinting" />} />
-      <Route path="/expiration-management" element={<DynamicComponent componentPath="ExpirationManagement" />} />
+      <Route path={ROUTES.HOME} element={<DynamicComponent componentPath="Dashboard" />} />
+      <Route path={ROUTES.DASHBOARD} element={<DynamicComponent componentPath="FinanceDashboard" />} />
+      <Route path={ROUTES.INVENTORY} element={<DynamicComponent componentPath="Inventory" />} />
+      <Route path={ROUTES.POS_SALES} element={<DynamicComponent componentPath="POSSales" />} />
+      <Route path={ROUTES.SETTINGS} element={<DynamicComponent componentPath="Settings" />} />
+      <Route path={ROUTES.SUPPLIERS} element={<DynamicComponent componentPath="Suppliers" />} />
+      <Route path={ROUTES.PURCHASE_ORDERS} element={<DynamicComponent componentPath="PurchaseOrders" />} />
+      <Route path={ROUTES.STOCK_TRANSFERS} element={<DynamicComponent componentPath="StockTransfers" />} />
+      <Route path={ROUTES.STOCK_ADJUSTMENTS} element={<DynamicComponent componentPath="StockAdjustments" />} />
+      <Route path={ROUTES.TRANSACTIONS} element={<DynamicComponent componentPath="Transactions" />} />
+      <Route path={ROUTES.REGISTER} element={<DynamicComponent componentPath="POSRegister" />} />
+      <Route path={ROUTES.REGISTER_SESSIONS} element={<DynamicComponent componentPath="RegisterSessions" />} />
+      <Route path={ROUTES.TRANSACTION_PERMISSIONS} element={<DynamicComponent componentPath="TransactionPermissions" />} />
+      <Route path={ROUTES.EXPENSES} element={<DynamicComponent componentPath="Expenses" />} />
+      <Route path={ROUTES.RECURRING_EXPENSES} element={<DynamicComponent componentPath="RecurringExpenses" />} />
+      <Route path={ROUTES.STAFF_FINANCE} element={<DynamicComponent componentPath="StaffFinance" />} />
+      <Route path={ROUTES.LOYALTY} element={<DynamicComponent componentPath="Loyalty" />} />
+      <Route path={ROUTES.RETURNS} element={<DynamicComponent componentPath="Returns" />} />
+      <Route path={ROUTES.ROLES} element={<DynamicComponent componentPath="RoleManagement" />} />
+      <Route path={ROUTES.CATEGORIES} element={<DynamicComponent componentPath="Categories" />} />
+      <Route path={ROUTES.UNITS} element={<DynamicComponent componentPath="Units" />} />
+      <Route path={ROUTES.SHIFT_REPORTS} element={<DynamicComponent componentPath="ShiftReports" />} />
+      <Route path={ROUTES.AUDIT_TRAIL} element={<DynamicComponent componentPath="AuditTrail" />} />
+      <Route path={ROUTES.USER_ACTIVITY} element={<DynamicComponent componentPath="UserActivity" />} />
+      <Route path={ROUTES.USERS} element={<DynamicComponent componentPath="Users" />} />
+      <Route path={ROUTES.CONTACTS} element={<DynamicComponent componentPath="Contacts" />} />
+      <Route path={ROUTES.NOTIFICATIONS} element={<DynamicComponent componentPath="Notifications" />} />
+      <Route path={ROUTES.LEDGER} element={<DynamicComponent componentPath="GeneralLedger" />} />
+      <Route path={ROUTES.GENERAL_LEDGER} element={<DynamicComponent componentPath="GeneralLedger" />} />
+      <Route path={ROUTES.ACCOUNTS_RECEIVABLE} element={<DynamicComponent componentPath="AccountsReceivable" />} />
+      <Route path={ROUTES.ACCOUNTS_PAYABLE} element={<DynamicComponent componentPath="AccountsPayable" />} />
+      <Route path={ROUTES.PROFIT_LOSS} element={<DynamicComponent componentPath="ProfitLoss" />} />
+      <Route path={ROUTES.BACKUP_RESTORE} element={<DynamicComponent componentPath="BackupRestore" />} />
+      <Route path={ROUTES.EXPORTS} element={<DynamicComponent componentPath="Exports" />} />
+      <Route path={ROUTES.PACKAGING_MANAGEMENT} element={<DynamicComponent componentPath="PackagingManagement" />} />
+      <Route path={ROUTES.BARCODE_PRINTING} element={<DynamicComponent componentPath="BarcodePrinting" />} />
+      <Route path={ROUTES.EXPIRATION_MANAGEMENT} element={<DynamicComponent componentPath="ExpirationManagement" />} />
       <Route path="*" element={<div>Page not found</div>} />
     </Routes>
   );

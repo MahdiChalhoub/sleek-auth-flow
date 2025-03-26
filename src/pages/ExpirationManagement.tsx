@@ -92,14 +92,14 @@ const ExpirationManagement: React.FC = () => {
     return matchesSearch && hasMatchingBatches;
   });
 
-  const addBatch = (productId: string, batchData: Omit<ProductBatch, 'id'>) => {
-    const newBatch: ProductBatch = {
-      ...batchData,
-      id: `batch-${Date.now()}`,
-      productId
+  const addBatch = (newBatch: Omit<ProductBatch, "id">) => {
+    const batchWithId: ProductBatch = {
+      ...newBatch,
+      id: `batch-${Date.now()}`
     };
     
-    setBatches(prev => [...prev, newBatch]);
+    setBatches(prev => [...prev, batchWithId]);
+    setSelectedProduct(null); // Reset selected product after adding
   };
 
   const deleteBatch = (batchId: string) => {
@@ -242,7 +242,9 @@ const ExpirationManagement: React.FC = () => {
             <CardContent>
               {selectedProduct ? (
                 <BatchForm 
-                  onAddBatch={(batchData) => addBatch(selectedProduct.id, batchData)}
+                  onSubmit={addBatch}
+                  onCancel={() => setSelectedProduct(null)}
+                  productId={selectedProduct.id}
                 />
               ) : (
                 <div className="text-center py-8">

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import './App.css';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './components/theme-provider';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
@@ -49,6 +49,7 @@ import BarcodePrinting from './pages/BarcodePrinting';
 import ExpirationManagement from './pages/ExpirationManagement';
 import RecurringExpenses from './pages/RecurringExpenses';
 import TransactionPermissions from './pages/TransactionPermissions';
+import { ROUTES } from './constants/routes';
 
 function App() {
   return (
@@ -58,51 +59,57 @@ function App() {
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path={ROUTES.LOGIN} element={<Login />} />
+              <Route path={ROUTES.SIGNUP} element={<Signup />} />
+              <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+              
+              {/* Redirect from root to home */}
+              <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />
+              
+              {/* Main layout with protected routes */}
               <Route path="/" element={<AppLayout />}>
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="inventory" element={<Inventory />} />
-                <Route path="purchase-orders" element={<PurchaseOrders />} />
-                <Route path="suppliers" element={<Suppliers />} />
-                <Route path="stock-transfers" element={<StockTransfers />} />
-                <Route path="sales" element={<POSSales />} />
-                <Route path="register" element={<POSRegister />} />
-                <Route path="categories" element={<Categories />} />
-                <Route path="stock-adjustments" element={<StockAdjustments />} />
-                <Route path="units" element={<Units />} />
-                <Route path="contacts" element={<Contacts />} />
-                <Route path="expenses" element={<Expenses />} />
-                <Route path="returns" element={<Returns />} />
-                <Route path="transactions" element={<Transactions />} />
-                <Route path="transactions-page" element={<TransactionsPage />} />
-                <Route path="audit-trail" element={<AuditTrail />} />
-                <Route path="user-activity" element={<UserActivity />} />
-                <Route path="role-management" element={<RoleManagement />} />
-                <Route path="users" element={<Users />} />
-                <Route path="register-sessions" element={<RegisterSessions />} />
-                <Route path="loyalty" element={<Loyalty />} />
-                <Route path="staff-finance" element={<StaffFinance />} />
-                <Route path="shift-reports" element={<ShiftReports />} />
-                <Route path="notifications" element={<Notifications />} />
-                <Route path="backup-restore" element={<BackupRestore />} />
-                <Route path="exports" element={<Exports />} />
-                <Route path="finance-dashboard" element={<FinanceDashboard />} />
-                <Route path="settings" element={<Settings />} />
-                <Route path="general-ledger" element={<GeneralLedger />} />
-                <Route path="ledger" element={<GeneralLedger />} />
-                <Route path="journal-entries" element={<JournalEntries />} />
-                <Route path="accounts-receivable" element={<AccountsReceivable />} />
-                <Route path="accounts-payable" element={<AccountsPayable />} />
-                <Route path="profit-loss" element={<ProfitLoss />} />
-                <Route path="packaging-management" element={<PackagingManagement />} />
-                <Route path="barcode-printing" element={<BarcodePrinting />} />
-                <Route path="expiration-management" element={<ExpirationManagement />} />
-                <Route path="pos-sales" element={<POSSales />} />
-                <Route path="transaction-permissions" element={<TransactionPermissions />} />
-                <Route path="recurring-expenses" element={<RecurringExpenses />} />
+                <Route path={ROUTES.HOME} element={<Dashboard />} />
+                <Route path={ROUTES.DASHBOARD} element={<FinanceDashboard />} />
+                <Route path={ROUTES.INVENTORY} element={<Inventory />} />
+                <Route path={ROUTES.PURCHASE_ORDERS} element={<PurchaseOrders />} />
+                <Route path={ROUTES.SUPPLIERS} element={<Suppliers />} />
+                <Route path={ROUTES.STOCK_TRANSFERS} element={<StockTransfers />} />
+                <Route path={ROUTES.POS_SALES} element={<POSSales />} />
+                <Route path={ROUTES.REGISTER} element={<POSRegister />} />
+                <Route path={ROUTES.CATEGORIES} element={<Categories />} />
+                <Route path={ROUTES.STOCK_ADJUSTMENTS} element={<StockAdjustments />} />
+                <Route path={ROUTES.UNITS} element={<Units />} />
+                <Route path={ROUTES.CONTACTS} element={<Contacts />} />
+                <Route path={ROUTES.EXPENSES} element={<Expenses />} />
+                <Route path={ROUTES.RETURNS} element={<Returns />} />
+                <Route path={ROUTES.TRANSACTIONS} element={<Transactions />} />
+                <Route path="/transactions-page" element={<TransactionsPage />} />
+                <Route path={ROUTES.AUDIT_TRAIL} element={<AuditTrail />} />
+                <Route path={ROUTES.USER_ACTIVITY} element={<UserActivity />} />
+                <Route path={ROUTES.ROLES} element={<RoleManagement />} />
+                <Route path={ROUTES.USERS} element={<Users />} />
+                <Route path={ROUTES.REGISTER_SESSIONS} element={<RegisterSessions />} />
+                <Route path={ROUTES.LOYALTY} element={<Loyalty />} />
+                <Route path={ROUTES.STAFF_FINANCE} element={<StaffFinance />} />
+                <Route path={ROUTES.SHIFT_REPORTS} element={<ShiftReports />} />
+                <Route path={ROUTES.NOTIFICATIONS} element={<Notifications />} />
+                <Route path={ROUTES.BACKUP_RESTORE} element={<BackupRestore />} />
+                <Route path={ROUTES.EXPORTS} element={<Exports />} />
+                <Route path={ROUTES.SETTINGS} element={<Settings />} />
+                <Route path={ROUTES.GENERAL_LEDGER} element={<GeneralLedger />} />
+                <Route path={ROUTES.LEDGER} element={<GeneralLedger />} />
+                <Route path="/journal-entries" element={<JournalEntries />} />
+                <Route path={ROUTES.ACCOUNTS_RECEIVABLE} element={<AccountsReceivable />} />
+                <Route path={ROUTES.ACCOUNTS_PAYABLE} element={<AccountsPayable />} />
+                <Route path={ROUTES.PROFIT_LOSS} element={<ProfitLoss />} />
+                <Route path={ROUTES.PACKAGING_MANAGEMENT} element={<PackagingManagement />} />
+                <Route path={ROUTES.BARCODE_PRINTING} element={<BarcodePrinting />} />
+                <Route path={ROUTES.EXPIRATION_MANAGEMENT} element={<ExpirationManagement />} />
+                <Route path={ROUTES.TRANSACTION_PERMISSIONS} element={<TransactionPermissions />} />
+                <Route path={ROUTES.RECURRING_EXPENSES} element={<RecurringExpenses />} />
               </Route>
+              
+              {/* Catch all for 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
