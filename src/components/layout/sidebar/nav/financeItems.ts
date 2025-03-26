@@ -1,5 +1,5 @@
 
-import { DollarSign, CreditCard, ReceiptText, Wallet, PiggyBank, FileText } from "lucide-react";
+import { DollarSign, CreditCard, ReceiptText, Wallet, PiggyBank, FileText, BarChart3, BookOpen, FileSpreadsheet, Scale } from "lucide-react";
 import { NavItem } from "./index";
 
 export const financeItems: NavItem[] = [
@@ -30,6 +30,38 @@ export const financeItems: NavItem[] = [
     roles: ["admin", "manager"]
   },
   {
+    title: "Comptabilité",
+    path: "/ledger",
+    icon: BookOpen,
+    roles: ["admin", "manager"],
+    children: [
+      {
+        title: "Grand Livre",
+        path: "/ledger",
+        icon: BookOpen,
+        roles: ["admin", "manager"]
+      },
+      {
+        title: "Comptes Clients",
+        path: "/accounts-receivable",
+        icon: FileSpreadsheet,
+        roles: ["admin", "manager"]
+      },
+      {
+        title: "Comptes Fournisseurs",
+        path: "/accounts-payable",
+        icon: FileSpreadsheet,
+        roles: ["admin", "manager"]
+      },
+      {
+        title: "Profit & Pertes",
+        path: "/profit-loss",
+        icon: Scale,
+        roles: ["admin", "manager"]
+      }
+    ]
+  },
+  {
     title: "Dépenses",
     path: "/transaction-permissions",
     icon: DollarSign,
@@ -40,5 +72,11 @@ export const financeItems: NavItem[] = [
     path: "/staff-finance",
     icon: PiggyBank,
     roles: ["admin", "manager"]
+  },
+  {
+    title: "Sauvegarde & Restauration",
+    path: "/backup-restore",
+    icon: FileText,
+    roles: ["admin"]
   }
 ];

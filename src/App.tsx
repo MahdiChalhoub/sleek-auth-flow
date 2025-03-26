@@ -33,6 +33,11 @@ import ForgotPassword from './pages/ForgotPassword';
 import PrivateRoute from './components/auth/PrivateRoute';
 import { ROUTES } from './constants/routes';
 
+// New pages for Dashboard, Ledger and Backup
+import FinanceDashboard from './pages/FinanceDashboard';
+import Ledger from './pages/Ledger';
+import BackupRestore from './pages/BackupRestore';
+
 const App = () => {
   return (
     <Router>
@@ -177,6 +182,38 @@ const App = () => {
                 </PrivateRoute>
               } />
               <Route path="notifications" element={<NotificationsPage />} />
+              
+              {/* New Routes for Dashboard, Ledger and Backup */}
+              <Route path="dashboard" element={
+                <PrivateRoute requiredRole="manager">
+                  <FinanceDashboard />
+                </PrivateRoute>
+              } />
+              <Route path="ledger" element={
+                <PrivateRoute requiredRole="manager">
+                  <Ledger />
+                </PrivateRoute>
+              } />
+              <Route path="accounts-receivable" element={
+                <PrivateRoute requiredRole="manager">
+                  <Ledger />
+                </PrivateRoute>
+              } />
+              <Route path="accounts-payable" element={
+                <PrivateRoute requiredRole="manager">
+                  <Ledger />
+                </PrivateRoute>
+              } />
+              <Route path="profit-loss" element={
+                <PrivateRoute requiredRole="manager">
+                  <Ledger />
+                </PrivateRoute>
+              } />
+              <Route path="backup-restore" element={
+                <PrivateRoute requiredRole="admin">
+                  <BackupRestore />
+                </PrivateRoute>
+              } />
             </Route>
           </Routes>
           
