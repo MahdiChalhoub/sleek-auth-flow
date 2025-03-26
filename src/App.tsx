@@ -45,31 +45,75 @@ const App = () => {
             <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
             <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />
             
-            {/* Protected routes */}
+            {/* Protected routes with role-based access */}
             <Route path="/*" element={
               <PrivateRoute>
                 <AppLayout />
               </PrivateRoute>
             }>
               <Route path="home" element={<HomePage />} />
-              <Route path="inventory" element={<InventoryPage />} />
+              <Route path="inventory" element={
+                <PrivateRoute requiredRole="manager">
+                  <InventoryPage />
+                </PrivateRoute>
+              } />
               <Route path="pos-sales" element={<POSSales />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="suppliers" element={<Suppliers />} />
-              <Route path="purchase-orders" element={<PurchaseOrders />} />
-              <Route path="stock-transfers" element={<StockTransfers />} />
+              <Route path="settings" element={
+                <PrivateRoute requiredRole="admin">
+                  <Settings />
+                </PrivateRoute>
+              } />
+              <Route path="suppliers" element={
+                <PrivateRoute requiredRole="manager">
+                  <Suppliers />
+                </PrivateRoute>
+              } />
+              <Route path="purchase-orders" element={
+                <PrivateRoute requiredRole="manager">
+                  <PurchaseOrders />
+                </PrivateRoute>
+              } />
+              <Route path="stock-transfers" element={
+                <PrivateRoute requiredRole="manager">
+                  <StockTransfers />
+                </PrivateRoute>
+              } />
               <Route path="transactions" element={<Transactions />} />
               <Route path="register" element={<RegisterPage />} />
               <Route path="register-sessions" element={<RegisterSessions />} />
-              <Route path="transaction-permissions" element={<TransactionPermissions />} />
-              <Route path="staff-finance" element={<StaffFinance />} />
+              <Route path="transaction-permissions" element={
+                <PrivateRoute requiredRole="admin">
+                  <TransactionPermissions />
+                </PrivateRoute>
+              } />
+              <Route path="staff-finance" element={
+                <PrivateRoute requiredRole="admin">
+                  <StaffFinance />
+                </PrivateRoute>
+              } />
               <Route path="loyalty" element={<Loyalty />} />
               <Route path="returns" element={<Returns />} />
-              <Route path="roles" element={<RoleManagement />} />
-              <Route path="categories" element={<Categories />} />
+              <Route path="roles" element={
+                <PrivateRoute requiredRole="admin">
+                  <RoleManagement />
+                </PrivateRoute>
+              } />
+              <Route path="categories" element={
+                <PrivateRoute requiredRole="manager">
+                  <Categories />
+                </PrivateRoute>
+              } />
               <Route path="shift-reports" element={<ShiftReports />} />
-              <Route path="audit-trail" element={<AuditTrail />} />
-              <Route path="users" element={<Users />} />
+              <Route path="audit-trail" element={
+                <PrivateRoute requiredRole="admin">
+                  <AuditTrail />
+                </PrivateRoute>
+              } />
+              <Route path="users" element={
+                <PrivateRoute requiredRole="admin">
+                  <Users />
+                </PrivateRoute>
+              } />
               <Route path="contacts" element={<Contacts />} />
               <Route path="notifications" element={<NotificationsPage />} />
             </Route>

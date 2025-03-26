@@ -20,12 +20,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     switchBusiness
   } = useBusinessSelection(user);
 
-  // Mock Supabase session check
+  // Check if user session exists
   useEffect(() => {
     const checkSession = async () => {
-      // This would normally check a Supabase session
-      const savedUser = localStorage.getItem("pos_user");
-      const savedBusinessId = localStorage.getItem("pos_current_business");
+      // Get the storage type (localStorage or sessionStorage) based on remember me setting
+      const storageType = localStorage.getItem("auth_storage_type") || "local";
+      const storage = storageType === "local" ? localStorage : sessionStorage;
+      
+      const savedUser = storage.getItem("pos_user");
+      const savedBusinessId = storage.getItem("pos_current_business");
       
       if (savedUser) {
         try {
@@ -36,8 +39,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           initializeBusinessSelection(parsedUser, savedBusinessId);
         } catch (e) {
           console.error("Failed to parse user data", e);
-          localStorage.removeItem("pos_user");
-          localStorage.removeItem("pos_current_business");
+          storage.removeItem("pos_user");
+          storage.removeItem("pos_current_business");
         }
       }
       
@@ -110,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userBusinessIds = userAssignments.map(a => a.businessId);
       
       if (!userBusinessIds.includes(businessId)) {
-        throw new Error("User does not have access to this business");
+        throw new Error("Access denied: You do not have permission to access the selected business");
       }
       
       setUser(mockUser);
@@ -123,9 +126,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Store the storage type preference
       localStorage.setItem("auth_storage_type", rememberMe ? "local" : "session");
+      
+      // Navigate to the appropriate page based on role
+      navigate(getRoleDefaultPage(mockUser.role));
+      
+      toast.success(`Welcome, ${mockUser.name}`, {
+        description: "You have successfully logged in"
+      });
     } catch (error) {
       console.error("Login failed", error);
-      // Re-throw the original error message for better error handling
+      // Show detailed error message
+      toast.error("Login failed", { 
+        description: error instanceof Error ? error.message : "Authentication failed. Please check your credentials."
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -152,8 +165,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Clear storage type preference
     localStorage.removeItem("auth_storage_type");
+    localStorage.removeItem("intended_redirect");
     
     setUser(null);
+    toast.info("You have been logged out");
     navigate("/login");
   };
 

@@ -1,22 +1,25 @@
 
 import React from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus } from "lucide-react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
+import { Business } from "@/models/transaction";
 
-// Form schema for creating a new transaction
-const transactionFormSchema = z.object({
-  amount: z.string().min(1).transform(val => parseFloat(val)),
-  description: z.string().min(5, { message: "Description must be at least 5 characters" }),
-  paymentMethod: z.enum(["cash", "card", "bank", "wave", "mobile", "not_specified"]),
-  branchId: z.string().optional(),
+// Improved form schema with data transformation
+export const transactionFormSchema = z.object({
+  description: z.string().min(3, "Description must be at least 3 characters"),
+  amount: z.string().min(1, "Amount is required").transform(value => parseFloat(value)), // Transform string to number
+  paymentMethod: z.enum(["cash", "card", "bank", "wave", "mobile", "not_specified"], {
+    required_error: "Please select a payment method",
+  }),
+  branchId: z.string().uuid({ message: "Please select a branch" }),
 });
 
 export type TransactionFormValues = z.infer<typeof transactionFormSchema>;
@@ -26,7 +29,7 @@ interface TransactionFormDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: TransactionFormValues) => void;
   isSubmitting: boolean;
-  branches: { id: string; name: string }[];
+  branches: Business[];
 }
 
 const TransactionFormDialog: React.FC<TransactionFormDialogProps> = ({
@@ -39,11 +42,11 @@ const TransactionFormDialog: React.FC<TransactionFormDialogProps> = ({
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
-      amount: "",
       description: "",
+      amount: "",
       paymentMethod: "cash",
-      branchId: "",
-    },
+      branchId: branches.length > 0 ? branches[0].id : ""
+    }
   });
 
   const handleSubmit = (data: TransactionFormValues) => {
@@ -52,36 +55,16 @@ const TransactionFormDialog: React.FC<TransactionFormDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Transaction</DialogTitle>
+          <DialogTitle>New Transaction</DialogTitle>
           <DialogDescription>
-            Create a new financial transaction in the system.
+            Create a new financial transaction
           </DialogDescription>
         </DialogHeader>
-
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="0.00" 
-                      {...field} 
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="description"
@@ -89,26 +72,38 @@ const TransactionFormDialog: React.FC<TransactionFormDialogProps> = ({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Enter transaction details..."
-                      {...field}
-                    />
+                    <Textarea placeholder="Transaction description" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+            
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Amount</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2.5">$</span>
+                      <Input placeholder="0.00" className="pl-7" {...field} type="number" step="0.01" min="0" />
+                    </div>
+                  </FormControl>
+                  <FormDescription>Enter the transaction amount</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
             <FormField
               control={form.control}
               name="paymentMethod"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Payment Method</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select payment method" />
@@ -127,17 +122,14 @@ const TransactionFormDialog: React.FC<TransactionFormDialogProps> = ({
                 </FormItem>
               )}
             />
-
+            
             <FormField
               control={form.control}
               name="branchId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Branch</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select branch" />
@@ -155,14 +147,9 @@ const TransactionFormDialog: React.FC<TransactionFormDialogProps> = ({
                 </FormItem>
               )}
             />
-
+            
             <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-                disabled={isSubmitting}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>

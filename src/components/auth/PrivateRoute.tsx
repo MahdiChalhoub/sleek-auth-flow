@@ -1,15 +1,27 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
+  requiredRole?: "admin" | "manager" | "cashier" | null;
 }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  const { user, isLoading } = useAuth();
+const PrivateRoute: React.FC<PrivateRouteProps> = ({ 
+  children, 
+  requiredRole = null 
+}) => {
+  const { user, isLoading, currentBusiness } = useAuth();
   const location = useLocation();
+
+  // Store the current location to redirect back after login
+  useEffect(() => {
+    if (!user && !isLoading) {
+      localStorage.setItem("intended_redirect", location.pathname);
+    }
+  }, [user, isLoading, location.pathname]);
 
   // If we're still loading, show a loading indicator
   if (isLoading) {
@@ -20,12 +32,34 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     );
   }
 
-  // If not authenticated, redirect to login with the current location for redirect after login
+  // If not authenticated, redirect to login
   if (!user) {
+    toast.error("Please log in to access this page");
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If authenticated, render the children components
+  // If role checking is required and user doesn't have the required role
+  if (requiredRole && user.role !== requiredRole && user.role !== "admin") {
+    toast.error(`Access denied. This page requires ${requiredRole} privileges.`);
+    
+    // Redirect to appropriate page based on role
+    const roleDefaultPage = {
+      admin: "/home",
+      manager: "/inventory",
+      cashier: "/pos-sales"
+    };
+    
+    const redirectTo = roleDefaultPage[user.role] || "/home";
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  // If no business is selected but we're logged in
+  if (!currentBusiness && !location.pathname.includes('/login')) {
+    toast.error("Please select a business to continue");
+    return <Navigate to="/business-selection" replace />;
+  }
+
+  // If authenticated and has the required role, render the children components
   return <>{children}</>;
 };
 
