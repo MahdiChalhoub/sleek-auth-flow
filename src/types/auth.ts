@@ -3,6 +3,12 @@ import { Business } from "@/models/interfaces/businessInterfaces";
 
 export type UserRole = "admin" | "cashier" | "manager";
 
+export interface UserPermission {
+  id: string;
+  name: string;
+  enabled: boolean;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -10,6 +16,7 @@ export interface User {
   role: UserRole;
   avatarUrl?: string;
   isGlobalAdmin?: boolean;
+  permissions?: UserPermission[];
 }
 
 export interface AuthContextType {
@@ -20,4 +27,5 @@ export interface AuthContextType {
   login: (email: string, password: string, businessId: string, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
   switchBusiness: (businessId: string) => void;
+  hasPermission?: (permissionName: string) => boolean;
 }

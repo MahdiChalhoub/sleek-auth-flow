@@ -128,7 +128,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("auth_storage_type", rememberMe ? "local" : "session");
       
       // Navigate to the appropriate page based on role
-      navigate(getRoleDefaultPage(mockUser.role));
+      const redirectPath = localStorage.getItem("intended_redirect") || getRoleDefaultPage(mockUser.role);
+      localStorage.removeItem("intended_redirect");
+      navigate(redirectPath);
       
       toast.success(`Welcome, ${mockUser.name}`, {
         description: "You have successfully logged in"

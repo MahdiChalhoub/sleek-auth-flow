@@ -3,15 +3,18 @@ import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { UserRole } from '@/types/auth';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
-  requiredRole?: "admin" | "manager" | "cashier" | null;
+  requiredRole?: UserRole | null;
+  requiredPermissions?: string[];
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ 
   children, 
-  requiredRole = null 
+  requiredRole = null,
+  requiredPermissions = []
 }) => {
   const { user, isLoading, currentBusiness } = useAuth();
   const location = useLocation();
@@ -51,6 +54,16 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     
     const redirectTo = roleDefaultPage[user.role] || "/home";
     return <Navigate to={redirectTo} replace />;
+  }
+
+  // Check for specific permissions (to be implemented with the permission system)
+  if (requiredPermissions.length > 0) {
+    // This would be replaced with actual permission checking logic
+    // For now, we'll just allow admins to have all permissions
+    if (user.role !== 'admin') {
+      toast.error("You don't have the required permissions to access this page");
+      return <Navigate to="/home" replace />;
+    }
   }
 
   // If no business is selected but we're logged in

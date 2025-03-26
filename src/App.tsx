@@ -53,68 +53,121 @@ const App = () => {
             }>
               <Route path="home" element={<HomePage />} />
               <Route path="inventory" element={
-                <PrivateRoute requiredRole="manager">
+                <PrivateRoute 
+                  requiredRole="manager"
+                  requiredPermissions={["can_view_inventory"]}
+                >
                   <InventoryPage />
                 </PrivateRoute>
               } />
               <Route path="pos-sales" element={<POSSales />} />
               <Route path="settings" element={
-                <PrivateRoute requiredRole="admin">
+                <PrivateRoute 
+                  requiredRole="admin"
+                  requiredPermissions={["can_manage_settings"]}
+                >
                   <Settings />
                 </PrivateRoute>
               } />
               <Route path="suppliers" element={
-                <PrivateRoute requiredRole="manager">
+                <PrivateRoute 
+                  requiredRole="manager"
+                  requiredPermissions={["can_manage_suppliers"]}
+                >
                   <Suppliers />
                 </PrivateRoute>
               } />
               <Route path="purchase-orders" element={
-                <PrivateRoute requiredRole="manager">
+                <PrivateRoute 
+                  requiredRole="manager"
+                  requiredPermissions={["can_manage_purchase_orders"]}
+                >
                   <PurchaseOrders />
                 </PrivateRoute>
               } />
               <Route path="stock-transfers" element={
-                <PrivateRoute requiredRole="manager">
+                <PrivateRoute 
+                  requiredRole="manager"
+                  requiredPermissions={["can_manage_stock_transfers"]}
+                >
                   <StockTransfers />
                 </PrivateRoute>
               } />
-              <Route path="transactions" element={<Transactions />} />
+              <Route path="transactions" element={
+                <PrivateRoute requiredPermissions={["can_view_transactions"]}>
+                  <Transactions />
+                </PrivateRoute>
+              } />
               <Route path="register" element={<RegisterPage />} />
               <Route path="register-sessions" element={<RegisterSessions />} />
               <Route path="transaction-permissions" element={
-                <PrivateRoute requiredRole="admin">
+                <PrivateRoute 
+                  requiredRole="admin"
+                  requiredPermissions={["can_manage_permissions"]}
+                >
                   <TransactionPermissions />
                 </PrivateRoute>
               } />
               <Route path="staff-finance" element={
-                <PrivateRoute requiredRole="admin">
+                <PrivateRoute 
+                  requiredRole="admin"
+                  requiredPermissions={["can_manage_staff_finance"]}
+                >
                   <StaffFinance />
                 </PrivateRoute>
               } />
-              <Route path="loyalty" element={<Loyalty />} />
-              <Route path="returns" element={<Returns />} />
+              <Route path="loyalty" element={
+                <PrivateRoute requiredPermissions={["can_manage_loyalty"]}>
+                  <Loyalty />
+                </PrivateRoute>
+              } />
+              <Route path="returns" element={
+                <PrivateRoute requiredPermissions={["can_manage_returns"]}>
+                  <Returns />
+                </PrivateRoute>
+              } />
               <Route path="roles" element={
-                <PrivateRoute requiredRole="admin">
+                <PrivateRoute 
+                  requiredRole="admin"
+                  requiredPermissions={["can_manage_roles"]}
+                >
                   <RoleManagement />
                 </PrivateRoute>
               } />
               <Route path="categories" element={
-                <PrivateRoute requiredRole="manager">
+                <PrivateRoute 
+                  requiredRole="manager"
+                  requiredPermissions={["can_manage_categories"]}
+                >
                   <Categories />
                 </PrivateRoute>
               } />
-              <Route path="shift-reports" element={<ShiftReports />} />
+              <Route path="shift-reports" element={
+                <PrivateRoute requiredPermissions={["can_view_shift_reports"]}>
+                  <ShiftReports />
+                </PrivateRoute>
+              } />
               <Route path="audit-trail" element={
-                <PrivateRoute requiredRole="admin">
+                <PrivateRoute 
+                  requiredRole="admin"
+                  requiredPermissions={["can_view_audit_trail"]}
+                >
                   <AuditTrail />
                 </PrivateRoute>
               } />
               <Route path="users" element={
-                <PrivateRoute requiredRole="admin">
+                <PrivateRoute 
+                  requiredRole="admin"
+                  requiredPermissions={["can_manage_users"]}
+                >
                   <Users />
                 </PrivateRoute>
               } />
-              <Route path="contacts" element={<Contacts />} />
+              <Route path="contacts" element={
+                <PrivateRoute requiredPermissions={["can_manage_contacts"]}>
+                  <Contacts />
+                </PrivateRoute>
+              } />
               <Route path="notifications" element={<NotificationsPage />} />
             </Route>
           </Routes>
