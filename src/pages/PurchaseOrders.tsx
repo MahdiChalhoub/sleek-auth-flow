@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Plus, Eye, FileText, Download, Filter, Search, ScanLine, Clock, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import ReorderSuggestions from "@/components/inventory/ReorderSuggestions";
 import ExportMenu from "@/components/inventory/ExportMenu";
 import BarcodeScannerModal from "@/components/inventory/BarcodeScannerModal";
 import { useToast } from "@/components/ui/use-toast";
+import { useLocation } from "react-router-dom";
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -32,18 +34,23 @@ const PurchaseOrders: React.FC = () => {
   const [createOpen, setCreateOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const { toast } = useToast();
+  const location = useLocation();
 
-  React.useEffect(() => {
+  // Prevent automatic opening of scanner modal
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.altKey && event.key === 'b') {
         event.preventDefault();
-        setScannerOpen(true);
+        // Only open scanner if we're actually on the purchase orders page
+        if (location.pathname === '/purchase-orders') {
+          setScannerOpen(true);
+        }
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [location.pathname]);
 
   const handleViewPO = (po: any) => {
     setSelectedPO(po);
@@ -273,16 +280,24 @@ const PurchaseOrders: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-        <PurchaseOrderViewModal 
-          purchaseOrder={selectedPO} 
-          onClose={() => setViewOpen(false)} 
-        />
-      </Dialog>
+      {/* Only render modals if they are open */}
+      {viewOpen && (
+        <Dialog open={viewOpen} onOpenChange={setViewOpen}>
+          <PurchaseOrderViewModal 
+            purchaseOrder={selectedPO} 
+            onClose={() => setViewOpen(false)} 
+          />
+        </Dialog>
+      )}
 
-      <Dialog open={scannerOpen} onOpenChange={setScannerOpen}>
-        <BarcodeScannerModal onScan={handleBarcodeScanned} onClose={() => setScannerOpen(false)} />
-      </Dialog>
+      {scannerOpen && (
+        <Dialog open={scannerOpen} onOpenChange={setScannerOpen}>
+          <BarcodeScannerModal 
+            onScan={handleBarcodeScanned} 
+            onClose={() => setScannerOpen(false)} 
+          />
+        </Dialog>
+      )}
 
       <div className="fixed bottom-6 right-6">
         <Button 

@@ -28,7 +28,17 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ onScan, onClo
         inputRef.current?.focus();
       }, 100);
     }
-  }, [scanMode]);
+    
+    // Add escape key handler to close the modal
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [scanMode, onClose]);
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +53,12 @@ const BarcodeScannerModal: React.FC<BarcodeScannerModalProps> = ({ onScan, onClo
     <Sheet open={true} onOpenChange={() => onClose()}>
       <SheetContent side="bottom" className="h-[80vh] sm:h-[400px] sm:max-w-md sm:rounded-t-lg sm:mx-auto">
         <SheetHeader>
-          <SheetTitle className="text-center">Scanner un Code-barres</SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="text-center">Scanner un Code-barres</SheetTitle>
+            <Button variant="ghost" size="icon" onClick={onClose} className="absolute right-4 top-4">
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </SheetHeader>
         
         <div className="space-y-4 py-4 flex flex-col h-full">

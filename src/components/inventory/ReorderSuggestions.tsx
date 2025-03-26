@@ -22,7 +22,7 @@ interface Product {
   turnoverRate?: number;
 }
 
-interface ReorderSuggestionsProps {
+export interface ReorderSuggestionsProps {
   locationId: string;
   showAll: boolean;
   onReorderAll: () => void;

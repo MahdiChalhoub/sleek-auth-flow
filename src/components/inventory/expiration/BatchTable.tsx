@@ -1,143 +1,78 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Search, PlusCircle, Trash2 } from 'lucide-react';
-import { ProductBatch, Product } from '@/models/product';
+import { Trash2 } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import BatchStatusBadge from './BatchStatusBadge';
-import { format } from 'date-fns';
+import { ProductBatch, Product } from '@/models/product';
 
 export interface BatchTableProps {
-  refresh?: boolean;
-  onDelete?: (batchId: string) => void;
-  batches?: ProductBatch[];
-  product?: Product;
-  onDeleteBatch?: (batchId: string) => void;
+  batches: ProductBatch[];
+  product: Product;
+  onDeleteBatch: (batchId: string) => void;
 }
 
-const BatchTable: React.FC<BatchTableProps> = ({ refresh, onDelete, batches: propBatches, product, onDeleteBatch }) => {
-  const [batches, setBatches] = useState<ProductBatch[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+const BatchTable: React.FC<BatchTableProps> = ({ batches, product, onDeleteBatch }) => {
+  if (!batches || batches.length === 0) {
+    return (
+      <div className="text-center py-6 text-muted-foreground">
+        Aucun lot n'a été enregistré pour ce produit.
+      </div>
+    );
+  }
   
-  // Use provided batches or load mock data
-  useEffect(() => {
-    if (propBatches) {
-      setBatches(propBatches);
-      return;
-    }
-    
-    // In a real app, this would fetch from an API
-    const mockBatches: ProductBatch[] = [
-      {
-        id: '1',
-        productId: '1',
-        batchNumber: 'BT-001-2023',
-        quantity: 20,
-        expiryDate: '2023-12-31',
-        createdAt: '2023-06-15T10:00:00Z',
-      },
-      {
-        id: '2',
-        productId: '1',
-        batchNumber: 'BT-002-2023',
-        quantity: 15,
-        expiryDate: '2024-01-15',
-        createdAt: '2023-06-20T10:00:00Z',
-      },
-      {
-        id: '3',
-        productId: '2',
-        batchNumber: 'BT-003-2023',
-        quantity: 8,
-        expiryDate: '2023-09-30',
-        createdAt: '2023-07-01T10:00:00Z',
-      },
-    ];
-    
-    setBatches(mockBatches);
-  }, [refresh, propBatches]);
-  
-  // Filter batches based on search query
-  const filteredBatches = batches.filter(batch => 
-    batch.batchNumber.toLowerCase().includes(searchQuery.toLowerCase())
+  // Sort batches by expiry date (closest first)
+  const sortedBatches = [...batches].sort((a, b) => 
+    new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime()
   );
   
-  const handleDeleteBatch = (batchId: string) => {
-    if (onDeleteBatch) {
-      onDeleteBatch(batchId);
-    } else if (onDelete) {
-      onDelete(batchId);
-    } else {
-      // Mock delete operation
-      setBatches(prev => prev.filter(batch => batch.id !== batchId));
-    }
-  };
-  
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'dd/MM/yyyy');
-    } catch (error) {
-      return 'Invalid Date';
-    }
-  };
-  
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher par numéro de lot..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
-      
-      <div className="border rounded-md">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Numéro de lot</TableHead>
-              <TableHead>Date d'expiration</TableHead>
-              <TableHead>Quantité</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredBatches.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center py-6 text-muted-foreground">
-                  Aucun lot trouvé
+    <div className="border rounded-md">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Numéro de lot</TableHead>
+            <TableHead className="text-right">Quantité</TableHead>
+            <TableHead>Date d'expiration</TableHead>
+            <TableHead>Statut</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sortedBatches.map((batch) => {
+            const expiryDate = new Date(batch.expiryDate);
+            const timeToExpiry = formatDistanceToNow(expiryDate, { addSuffix: true, locale: fr });
+            
+            return (
+              <TableRow key={batch.id}>
+                <TableCell className="font-medium">{batch.batchNumber}</TableCell>
+                <TableCell className="text-right">{batch.quantity}</TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span>{new Date(batch.expiryDate).toLocaleDateString()}</span>
+                    <span className="text-xs text-muted-foreground">{timeToExpiry}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <BatchStatusBadge expiryDate={batch.expiryDate} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => onDeleteBatch(batch.id)}
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
-            ) : (
-              filteredBatches.map((batch) => (
-                <TableRow key={batch.id}>
-                  <TableCell className="font-medium">{batch.batchNumber}</TableCell>
-                  <TableCell>{formatDate(batch.expiryDate)}</TableCell>
-                  <TableCell>{batch.quantity}</TableCell>
-                  <TableCell>
-                    <BatchStatusBadge expiryDate={batch.expiryDate} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteBatch(batch.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            );
+          })}
+        </TableBody>
+      </Table>
     </div>
   );
 };
