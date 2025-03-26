@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -176,7 +177,7 @@ const Transactions = () => {
       
       const newTransaction: Transaction = {
         id: newId,
-        amount: data.amount,
+        amount: data.amount, // Now correctly typed as a number through the zod transform
         status: "open",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
