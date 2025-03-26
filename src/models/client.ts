@@ -1,5 +1,28 @@
 
-// Client types for the POS system
+import { v4 as uuidv4 } from 'uuid';
+
+export interface ClientTransaction {
+  id: string;
+  clientId: string;
+  type: 'invoice' | 'payment' | 'return' | 'credit_note';
+  referenceId: string;
+  date: string;
+  amount: number;
+  description: string;
+  status: 'pending' | 'completed' | 'cancelled';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClientFinancialAccount {
+  id: string;
+  clientId: string;
+  totalDue: number;
+  totalPaid: number;
+  availableCredit: number;
+  ledgerAccountId?: string;
+  lastUpdated: string;
+}
 
 export interface Client {
   id: string;
@@ -7,82 +30,75 @@ export interface Client {
   email?: string;
   phone?: string;
   address?: string;
-  isVip?: boolean;
-  creditLimit?: number;
-  outstandingBalance?: number;
-  lastVisit?: string;
+  city?: string;
+  country?: string;
+  type: 'regular' | 'vip' | 'credit' | 'wholesale';
+  salesRepId?: string;
   notes?: string;
-  loyaltyPoints?: number;
-  pointsExpiry?: string;
-  loyaltyTier?: "bronze" | "silver" | "gold" | "platinum";
+  tags?: string[];
+  status: 'active' | 'inactive';
+  financialAccount?: ClientFinancialAccount;
+  transactions?: ClientTransaction[];
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Mock clients for development
-export const mockClients: Client[] = [
-  { 
-    id: "1", 
-    name: "John Doe", 
-    email: "john@example.com", 
-    phone: "+123456789",
-    address: "123 Main St, Anytown",
-    isVip: true,
-    creditLimit: 1000,
-    outstandingBalance: 250,
-    lastVisit: "2023-05-15T14:30:00Z",
-    notes: "Preferred payment: Credit Card",
-    loyaltyPoints: 1250,
-    pointsExpiry: "2024-12-31T23:59:59Z",
-    loyaltyTier: "gold"
+export const createClient = (data: Partial<Client>): Client => {
+  const now = new Date().toISOString();
+  return {
+    id: data.id || uuidv4(),
+    name: data.name || '',
+    email: data.email,
+    phone: data.phone,
+    address: data.address,
+    city: data.city,
+    country: data.country,
+    type: data.type || 'regular',
+    salesRepId: data.salesRepId,
+    notes: data.notes,
+    tags: data.tags || [],
+    status: data.status || 'active',
+    financialAccount: data.financialAccount,
+    transactions: data.transactions || [],
+    createdAt: data.createdAt || now,
+    updatedAt: data.updatedAt || now
+  };
+};
+
+// Client Service for Supabase
+export const clientService = {
+  async getAll(): Promise<Client[]> {
+    // Implementation will be added later
+    return [];
   },
-  { 
-    id: "2", 
-    name: "Jane Smith", 
-    email: "jane@example.com", 
-    phone: "+987654321",
-    address: "456 Oak Ave, Somewhere",
-    lastVisit: "2023-05-20T10:15:00Z",
-    loyaltyPoints: 350,
-    pointsExpiry: "2024-12-31T23:59:59Z",
-    loyaltyTier: "bronze"
+  
+  async getById(id: string): Promise<Client | null> {
+    // Implementation will be added later
+    return null;
   },
-  { 
-    id: "3", 
-    name: "Bob Johnson", 
-    email: "bob@example.com", 
-    phone: "+192837465",
-    address: "789 Pine St, Nowhere",
-    isVip: true,
-    creditLimit: 500,
-    outstandingBalance: 0,
-    lastVisit: "2023-05-22T16:45:00Z",
-    notes: "Always buys electronics",
-    loyaltyPoints: 1890,
-    pointsExpiry: "2024-12-31T23:59:59Z",
-    loyaltyTier: "silver"
+  
+  async create(client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>): Promise<Client | null> {
+    // Implementation will be added later
+    return null;
   },
-  { 
-    id: "4", 
-    name: "Alice Brown", 
-    email: "alice@example.com", 
-    phone: "+918273645",
-    address: "321 Elm Dr, Elsewhere",
-    lastVisit: "2023-05-18T09:30:00Z",
-    loyaltyPoints: 75,
-    pointsExpiry: "2024-12-31T23:59:59Z",
-    loyaltyTier: "bronze"
+  
+  async update(id: string, updates: Partial<Client>): Promise<Client | null> {
+    // Implementation will be added later
+    return null;
   },
-  { 
-    id: "5", 
-    name: "Charlie Wilson", 
-    email: "charlie@example.com", 
-    phone: "+567891234",
-    address: "654 Maple Rd, Anywhere",
-    creditLimit: 200,
-    outstandingBalance: 150,
-    lastVisit: "2023-05-21T11:20:00Z",
-    notes: "Usually pays with mobile wallet",
-    loyaltyPoints: 2780,
-    pointsExpiry: "2024-12-31T23:59:59Z",
-    loyaltyTier: "platinum"
+  
+  async delete(id: string): Promise<boolean> {
+    // Implementation will be added later
+    return false;
   },
-];
+  
+  async getClientTransactions(clientId: string): Promise<ClientTransaction[]> {
+    // Implementation will be added later
+    return [];
+  },
+  
+  async getClientFinancialAccount(clientId: string): Promise<ClientFinancialAccount | null> {
+    // Implementation will be added later 
+    return null;
+  }
+};

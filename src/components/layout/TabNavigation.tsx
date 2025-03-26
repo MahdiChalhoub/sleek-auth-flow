@@ -107,23 +107,31 @@ const TabNavigation: React.FC = () => {
     return null;
   }
 
+  // Use defensive programming to prevent crashes during loading
+  // By adding a fixed width container as a fallback
   return (
     <div className="border-b bg-background/90 backdrop-blur-sm">
       <ScrollArea className="w-full">
         <div 
           ref={scrollContainerRef}
-          className="flex overflow-x-auto hide-scrollbar"
+          className="flex overflow-x-auto hide-scrollbar min-w-0"
+          style={{ minHeight: '40px' }} // Ensure container has minimum height even when empty
         >
-          {tabs.map((tab) => (
-            <TabButton
-              key={tab.id}
-              tab={tab}
-              isActive={tab.id === activeTabId}
-              onClick={() => activateTab(tab.id)}
-              onClose={() => closeTab(tab.id)}
-              ref={tab.id === activeTabId ? activeTabRef : undefined}
-            />
-          ))}
+          {tabs && tabs.length > 0 ? (
+            tabs.map((tab) => (
+              <TabButton
+                key={tab.id}
+                tab={tab}
+                isActive={tab.id === activeTabId}
+                onClick={() => activateTab(tab.id)}
+                onClose={() => closeTab(tab.id)}
+                ref={tab.id === activeTabId ? activeTabRef : undefined}
+              />
+            ))
+          ) : (
+            // Render an empty placeholder to maintain layout during loading
+            <div className="h-10 w-full"></div>
+          )}
         </div>
       </ScrollArea>
     </div>
