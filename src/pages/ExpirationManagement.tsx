@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, AlertTriangle, Clock, Filter, ChevronDown } from 'lucide-react';
-import { Product, ProductBatch, mockProducts } from '@/models/product';
+import { Product, ProductBatch, productsService } from '@/models/product';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,6 +17,7 @@ import BatchForm from '@/components/inventory/expiration/BatchForm';
 import BatchTable from '@/components/inventory/expiration/BatchTable';
 import BatchStatusBadge from '@/components/inventory/expiration/BatchStatusBadge';
 import { getBatchStatus } from '@/utils/expirationUtils';
+import useProducts from '@/hooks/useProducts';
 
 // Mock data for batches
 const mockBatches: ProductBatch[] = [
@@ -26,7 +27,8 @@ const mockBatches: ProductBatch[] = [
     batchNumber: "LOT12345",
     expiryDate: addDays(new Date(), 90).toISOString(),
     quantity: 30,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   },
   {
     id: "2",
@@ -34,7 +36,8 @@ const mockBatches: ProductBatch[] = [
     batchNumber: "LOT12346",
     expiryDate: addDays(new Date(), 20).toISOString(),
     quantity: 15,
-    createdAt: addDays(new Date(), -30).toISOString()
+    createdAt: addDays(new Date(), -30).toISOString(),
+    updatedAt: addDays(new Date(), -30).toISOString()
   },
   {
     id: "3",
@@ -42,7 +45,8 @@ const mockBatches: ProductBatch[] = [
     batchNumber: "LOT54321",
     expiryDate: addDays(new Date(), -10).toISOString(),
     quantity: 5,
-    createdAt: addDays(new Date(), -60).toISOString()
+    createdAt: addDays(new Date(), -60).toISOString(),
+    updatedAt: addDays(new Date(), -60).toISOString()
   },
   {
     id: "4",
@@ -50,11 +54,13 @@ const mockBatches: ProductBatch[] = [
     batchNumber: "LOT67890",
     expiryDate: addDays(new Date(), 15).toISOString(),
     quantity: 20,
-    createdAt: addDays(new Date(), -20).toISOString()
+    createdAt: addDays(new Date(), -20).toISOString(),
+    updatedAt: addDays(new Date(), -20).toISOString()
   }
 ];
 
 const ExpirationManagement: React.FC = () => {
+  const { products } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
   const [batches, setBatches] = useState<ProductBatch[]>(mockBatches);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -62,7 +68,7 @@ const ExpirationManagement: React.FC = () => {
   const [hideExpired, setHideExpired] = useState(false);
   
   // Get all products with batches
-  const productsWithBatches = mockProducts.filter(product => 
+  const productsWithBatches = products.filter(product => 
     batches.some(batch => batch.productId === product.id)
   );
   
@@ -95,7 +101,8 @@ const ExpirationManagement: React.FC = () => {
   const addBatch = (newBatch: Omit<ProductBatch, "id">) => {
     const batchWithId: ProductBatch = {
       ...newBatch,
-      id: `batch-${Date.now()}`
+      id: `batch-${Date.now()}`,
+      updatedAt: new Date().toISOString()
     };
     
     setBatches(prev => [...prev, batchWithId]);

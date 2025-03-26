@@ -195,3 +195,14 @@ export const productsService = {
     }
   }
 };
+
+// Temporary solution until all components are updated to use the productsService
+export const mockProducts: Product[] = Array(10).fill(null).map((_, i) => createProduct({
+  id: `temp-${i+1}`,
+  name: `Temporary Product ${i+1}`,
+  barcode: `TEMP${100000 + i}`,
+  price: Math.floor(Math.random() * 100) + 10,
+  stock: Math.floor(Math.random() * 50),
+  category: 'Temporary'
+}));
+

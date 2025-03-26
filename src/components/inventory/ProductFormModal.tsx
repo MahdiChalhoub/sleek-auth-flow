@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from "react";
 import { v4 as uuidv4 } from 'uuid';
 import { useForm } from "react-hook-form";
@@ -47,7 +48,7 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
   const [isCombo, setIsCombo] = useState(product?.isCombo || false);
   const [comboComponents, setComboComponents] = useState<ComboComponent[]>(product?.comboComponents || []);
   const [categories, setCategories] = useState<any[]>([]);
-	const [imageUrl, setImageUrl] = useState<string | undefined>(product?.imageUrl);
+  const [imageUrl, setImageUrl] = useState<string | undefined>(product?.imageUrl);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -164,9 +165,9 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
     }
   };
 
-	const onFileChange = (url?: string) => {
-		setImageUrl(url);
-	};
+  const handleFileChange = (url?: string) => {
+    setImageUrl(url);
+  };
 
   return (
     <DialogContent className="sm:max-w-[625px]">
@@ -354,8 +355,10 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
                   <FormControl>
                     <Switch
                       checked={field.value}
-                      onCheckedChange={field.onChange}
-                      onCheckedChange={() => setIsCombo(!isCombo)}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        setIsCombo(checked);
+                      }}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
@@ -407,31 +410,31 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
             </div>
           )}
 
-					<div>
-						<Label>Image</Label>
-						<UploadButton
-							endpoint="imageUpload"
-							onClientUploadComplete={(res) => {
-								console.log("Files: ", res);
-								if (res && res.length > 0) {
-									form.setValue("imageUrl", res[0].url);
-									setImageUrl(res[0].url);
-									toast.success("Image uploaded successfully!");
-								}
-							}}
-							onUploadError={(error: Error) => {
-								toast.error(`Failed to upload image: ${error.message}`);
-							}}
-						/>
-						{imageUrl && (
-							<img
-								src={imageUrl}
-								alt="Product Image"
-								className="mt-2 rounded-md object-cover"
-								style={{ maxWidth: '200px', maxHeight: '200px' }}
-							/>
-						)}
-					</div>
+          <div>
+            <Label>Image</Label>
+            <UploadButton
+              endpoint="imageUpload"
+              onClientUploadComplete={(res) => {
+                console.log("Files: ", res);
+                if (res && res.length > 0) {
+                  form.setValue("imageUrl", res[0].url);
+                  setImageUrl(res[0].url);
+                  toast.success("Image uploaded successfully!");
+                }
+              }}
+              onUploadError={(error: Error) => {
+                toast.error(`Failed to upload image: ${error.message}`);
+              }}
+            />
+            {imageUrl && (
+              <img
+                src={imageUrl}
+                alt="Product Image"
+                className="mt-2 rounded-md object-cover"
+                style={{ maxWidth: '200px', maxHeight: '200px' }}
+              />
+            )}
+          </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>

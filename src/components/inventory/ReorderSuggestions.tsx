@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -41,7 +40,7 @@ const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({
             )
           `)
           .eq('location_id', locationId)
-          .lt('stock', supabase.raw('min_stock_level'))
+          .lt('stock', 'min_stock_level')
           .order('stock', { ascending: true });
           
         if (error) throw error;
