@@ -23,21 +23,31 @@ import Contacts from './pages/Contacts';
 import ClientsList from './pages/ClientsList';
 import ClientProfile from './pages/ClientProfile';
 import ClientEditForm from './pages/ClientEditForm';
-import { initializeDatabase } from './api/setupDatabase';
+import { initializeDatabase } from './lib/supabase';
 import { Skeleton } from './components/ui/skeleton';
 import { toast } from 'sonner';
 
 function App() {
   const [isInitializing, setIsInitializing] = useState(true);
+  const [initFailed, setInitFailed] = useState(false);
 
   useEffect(() => {
-    // Initialize Supabase database functions
+    // Initialize Supabase database functions with a timeout
     const init = async () => {
       try {
-        await initializeDatabase();
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Database initialization timed out')), 10000);
+        });
+        
+        const initPromise = initializeDatabase();
+        
+        // Race between initialization and timeout
+        await Promise.race([initPromise, timeoutPromise]);
         console.log('Database initialized successfully');
       } catch (error) {
         console.error('Error initializing database:', error);
+        setInitFailed(true);
         toast.error('Failed to initialize database. Some features may not work properly.');
       } finally {
         setIsInitializing(false);
@@ -55,6 +65,11 @@ function App() {
         <p className="text-sm text-muted-foreground">Initializing application...</p>
       </div>
     );
+  }
+
+  // If initialization failed, show a message but still render the app
+  if (initFailed) {
+    toast.error('Some application features may not work properly. Please refresh the page or contact support.');
   }
 
   return (

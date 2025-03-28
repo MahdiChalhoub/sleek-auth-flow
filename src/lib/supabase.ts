@@ -1,6 +1,5 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { setupDatabase } from '@/api/setupDatabase';
 
 // Use the same configuration that we have in integrations/supabase/client.ts
 const supabaseUrl = "https://xvnoxduraiasvxjnaqvm.supabase.co";
@@ -9,8 +8,8 @@ const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 // Create a single supabase client for interacting with your database
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Initialize database stored procedures
-export const initializeDatabase = async () => {
-  // We're simply calling the function from setupDatabase
-  await setupDatabase();
-};
+// Import the initialization function from setupDatabase module, don't call it here
+import { initializeDatabase as initDb } from '@/api/setupDatabase';
+
+// Export the function without circular dependency
+export const initializeDatabase = initDb;
