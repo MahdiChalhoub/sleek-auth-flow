@@ -25,9 +25,9 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
     const loadBatches = async () => {
       setIsLoading(true);
       try {
-        // Fix the RPC call by using proper generics
+        // Use type parameter only for the return type, not parameters
         const { data, error: tableCheckError } = await supabase
-          .rpc<boolean>('check_table_exists', { 
+          .rpc('check_table_exists', { 
             table_name: 'product_batches' 
           });
         
@@ -59,7 +59,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
   // Update the fetchBatches function with proper typing
   const fetchBatches = async (): Promise<ProductBatch[]> => {
     try {
-      // Fix typing by using a generic for the return type only
+      // Remove type parameters entirely for simplicity
       const { data, error } = await supabase.rpc('get_all_product_batches');
       
       if (error) {

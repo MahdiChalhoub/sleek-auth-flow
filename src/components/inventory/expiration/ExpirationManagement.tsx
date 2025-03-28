@@ -42,9 +42,9 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   useEffect(() => {
     const checkTableAndFetchBatches = async () => {
       try {
-        // Use proper typing for the RPC call
+        // Remove type parameters for simplicity
         const { data, error: checkError } = await supabase
-          .rpc<boolean>('check_table_exists', { 
+          .rpc('check_table_exists', { 
             table_name: 'product_batches' 
           });
         
@@ -61,7 +61,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
           return;
         }
         
-        // Fix typing for the get_product_batches RPC call
+        // Remove type parameters for the RPC call
         const { data: batchesData, error } = await supabase
           .rpc('get_product_batches', { 
             product_id_param: product.id 
@@ -74,7 +74,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
         }
         
         // Check if batchesData is an array before mapping
-        const mappedBatches = batchesData && Array.isArray(batchesData) 
+        const mappedBatches = Array.isArray(batchesData) 
           ? batchesData.map(mapDbProductBatchToModel) 
           : [];
           
@@ -98,7 +98,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
       // Convert the model to database format for insertion
       const dbBatch = mapModelProductBatchToDb(newBatch);
       
-      // Fix typing for the insert_product_batch RPC call
+      // Remove type parameters for the RPC call
       const { data, error } = await supabase
         .rpc('insert_product_batch', { 
           batch: dbBatch 
@@ -144,9 +144,9 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
     }
     
     try {
-      // Fix typing for the delete_product_batch RPC call
+      // Remove type parameters for the RPC call
       const { data: success, error } = await supabase
-        .rpc<boolean>('delete_product_batch', { 
+        .rpc('delete_product_batch', { 
           batch_id: batchId 
         });
       

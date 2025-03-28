@@ -149,8 +149,8 @@ export const productsService = {
   
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
-      // Fix the RPC call typing by only specifying return type where needed
-      const { data, error: checkError } = await supabase.rpc<boolean>('check_table_exists', { 
+      // Remove type parameters for the RPC call
+      const { data, error: checkError } = await supabase.rpc('check_table_exists', { 
         table_name: 'product_batches' 
       });
       
@@ -164,7 +164,7 @@ export const productsService = {
         return [];
       }
       
-      // Update the RPC call to use the right format
+      // Remove type parameters for the RPC call
       const { data: batchesData, error } = await supabase.rpc('get_product_batches', { 
         product_id_param: productId 
       });
@@ -174,6 +174,7 @@ export const productsService = {
         throw error;
       }
       
+      // Add array check before mapping
       return (batchesData && Array.isArray(batchesData)) 
         ? batchesData.map(mapDbProductBatchToModel) 
         : [];
