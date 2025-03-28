@@ -33,35 +33,163 @@ export type Database = {
         }
         Relationships: []
       }
+      client_credit_sales: {
+        Row: {
+          amount: number
+          client_id: string | null
+          created_at: string | null
+          due_date: string | null
+          id: string
+          paid_amount: number | null
+          sale_id: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          client_id?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          paid_amount?: number | null
+          sale_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          client_id?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          paid_amount?: number | null
+          sale_id?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_credit_sales_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_credit_sales_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_transactions: {
+        Row: {
+          amount: number
+          client_id: string | null
+          created_at: string | null
+          date: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          status: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          client_id?: string | null
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          status?: string
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          client_id?: string | null
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          status?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_transactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
+          city: string | null
+          country: string | null
           created_at: string | null
+          credit_limit: number | null
           email: string | null
           id: string
+          is_vip: boolean | null
+          last_visit: string | null
           loyalty_points: number | null
           name: string
+          notes: string | null
+          outstanding_balance: number | null
           phone: string | null
+          status: string
+          tags: string[] | null
+          type: string
           updated_at: string | null
         }
         Insert: {
           address?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
+          credit_limit?: number | null
           email?: string | null
           id?: string
+          is_vip?: boolean | null
+          last_visit?: string | null
           loyalty_points?: number | null
           name: string
+          notes?: string | null
+          outstanding_balance?: number | null
           phone?: string | null
+          status?: string
+          tags?: string[] | null
+          type?: string
           updated_at?: string | null
         }
         Update: {
           address?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
+          credit_limit?: number | null
           email?: string | null
           id?: string
+          is_vip?: boolean | null
+          last_visit?: string | null
           loyalty_points?: number | null
           name?: string
+          notes?: string | null
+          outstanding_balance?: number | null
           phone?: string | null
+          status?: string
+          tags?: string[] | null
+          type?: string
           updated_at?: string | null
         }
         Relationships: []
