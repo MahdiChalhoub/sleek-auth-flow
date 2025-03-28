@@ -6,27 +6,14 @@ import { User } from '@/types/auth';
 import { AuthContextType } from '@/types/auth';
 import { useContext } from 'react';
 import { AuthContext } from '@/contexts/AuthContext'; 
-
-export type FinancialYearStatus = 'open' | 'closed';
-
-export interface FinancialYear {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  status: FinancialYearStatus;
-  createdBy: string;
-  createdAt: string;
-  updatedAt: string;
-  closedBy?: string;
-  closedAt?: string;
-}
+import { useAuth } from '@/contexts/AuthContext';
+import { FinancialYear, FinancialYearStatus, FinancialYearFormData } from '@/models/interfaces/financialYearInterfaces';
 
 export const useFinancialYears = () => {
   const [financialYears, setFinancialYears] = useState<FinancialYear[]>([]);
   const [activeYear, setActiveYear] = useState<FinancialYear | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useContext(AuthContext) as AuthContextType;
+  const { user } = useAuth();
 
   const fetchFinancialYears = async () => {
     try {
@@ -213,3 +200,4 @@ export const useFinancialYears = () => {
     updateFinancialYearStatus
   };
 };
+

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { transactionsApi } from '@/api/database';
 import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
@@ -8,7 +7,7 @@ import { useFinancialYears } from './useFinancialYears';
 
 export const useTransactions = () => {
   const queryClient = useQueryClient();
-  const { currentFinancialYear } = useFinancialYears();
+  const { activeYear } = useFinancialYears();
   
   // Fetch all transactions from Supabase
   const { data: transactions = [], isLoading, error } = useQuery({
@@ -66,7 +65,7 @@ export const useTransactions = () => {
   const createTransaction = useMutation({
     mutationFn: async (transactionData: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
       // If financial year is not provided, use the current financial year
-      const financialYearId = transactionData.financialYearId || currentFinancialYear?.id;
+      const financialYearId = transactionData.financialYearId || activeYear?.id;
       
       if (!financialYearId) {
         throw new Error('No active financial year. Cannot create transaction without a financial year.');

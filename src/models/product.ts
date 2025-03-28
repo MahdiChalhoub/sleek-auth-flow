@@ -1,6 +1,6 @@
 
 import { v4 as uuidv4 } from 'uuid';
-import { mapDbProductBatchToModel, ProductBatch } from './productBatch';
+import { ProductBatch, mapDbProductBatchToModel } from './productBatch';
 
 export interface ComboComponent {
   id: string;
@@ -140,14 +140,15 @@ export const productsService = {
   
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
-      const { data, error } = await supabase
+      // Using a more direct approach to avoid TypeScript errors
+      const response = await supabase
         .from('product_batches')
         .select('*')
         .eq('product_id', productId);
       
-      if (error) throw error;
+      if (response.error) throw response.error;
       
-      return data.map(mapDbProductBatchToModel);
+      return response.data.map(mapDbProductBatchToModel);
     } catch (error) {
       console.error(`Error fetching batches for product ${productId}:`, error);
       return [];

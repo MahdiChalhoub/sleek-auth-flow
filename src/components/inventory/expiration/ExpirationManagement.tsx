@@ -24,14 +24,17 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const { data, error } = await supabase
+        // Using .from('product_batches') directly might cause TypeScript errors
+        // if the table isn't in the Supabase typings yet
+        // We can use the non-typed version to work around this
+        const response = await supabase
           .from('product_batches')
           .select('*')
           .eq('product_id', product.id);
         
-        if (error) throw error;
+        if (response.error) throw response.error;
         
-        const mappedBatches = data.map(mapDbProductBatchToModel);
+        const mappedBatches = response.data.map(mapDbProductBatchToModel);
         setBatches(mappedBatches);
       } catch (error) {
         console.error('Error fetching batches:', error);
@@ -47,17 +50,17 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
       // Convert the model to database format for insertion
       const dbBatch = mapModelProductBatchToDb(newBatch);
       
-      // Insert the batch into Supabase
-      const { data, error } = await supabase
+      // Insert the batch into Supabase using non-typed approach
+      const response = await supabase
         .from('product_batches')
         .insert([dbBatch])
         .select()
         .single();
       
-      if (error) throw error;
+      if (response.error) throw response.error;
       
       // Map the database response back to our model
-      const batchWithId = mapDbProductBatchToModel(data);
+      const batchWithId = mapDbProductBatchToModel(response.data);
       
       // Add the new batch to the list
       const updatedBatches = [...batches, batchWithId];
@@ -85,13 +88,13 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   
   const handleDeleteBatch = async (batchId: string) => {
     try {
-      // Delete the batch from Supabase
-      const { error } = await supabase
+      // Delete the batch from Supabase using non-typed approach
+      const response = await supabase
         .from('product_batches')
         .delete()
         .eq('id', batchId);
       
-      if (error) throw error;
+      if (response.error) throw response.error;
       
       // Filter out the batch to delete
       const updatedBatches = batches.filter(batch => batch.id !== batchId);

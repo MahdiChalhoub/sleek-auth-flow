@@ -48,7 +48,6 @@ const FinancialYearManagement: React.FC = () => {
   const { reset } = form;
 
   const handleCreateFinancialYear = async (data: FinancialYearFormData) => {
-    // Add the createdBy field from current user
     const yearData = {
       ...data,
       createdBy: user?.id || 'system'
