@@ -12,11 +12,12 @@ export interface FinancialYear {
   closedAt?: string;
 }
 
-export type FinancialYearStatus = 'open' | 'locked' | 'closed';
+export type FinancialYearStatus = 'open' | 'closed';
 
 export interface FinancialYearFormData {
   name: string;
   startDate: string;
   endDate: string;
   status: FinancialYearStatus;
+  createdBy: string;
 }

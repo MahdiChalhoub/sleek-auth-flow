@@ -1,7 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
+import { User } from '@/types/auth';
+import { AuthContextType } from '@/types/auth';
+import { useContext } from 'react';
+import { AuthContext } from '@/contexts/AuthContext'; 
 
 export type FinancialYearStatus = 'open' | 'closed';
 
@@ -22,7 +26,7 @@ export const useFinancialYears = () => {
   const [financialYears, setFinancialYears] = useState<FinancialYear[]>([]);
   const [activeYear, setActiveYear] = useState<FinancialYear | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const { user } = useContext(AuthContext) as AuthContextType;
 
   const fetchFinancialYears = async () => {
     try {
@@ -112,7 +116,7 @@ export const useFinancialYears = () => {
     try {
       const { error } = await supabase
         .from('financial_years')
-        .update({ status: 'closed', closedBy: user?.id || 'system', closedAt: new Date().toISOString() })
+        .update({ status: 'closed', closed_by: user?.id || 'system', closed_at: new Date().toISOString() })
         .eq('id', id);
 
       if (error) throw error;
@@ -166,8 +170,8 @@ export const useFinancialYears = () => {
       
       // If closing the year, add closed information
       if (status === 'closed') {
-        updateData.closedBy = user?.id || 'system';
-        updateData.closedAt = new Date().toISOString();
+        updateData.closed_by = user?.id || 'system';
+        updateData.closed_at = new Date().toISOString();
       }
       
       const { error } = await supabase
@@ -184,7 +188,7 @@ export const useFinancialYears = () => {
         .eq('id', id)
         .single();
       
-      toast.success(`Financial year ${updatedYear?.name} ${status === 'closed' ? 'closed' : status === 'locked' ? 'locked' : 'reopened'} successfully`);
+      toast.success(`Financial year ${updatedYear?.name} ${status === 'closed' ? 'closed' : 'reopened'} successfully`);
       fetchFinancialYears();
       return true;
     } catch (err) {

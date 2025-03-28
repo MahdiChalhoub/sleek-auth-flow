@@ -122,11 +122,18 @@ const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, c
   const onSubmit = async (data: ProductFormValues) => {
     try {
       const productData = {
-        ...data,
+        name: data.name,
+        price: data.price,
         is_combo: data.isCombo,
         has_stock: data.hasStock,
         category_id: data.categoryId,
         image_url: imageUrl,
+        description: data.description,
+        barcode: data.barcode,
+        cost: data.cost,
+        stock: data.stock,
+        min_stock_level: data.minStockLevel,
+        max_stock_level: data.maxStockLevel
       };
 
       if (product) {

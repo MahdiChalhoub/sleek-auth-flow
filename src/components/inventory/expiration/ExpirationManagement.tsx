@@ -8,7 +8,8 @@ import { toast } from 'sonner';
 
 import BatchTable from './BatchTable';
 import BatchForm from './BatchForm';
-import { Product, ProductBatch, productsService } from '@/models/product';
+import { Product } from '@/models/product';
+import { ProductBatch, mapModelProductBatchToDb, mapDbProductBatchToModel } from '@/models/productBatch';
 import { supabase } from '@/lib/supabase';
 
 interface ExpirationManagementProps {
@@ -23,8 +24,15 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   useEffect(() => {
     const fetchBatches = async () => {
       try {
-        const fetchedBatches = await productsService.getProductBatches(product.id);
-        setBatches(fetchedBatches);
+        const { data, error } = await supabase
+          .from('product_batches')
+          .select('*')
+          .eq('product_id', product.id);
+        
+        if (error) throw error;
+        
+        const mappedBatches = data.map(mapDbProductBatchToModel);
+        setBatches(mappedBatches);
       } catch (error) {
         console.error('Error fetching batches:', error);
         toast.error('Failed to load product batches');
@@ -36,30 +44,20 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   
   const handleAddBatch = async (newBatch: Omit<ProductBatch, "id">) => {
     try {
+      // Convert the model to database format for insertion
+      const dbBatch = mapModelProductBatchToDb(newBatch);
+      
       // Insert the batch into Supabase
       const { data, error } = await supabase
         .from('product_batches')
-        .insert([{
-          product_id: newBatch.productId,
-          batch_number: newBatch.batchNumber,
-          quantity: newBatch.quantity,
-          expiry_date: newBatch.expiryDate,
-        }])
+        .insert([dbBatch])
         .select()
         .single();
       
       if (error) throw error;
       
-      // Create a new batch with returned data
-      const batchWithId: ProductBatch = {
-        id: data.id,
-        productId: data.product_id,
-        batchNumber: data.batch_number,
-        quantity: data.quantity,
-        expiryDate: data.expiry_date,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
-      };
+      // Map the database response back to our model
+      const batchWithId = mapDbProductBatchToModel(data);
       
       // Add the new batch to the list
       const updatedBatches = [...batches, batchWithId];

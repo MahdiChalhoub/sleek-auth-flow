@@ -1,21 +1,12 @@
 
 import { v4 as uuidv4 } from 'uuid';
+import { mapDbProductBatchToModel, ProductBatch } from './productBatch';
 
 export interface ComboComponent {
   id: string;
   comboProductId: string;
   componentProductId: string;
   quantity: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProductBatch {
-  id: string;
-  productId: string;
-  batchNumber: string;
-  quantity: number;
-  expiryDate: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -156,15 +147,7 @@ export const productsService = {
       
       if (error) throw error;
       
-      return data.map((batch: any) => ({
-        id: batch.id,
-        productId: batch.product_id,
-        batchNumber: batch.batch_number,
-        quantity: batch.quantity,
-        expiryDate: batch.expiry_date,
-        createdAt: batch.created_at,
-        updatedAt: batch.updated_at
-      }));
+      return data.map(mapDbProductBatchToModel);
     } catch (error) {
       console.error(`Error fetching batches for product ${productId}:`, error);
       return [];
@@ -205,4 +188,3 @@ export const mockProducts: Product[] = Array(10).fill(null).map((_, i) => create
   stock: Math.floor(Math.random() * 50),
   category: 'Temporary'
 }));
-

@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProductBatch, productsService } from "@/models/product";
+import { ProductBatch, mapDbProductBatchToModel } from "@/models/productBatch";
 import { format, parseISO, addDays, isBefore, isAfter } from "date-fns";
 import { supabase } from "@/lib/supabase";
 
@@ -27,14 +26,8 @@ const ExpiryDashboard: React.FC = () => {
         if (error) throw error;
         
         const formattedBatches = data.map((batch: any) => ({
-          id: batch.id,
-          productId: batch.product_id,
-          productName: batch.products?.name || 'Unknown Product',
-          batchNumber: batch.batch_number,
-          quantity: batch.quantity,
-          expiryDate: batch.expiry_date,
-          createdAt: batch.created_at,
-          updatedAt: batch.updated_at
+          ...mapDbProductBatchToModel(batch),
+          productName: batch.products?.name || 'Unknown Product'
         }));
         
         setBatches(formattedBatches);
