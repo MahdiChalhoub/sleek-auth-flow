@@ -1,11 +1,11 @@
 
 import {
-  BanknotesIcon,
+  BanknoteIcon,
   CreditCardIcon,
-  ArrowPathIcon,
+  ArrowUpDownIcon,
   CalendarIcon,
-  ReceiptPercentIcon,
-  RocketLaunchIcon,
+  ReceiptIcon,
+  RocketIcon,
   ChartBarIcon,
 } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
@@ -20,7 +20,7 @@ export const financeItems = [
   {
     title: "Transactions",
     path: ROUTES.TRANSACTIONS,
-    icon: BanknotesIcon,
+    icon: BanknoteIcon,
     roles: ["admin", "manager", "cashier"],
   },
   {
@@ -32,13 +32,13 @@ export const financeItems = [
   {
     title: "Expenses",
     path: ROUTES.EXPENSES,
-    icon: ReceiptPercentIcon,
+    icon: ReceiptIcon,
     roles: ["admin", "manager"],
   },
   {
     title: "Recurring Expenses",
     path: ROUTES.RECURRING_EXPENSES,
-    icon: ArrowPathIcon,
+    icon: ArrowUpDownIcon,
     roles: ["admin", "manager"],
   },
   {
@@ -50,7 +50,7 @@ export const financeItems = [
   {
     title: "Transaction Permissions",
     path: ROUTES.TRANSACTION_PERMISSIONS,
-    icon: RocketLaunchIcon,
+    icon: RocketIcon,
     roles: ["admin"],
   },
 ];
