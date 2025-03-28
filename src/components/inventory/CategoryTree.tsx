@@ -4,19 +4,11 @@ import { ChevronDown, ChevronRight, FolderIcon, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-
-export interface CategoryNode {
-  id: string;
-  name: string;
-  parentId?: string | null;
-  level: number;
-  count?: number;
-  children?: CategoryNode[];
-}
+import { Category } from "@/hooks/useCategoryTree";
 
 interface CategoryTreeProps {
-  categories: CategoryNode[];
-  onSelectCategory?: (category: CategoryNode) => void;
+  categories: Category[];
+  onSelectCategory?: (categoryId: string) => void;
   selectedCategoryId?: string;
 }
 
@@ -37,13 +29,13 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
     setExpandedIds(newExpanded);
   };
 
-  const handleSelectCategory = (category: CategoryNode) => {
+  const handleSelectCategory = (category: Category) => {
     if (onSelectCategory) {
-      onSelectCategory(category);
+      onSelectCategory(category.id);
     }
   };
 
-  const renderCategories = (nodes: CategoryNode[], level = 0) => {
+  const renderCategories = (nodes: Category[], level = 0) => {
     return nodes.map((category) => {
       const hasChildren = category.children && category.children.length > 0;
       const isExpanded = expandedIds.has(category.id);

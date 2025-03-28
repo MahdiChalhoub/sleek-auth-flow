@@ -24,6 +24,7 @@ export const useCategoryTree = () => {
   const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,14 +36,14 @@ export const useCategoryTree = () => {
         const { data: categoriesData, error: categoriesError } = await supabase
           .from('categories')
           .select('*');
-
+        
         if (categoriesError) throw categoriesError;
 
         // Fetch products
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('*');
-
+          .select('*, categories(name)');
+        
         if (productsError) throw productsError;
 
         // Process categories into a tree
@@ -111,5 +112,18 @@ export const useCategoryTree = () => {
     return rootCategories;
   };
 
-  return { categories, productsByCategory, loading, error };
+  const selectCategory = (categoryId: string) => {
+    setSelectedCategoryId(categoryId);
+  };
+
+  return { 
+    categories, 
+    productsByCategory, 
+    loading, 
+    error, 
+    categoryTree: categories, // Alias for backward compatibility
+    isLoading: loading, // Alias for backward compatibility
+    selectedCategoryId,
+    selectCategory
+  };
 };
