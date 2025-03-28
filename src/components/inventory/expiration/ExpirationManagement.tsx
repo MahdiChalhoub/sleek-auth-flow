@@ -25,11 +25,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   useEffect(() => {
     const checkTableAndFetchBatches = async () => {
       try {
-        // Use type 'any' for parameters to avoid type errors
+        // Cast parameters to any to avoid type errors
         const { data, error: checkError } = await supabase
           .rpc('check_table_exists', { 
             table_name: 'product_batches' 
-          } as any);
+          } as Record<string, any>);
         
         if (checkError) {
           console.error("Error checking if table exists:", checkError);
@@ -44,11 +44,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
           return;
         }
         
-        // Use type 'any' for parameters to avoid type errors
+        // Cast parameters to any to avoid type errors
         const { data: batchesData, error } = await supabase
           .rpc('get_product_batches', { 
             product_id_param: product.id 
-          } as any);
+          } as Record<string, any>);
         
         if (error) {
           console.error("Error fetching batches:", error);
@@ -81,11 +81,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
       // Convert the model to database format for insertion
       const dbBatch = mapModelProductBatchToDb(newBatch);
       
-      // Use type 'any' for parameters to avoid type errors
+      // Cast parameters to any to avoid type errors
       const { data, error } = await supabase
         .rpc('insert_product_batch', { 
           batch: dbBatch 
-        } as any);
+        } as Record<string, any>);
       
       if (error) throw error;
       
@@ -127,11 +127,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
     }
     
     try {
-      // Use type 'any' for parameters to avoid type errors
+      // Cast parameters to any to avoid type errors
       const { data: success, error } = await supabase
         .rpc('delete_product_batch', { 
           batch_id: batchId 
-        } as any);
+        } as Record<string, any>);
       
       if (error) throw error;
       

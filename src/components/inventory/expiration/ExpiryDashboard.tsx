@@ -20,11 +20,11 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
     const loadBatches = async () => {
       setIsLoading(true);
       try {
-        // Remove type parameters and cast the result appropriately
+        // Cast parameters to any to avoid type errors
         const { data, error: tableCheckError } = await supabase
           .rpc('check_table_exists', { 
             table_name: 'product_batches' 
-          } as any);
+          } as Record<string, any>);
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -54,8 +54,8 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
   // Update the fetchBatches function with proper typing
   const fetchBatches = async (): Promise<ProductBatch[]> => {
     try {
-      // Use type any for parameters to avoid type issues
-      const { data, error } = await supabase.rpc('get_all_product_batches', {} as any);
+      // Cast parameters to any to avoid type errors
+      const { data, error } = await supabase.rpc('get_all_product_batches', {} as Record<string, any>);
       
       if (error) {
         throw error;
