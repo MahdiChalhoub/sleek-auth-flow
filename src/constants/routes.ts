@@ -1,3 +1,4 @@
+
 export const ROUTES = {
   // Public routes
   LOGIN: '/login',
@@ -34,6 +35,7 @@ export const ROUTES = {
   EXPENSES: '/expenses',
   RECURRING_EXPENSES: '/recurring-expenses',
   TRANSACTION_PERMISSIONS: '/transaction-permissions',
+  FINANCIAL_YEARS: '/financial-years',
   
   // Customers
   CONTACTS: '/contacts',
@@ -52,7 +54,4 @@ export const ROUTES = {
   SETTINGS: '/settings',
   NOTIFICATIONS: '/notifications',
   BACKUP_RESTORE: '/backup-restore',
-  
-  // Add new route
-  FINANCIAL_YEARS: '/financial-years'
 };

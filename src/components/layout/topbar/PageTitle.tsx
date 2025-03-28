@@ -45,6 +45,7 @@ const getPageTitle = (pathname: string): string => {
     [ROUTES.BARCODE_PRINTING]: "Impression de Codes-barres",
     [ROUTES.EXPIRATION_MANAGEMENT]: "Gestion des Expirations",
     [ROUTES.ROLES]: "Gestion des Rôles",
+    [ROUTES.FINANCIAL_YEARS]: "Années Financières",
   };
   
   return routes[pathname] || "Système POS";

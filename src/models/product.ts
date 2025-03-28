@@ -140,7 +140,7 @@ export const productsService = {
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
       // Use RPC to check if the table exists
-      const { data: tableExists, error: checkError } = await supabase.rpc('check_table_exists', { 
+      const { data, error: checkError } = await supabase.rpc('check_table_exists', { 
         table_name: 'product_batches' 
       });
       
@@ -149,13 +149,13 @@ export const productsService = {
         return [];
       }
       
-      if (!tableExists) {
+      if (!data) {
         console.log('product_batches table not found in database');
         return [];
       }
       
       // Use RPC to fetch batches when we know the table exists
-      const { data, error } = await supabase.rpc('get_product_batches', { 
+      const { data: batchesData, error } = await supabase.rpc('get_product_batches', { 
         product_id_param: productId 
       });
       
@@ -164,7 +164,7 @@ export const productsService = {
         throw error;
       }
       
-      return data && Array.isArray(data) ? data.map(mapDbProductBatchToModel) : [];
+      return batchesData && Array.isArray(batchesData) ? batchesData.map(mapDbProductBatchToModel) : [];
     } catch (error) {
       console.error(`Error fetching batches for product ${productId}:`, error);
       return [];

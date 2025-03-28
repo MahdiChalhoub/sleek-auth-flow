@@ -26,7 +26,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
     const checkTableAndFetchBatches = async () => {
       try {
         // Check if product_batches table exists using custom RPC
-        const { data: exists, error: checkError } = await supabase
+        const { data, error: checkError } = await supabase
           .rpc('check_table_exists', { table_name: 'product_batches' });
         
         if (checkError) {
@@ -34,9 +34,9 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
           return;
         }
         
-        setTableExists(!!exists);
+        setTableExists(!!data);
         
-        if (!exists) {
+        if (!data) {
           console.log("product_batches table doesn't exist");
           toast.error('Product batches table does not exist. Please create it first.');
           return;
