@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { ProductBatch, mapDbProductBatchToModel } from './productBatch';
 import { supabase } from '@/lib/supabase';
@@ -142,7 +143,7 @@ export const productsService = {
       // Use RPC to check if the table exists
       const { data, error: checkError } = await supabase.rpc('check_table_exists', { 
         table_name: 'product_batches' 
-      });
+      } as any);
       
       if (checkError) {
         console.error("Error checking if table exists:", checkError);
@@ -157,7 +158,7 @@ export const productsService = {
       // Use RPC to fetch batches when we know the table exists
       const { data: batchesData, error } = await supabase.rpc('get_product_batches', { 
         product_id_param: productId 
-      });
+      } as any);
       
       if (error) {
         console.error(`Error calling get_product_batches RPC:`, error);

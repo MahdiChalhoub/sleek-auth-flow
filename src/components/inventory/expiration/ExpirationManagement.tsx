@@ -27,7 +27,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
       try {
         // Check if product_batches table exists using custom RPC
         const { data, error: checkError } = await supabase
-          .rpc('check_table_exists', { table_name: 'product_batches' });
+          .rpc('check_table_exists', { table_name: 'product_batches' } as any);
         
         if (checkError) {
           console.error("Error checking if table exists:", checkError);
@@ -44,7 +44,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
         
         // Fetch batches if table exists
         const { data: batchesData, error } = await supabase
-          .rpc('get_product_batches', { product_id_param: product.id });
+          .rpc('get_product_batches', { product_id_param: product.id } as any);
         
         if (error) {
           console.error("Error fetching batches:", error);
@@ -78,7 +78,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
       
       // Insert the batch using the RPC function
       const { data, error } = await supabase
-        .rpc('insert_product_batch', { batch: dbBatch });
+        .rpc('insert_product_batch', { batch: dbBatch } as any);
       
       if (error) throw error;
       
@@ -122,7 +122,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
     try {
       // Delete the batch using RPC
       const { data: success, error } = await supabase
-        .rpc('delete_product_batch', { batch_id: batchId });
+        .rpc('delete_product_batch', { batch_id: batchId } as any);
       
       if (error) throw error;
       

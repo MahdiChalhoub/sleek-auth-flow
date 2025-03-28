@@ -22,7 +22,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
       try {
         // Use RPC to check if table exists instead of direct query
         const { data, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', { table_name: 'product_batches' });
+          .rpc('check_table_exists', { table_name: 'product_batches' } as any);
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -53,7 +53,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
   const fetchBatches = async (): Promise<ProductBatch[]> => {
     try {
       // Use custom RPC function to get all batches
-      const { data, error } = await supabase.rpc('get_all_product_batches');
+      const { data, error } = await supabase.rpc('get_all_product_batches' as any);
       
       if (error) {
         throw error;
