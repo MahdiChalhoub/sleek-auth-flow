@@ -11,12 +11,13 @@ const getPageTitle = (pathname: string): string => {
     [ROUTES.HOME]: "Dashboard",
     [ROUTES.DASHBOARD]: "Tableau de Bord",
     [ROUTES.POS_SALES]: "Ventes POS",
-    ["/pos/sales"]: "Ventes POS",  // Added this line to handle both routes
+    ["/pos/sales"]: "Ventes POS",  // Handle both route formats
     [ROUTES.INVENTORY]: "Inventaire",
     [ROUTES.PURCHASE_ORDERS]: "Commandes d'Achat",
     [ROUTES.RETURNS]: "Retours",
     [ROUTES.SETTINGS]: "Paramètres",
     [ROUTES.REGISTER]: "Caisse Enregistreuse",
+    ["/pos/register"]: "Caisse Enregistreuse", // Handle both route formats
     [ROUTES.REGISTER_SESSIONS]: "Sessions de Caisse",
     [ROUTES.TRANSACTIONS]: "Transactions",
     [ROUTES.TRANSACTION_PERMISSIONS]: "Autorisations de Dépenses",

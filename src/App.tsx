@@ -104,21 +104,21 @@ function App() {
                 <AppLayout />
               </PrivateRoute>
             }>
-              <Route path="dashboard" element={<Dashboard />} />
               <Route path="home" element={<Dashboard />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              
+              {/* Inventory Routes */}
               <Route path="inventory" element={<Inventory />} />
               <Route path="categories" element={<Categories />} />
+              <Route path="units" element={<Units />} />
               <Route path="purchase-orders" element={<PurchaseOrders />} />
               <Route path="suppliers" element={<Suppliers />} />
               <Route path="stock-transfers" element={<StockTransfers />} />
               <Route path="stock-adjustments" element={<StockAdjustments />} />
-              <Route path="units" element={<Units />} />
               
               {/* POS Routes */}
-              <Route path="pos">
-                <Route path="sales" element={<POSSales />} />
-                <Route path="register" element={<POSRegister />} />
-              </Route>
+              <Route path="pos/sales" element={<POSSales />} />
+              <Route path="pos/register" element={<POSRegister />} />
               
               {/* Client Routes */}
               <Route path="clients" element={<ClientsList />} />
@@ -127,6 +127,7 @@ function App() {
               <Route path="clients/new" element={<ClientEditForm />} />
               <Route path="contacts" element={<Contacts />} />
               <Route path="loyalty" element={<Loyalty />} />
+              <Route path="returns" element={<Returns />} />
               
               {/* Financial Routes */}
               <Route path="transactions" element={<Transactions />} />
@@ -141,19 +142,12 @@ function App() {
               <Route path="user-activity" element={<UserActivity />} />
               <Route path="exports" element={<Exports />} />
               
-              {/* Returns */}
-              <Route path="returns" element={<Returns />} />
-              
               {/* Settings & Admin */}
               <Route path="settings" element={<Settings />} />
               <Route path="backup-restore" element={<BackupRestore />} />
               <Route path="roles" element={<RoleManagement />} />
               <Route path="users" element={<Users />} />
             </Route>
-            
-            {/* Legacy POS routes to maintain compatibility */}
-            <Route path="/pos-sales" element={<Navigate to="/pos/sales" replace />} />
-            <Route path="/register" element={<Navigate to="/pos/register" replace />} />
             
             {/* Important: Catch-all route for 404 pages */}
             <Route path="*" element={<NotFound />} />
