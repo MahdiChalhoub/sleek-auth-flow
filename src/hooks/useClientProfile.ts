@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { Client, ClientTransaction } from '@/models/client';
+import { Client } from '@/models/client';
+import { ClientTransaction } from '@/models/clientTransaction';
 import { clientsApi } from '@/api/database';
 
 export const useClientProfile = (clientId?: string) => {

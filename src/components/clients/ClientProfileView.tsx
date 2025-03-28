@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Client, ClientTransaction } from '@/models/client';
+import { Client } from '@/models/client';
+import { ClientTransaction } from '@/models/clientTransaction';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClientInfoCard } from './ClientInfoCard';

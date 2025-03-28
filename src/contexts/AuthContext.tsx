@@ -6,17 +6,27 @@ export interface User {
   email: string;
   name?: string;
   avatar?: string;
+  avatarUrl?: string;
   role?: string;
-  isAdmin?: boolean; // Add isAdmin property
+  isAdmin?: boolean;
+  isGlobalAdmin?: boolean;
+  permissions?: any[];
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
+  login: (email: string, password: string, businessId: string, rememberMe?: boolean) => Promise<void>;
+  logout: () => void;
   error: string | null;
+  currentBusiness: any;
+  userBusinesses: any[];
+  switchBusiness: (businessId: string) => void;
+  hasPermission: (permissionName: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,8 +59,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: session.user.email || '',
           name: profile?.name,
           avatar: profile?.avatar_url,
+          avatarUrl: profile?.avatar_url,
           role: profile?.role,
           isAdmin: profile?.role === 'admin',
+          isGlobalAdmin: profile?.role === 'global_admin',
+          permissions: profile?.permissions,
         });
       } else {
         setUser(null);
@@ -91,7 +104,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         setError(error.message);
       } else {
-        // After successful signup, update the user's profile
         if (data.user?.id) {
           const { error: profileError } = await supabase
             .from('profiles')
@@ -125,7 +137,77 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const value = { user, loading, signIn, signUp, signOut, error };
+  const login = async (email: string, password: string, businessId: string, rememberMe?: boolean) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        setError(error.message);
+      } else {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', supabase.auth.user()?.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching profile:", profileError);
+          setError(profileError.message);
+          setLoading(false);
+          return;
+        }
+
+        setUser({
+          id: supabase.auth.user()?.id,
+          email: supabase.auth.user()?.email || '',
+          name: profile?.name,
+          avatar: profile?.avatar_url,
+          avatarUrl: profile?.avatar_url,
+          role: profile?.role,
+          isAdmin: profile?.role === 'admin',
+          isGlobalAdmin: profile?.role === 'global_admin',
+          permissions: profile?.permissions,
+        });
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+  };
+
+  const hasPermission = (permissionName: string): boolean => {
+    if (!user || !user.permissions) return false;
+    
+    if (user.isAdmin) return true;
+    
+    return user.permissions.some(p => 
+      typeof p === 'string' 
+        ? p === permissionName
+        : p.name === permissionName && p.enabled
+    );
+  };
+
+  const value = { 
+    user, 
+    loading, 
+    isLoading: loading,
+    signIn, 
+    signUp, 
+    signOut, 
+    error,
+    login,
+    logout,
+    currentBusiness: null,
+    userBusinesses: [],
+    switchBusiness: () => {},
+    hasPermission
+  };
 
   return (
     <AuthContext.Provider value={value}>

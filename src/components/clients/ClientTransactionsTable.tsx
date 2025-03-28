@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ClientTransaction } from '@/models/client';
+import { ClientTransaction } from '@/models/clientTransaction';
 import {
   Table,
   TableBody,

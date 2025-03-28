@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { AuthContext } from "@/contexts/AuthContext";
+import { AuthContext, User } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { User } from "@/types/auth";
 import { useBusinessSelection } from "@/hooks/useBusinessSelection";
 import { getMockPermissions, getRoleDefaultPage } from "@/hooks/usePermissions";
 import { 
@@ -26,10 +24,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     switchBusiness
   } = useBusinessSelection(user);
 
-  // Check if user session exists
   useEffect(() => {
     const checkSession = async () => {
-      // Get the storage type (localStorage or sessionStorage) based on remember me setting
       const storageType = localStorage.getItem("auth_storage_type") || "local";
       const storage = storageType === "local" ? localStorage : sessionStorage;
       
@@ -41,7 +37,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const parsedUser = JSON.parse(savedUser);
           setUser(parsedUser);
           
-          // Initialize business selection if user exists
           if (parsedUser) {
             initializeBusinessSelection(parsedUser, savedBusinessId);
           }
@@ -58,13 +53,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkSession();
   }, [initializeBusinessSelection]);
 
-  // Only redirect on initial login, not on every render
   useEffect(() => {
     if (!isLoading && user && location.pathname === "/login") {
-      // Get the intended redirect path from localStorage or use default based on role
       const redirectPath = localStorage.getItem("intended_redirect") || getRoleDefaultPage(user.role);
-      localStorage.removeItem("intended_redirect"); // Clear the stored path
-      
+      localStorage.removeItem("intended_redirect");
       navigate(redirectPath);
     }
   }, [user, isLoading, navigate, location.pathname]);
@@ -77,10 +69,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Please select a business to continue");
       }
 
-      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Mock user data based on email
       let role: User["role"] = "cashier";
       let isGlobalAdmin = false;
       
@@ -91,32 +81,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role = "manager";
       }
       
-      // Generate mock user
       const mockUser = generateMockUser(email, role, isGlobalAdmin);
       
-      // Generate mock permissions based on role
       const permissions = getMockPermissions(role);
       
-      // Add permissions to the user
       const userWithPermissions = {
         ...mockUser,
         permissions
       };
       
-      // Check if user has access to the selected business
       if (!checkBusinessAccess(mockUser.id, businessId)) {
         throw new Error("Access denied: You do not have permission to access the selected business");
       }
       
       setUser(userWithPermissions);
       
-      // Store auth data in appropriate storage
       setAuthStorage(userWithPermissions, businessId, rememberMe);
       
-      // Initialize business selection after user is set
       initializeBusinessSelection(userWithPermissions, businessId);
       
-      // Navigate to the appropriate page based on role
       const redirectPath = localStorage.getItem("intended_redirect") || getRoleDefaultPage(userWithPermissions.role);
       localStorage.removeItem("intended_redirect");
       navigate(redirectPath);
@@ -126,7 +109,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     } catch (error) {
       console.error("Login failed", error);
-      // Show detailed error message
       toast.error("Login failed", { 
         description: error instanceof Error ? error.message : "Authentication failed. Please check your credentials."
       });
