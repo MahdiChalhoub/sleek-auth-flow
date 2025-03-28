@@ -16,6 +16,8 @@ interface DashboardFiltersProps {
   setRegister: React.Dispatch<React.SetStateAction<string>>;
   product: string;
   setProduct: React.Dispatch<React.SetStateAction<string>>;
+  category: string; // Adding this missing property
+  setCategory: React.Dispatch<React.SetStateAction<string>>; // Adding this missing property
 }
 
 export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
@@ -27,6 +29,8 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   setRegister,
   product,
   setProduct,
+  category, // Adding this missing property
+  setCategory, // Adding this missing property
 }) => {
   return (
     <Card className="mb-6">
