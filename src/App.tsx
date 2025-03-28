@@ -49,6 +49,7 @@ import BarcodePrinting from './pages/BarcodePrinting';
 import ExpirationManagement from './pages/ExpirationManagement';
 import RecurringExpenses from './pages/RecurringExpenses';
 import TransactionPermissions from './pages/TransactionPermissions';
+import ClientProfile from './pages/ClientProfile';
 import { ROUTES } from './constants/routes';
 import PrivateRoute from './components/auth/PrivateRoute';
 
@@ -84,6 +85,7 @@ function App() {
                 <Route path={ROUTES.STOCK_ADJUSTMENTS} element={<StockAdjustments />} />
                 <Route path={ROUTES.UNITS} element={<Units />} />
                 <Route path={ROUTES.CONTACTS} element={<Contacts />} />
+                <Route path="/clients/:clientId" element={<ClientProfile />} />
                 <Route path={ROUTES.EXPENSES} element={<Expenses />} />
                 <Route path={ROUTES.RETURNS} element={<Returns />} />
                 <Route path={ROUTES.TRANSACTIONS} element={<Transactions />} />

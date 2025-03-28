@@ -4,7 +4,7 @@ import { Client, createClient } from '@/models/client';
 import { Supplier } from '@/models/supplier';
 import { StockTransfer } from '@/models/stockTransfer';
 import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
-import { Client as ClientModel } from '@/models/clientModel';
+import { Client as ClientModel, createClient as createClientModel } from '@/models/clientModel';
 
 // Clients API
 export const clientsApi = {
@@ -65,7 +65,8 @@ export const clientsApi = {
         name: client.name,
         email: client.email,
         phone: client.phone,
-        address: client.address
+        address: client.address,
+        loyalty_points: client.financialAccount?.availableCredit || 0
       }])
       .select()
       .single();
@@ -94,6 +95,9 @@ export const clientsApi = {
     if (updates.email) dbUpdates.email = updates.email;
     if (updates.phone) dbUpdates.phone = updates.phone;
     if (updates.address) dbUpdates.address = updates.address;
+    if (updates.financialAccount?.availableCredit !== undefined) {
+      dbUpdates.loyalty_points = updates.financialAccount.availableCredit;
+    }
     
     const { data, error } = await supabase
       .from('clients')
@@ -135,20 +139,20 @@ export const clientsApi = {
 
 // Map database client to ClientModel for POS and other components that need loyalty data
 export const mapDbClientToModel = (dbClient: Client): ClientModel => {
-  return {
+  return createClientModel({
     id: dbClient.id,
     name: dbClient.name,
     email: dbClient.email,
     phone: dbClient.phone,
     address: dbClient.address,
     isVip: dbClient.type === 'vip',
-    creditLimit: dbClient.creditLimit,
-    outstandingBalance: dbClient.outstandingBalance,
-    lastVisit: dbClient.lastVisit,
-    loyaltyPoints: 0, // Default value
+    creditLimit: dbClient.type === 'credit' ? 3000 : undefined, // Default credit limit
+    outstandingBalance: dbClient.financialAccount?.totalDue || 0,
+    lastVisit: dbClient.updatedAt,
+    loyaltyPoints: dbClient.financialAccount?.availableCredit || 0,
     createdAt: dbClient.createdAt,
     updatedAt: dbClient.updatedAt
-  };
+  });
 };
 
 // Suppliers API
