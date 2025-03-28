@@ -8,6 +8,7 @@ export interface Category {
   description?: string;
   parentId?: string;
   children?: Category[];
+  count?: number;  // Added this property to match usage in CategoryTree
 }
 
 export interface Product {

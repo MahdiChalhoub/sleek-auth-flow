@@ -64,6 +64,7 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
                   >
                     <FolderIcon className="h-4 w-4 mr-2 text-amber-500" />
                     <span>{category.name}</span>
+                    {/* Conditionally show count badge if it exists */}
                     {category.count !== undefined && (
                       <Badge variant="outline" className="ml-2 text-xs">
                         {category.count}
@@ -85,6 +86,7 @@ const CategoryTree: React.FC<CategoryTreeProps> = ({
               >
                 <File className="h-4 w-4 mr-2 text-muted-foreground" />
                 <span>{category.name}</span>
+                {/* Conditionally show count badge if it exists */}
                 {category.count !== undefined && (
                   <Badge variant="outline" className="ml-2 text-xs">
                     {category.count}
