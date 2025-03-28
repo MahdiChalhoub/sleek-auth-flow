@@ -11,7 +11,7 @@ export const AuthContext = createContext<AuthContextType>({
   currentBusiness: null,
   userBusinesses: [],
   login: async () => {},
-  logout: () => {},
+  logout: async () => {}, // Changed to return Promise<void>
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
