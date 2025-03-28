@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { AuthContext, User } from "@/contexts/AuthContext";
+import { AuthContext } from "@/contexts/AuthContext";
+import { User, UserRole } from "@/types/auth";
 import { toast } from "sonner";
 import { useBusinessSelection } from "@/hooks/useBusinessSelection";
 import { getMockPermissions, getRoleDefaultPage } from "@/hooks/usePermissions";
@@ -71,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      let role: User["role"] = "cashier";
+      let role: UserRole = "cashier";
       let isGlobalAdmin = false;
       
       if (email.includes("admin")) {
@@ -85,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const permissions = getMockPermissions(role);
       
-      const userWithPermissions = {
+      const userWithPermissions: User = {
         ...mockUser,
         permissions
       };
@@ -124,15 +126,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate("/login");
   };
 
+  const hasPermission = (permissionName: string): boolean => {
+    if (!user || !user.permissions) return false;
+    
+    if (user.isAdmin) return true;
+    
+    return user.permissions.some(p => 
+      typeof p === 'string' 
+        ? p === permissionName
+        : p.name === permissionName && p.enabled
+    );
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
       isLoading, 
+      loading: isLoading,
       login, 
       logout, 
       currentBusiness, 
       userBusinesses,
-      switchBusiness 
+      switchBusiness,
+      hasPermission
     }}>
       {children}
     </AuthContext.Provider>

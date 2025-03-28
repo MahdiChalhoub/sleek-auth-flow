@@ -86,6 +86,11 @@ const AppRoutes: React.FC = () => {
       <Route path={ROUTES.PACKAGING_MANAGEMENT} element={<DynamicComponent componentPath="PackagingManagement" />} />
       <Route path={ROUTES.BARCODE_PRINTING} element={<DynamicComponent componentPath="BarcodePrinting" />} />
       <Route path={ROUTES.EXPIRATION_MANAGEMENT} element={<DynamicComponent componentPath="ExpirationManagement" />} />
+      <Route path={ROUTES.FINANCIAL_YEARS} element={<DynamicComponent componentPath="FinancialYearManagement" />} />
+      <Route path="/clients" element={<DynamicComponent componentPath="ClientsList" />} />
+      <Route path="/clients/:clientId" element={<DynamicComponent componentPath="ClientProfile" />} />
+      <Route path="/clients/:clientId/edit" element={<DynamicComponent componentPath="ClientEditForm" />} />
+      <Route path="/clients/new" element={<DynamicComponent componentPath="ClientEditForm" />} />
       <Route path="*" element={<div>Page not found</div>} />
     </Routes>
   );
@@ -167,6 +172,14 @@ const DynamicComponent = ({ componentPath }: { componentPath: string }) => {
           return lazy(() => import("../../../src/pages/ExpirationManagement"));
         case "RecurringExpenses":
           return lazy(() => import("../../../src/pages/RecurringExpenses"));
+        case "FinancialYearManagement":
+          return lazy(() => import("../../../src/pages/FinancialYearManagement"));
+        case "ClientsList":
+          return lazy(() => import("../../../src/pages/ClientsList"));
+        case "ClientProfile":
+          return lazy(() => import("../../../src/pages/ClientProfile"));
+        case "ClientEditForm":
+          return lazy(() => import("../../../src/pages/ClientEditForm"));
         default:
           return lazy(() => import("../../../src/pages/NotFound"));
       }

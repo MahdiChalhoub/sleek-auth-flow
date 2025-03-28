@@ -1,88 +1,56 @@
 
-import { DollarSign, CreditCard, ReceiptText, Wallet, PiggyBank, FileText, BarChart3, BookOpen, FileSpreadsheet, Scale, CircleDollarSign, CalendarRange } from "lucide-react";
-import { NavItem } from "./index";
+import {
+  BanknotesIcon,
+  CreditCardIcon,
+  ArrowPathIcon,
+  CalendarIcon,
+  ReceiptPercentIcon,
+  RocketLaunchIcon,
+  ChartBarIcon,
+} from "lucide-react";
+import { ROUTES } from "@/constants/routes";
 
-export const financeItems: NavItem[] = [
+export const financeItems = [
   {
-    title: "Caisse",
-    path: "/register",
-    icon: ReceiptText,
-    roles: ["admin", "manager", "cashier"],
-    children: [
-      {
-        title: "Caisse Enregistreuse",
-        path: "/register",
-        icon: ReceiptText,
-        roles: ["admin", "manager", "cashier"]
-      },
-      {
-        title: "Sessions de Caisse",
-        path: "/register-sessions", 
-        icon: FileText,
-        roles: ["admin", "manager"]
-      }
-    ]
+    title: "Finance Dashboard",
+    path: ROUTES.DASHBOARD,
+    icon: ChartBarIcon,
+    roles: ["admin", "manager"],
   },
   {
     title: "Transactions",
-    path: "/transactions",
-    icon: Wallet,
-    roles: ["admin", "manager"]
+    path: ROUTES.TRANSACTIONS,
+    icon: BanknotesIcon,
+    roles: ["admin", "manager", "cashier"],
   },
   {
-    title: "Comptabilité",
-    path: "/ledger",
-    icon: BookOpen,
+    title: "Staff Finance",
+    path: ROUTES.STAFF_FINANCE,
+    icon: CreditCardIcon,
     roles: ["admin", "manager"],
-    children: [
-      {
-        title: "Grand Livre",
-        path: "/ledger",
-        icon: BookOpen,
-        roles: ["admin", "manager"]
-      },
-      {
-        title: "Comptes Clients",
-        path: "/accounts-receivable",
-        icon: FileSpreadsheet,
-        roles: ["admin", "manager"]
-      },
-      {
-        title: "Comptes Fournisseurs",
-        path: "/accounts-payable",
-        icon: FileSpreadsheet,
-        roles: ["admin", "manager"]
-      },
-      {
-        title: "Profit & Pertes",
-        path: "/profit-loss",
-        icon: Scale,
-        roles: ["admin", "manager"]
-      },
-      {
-        title: "Années Financières",
-        path: "/financial-years",
-        icon: CalendarRange,
-        roles: ["admin", "manager"]
-      }
-    ]
   },
   {
-    title: "Dépenses",
-    path: "/expenses",
-    icon: CircleDollarSign,
-    roles: ["admin"]
+    title: "Expenses",
+    path: ROUTES.EXPENSES,
+    icon: ReceiptPercentIcon,
+    roles: ["admin", "manager"],
   },
   {
-    title: "Finance Personnel",
-    path: "/staff-finance",
-    icon: PiggyBank,
-    roles: ["admin", "manager"]
+    title: "Recurring Expenses",
+    path: ROUTES.RECURRING_EXPENSES,
+    icon: ArrowPathIcon,
+    roles: ["admin", "manager"],
   },
   {
-    title: "Sauvegarde & Restauration",
-    path: "/backup-restore",
-    icon: FileText,
-    roles: ["admin"]
-  }
+    title: "Financial Years",
+    path: ROUTES.FINANCIAL_YEARS,
+    icon: CalendarIcon,
+    roles: ["admin"],
+  },
+  {
+    title: "Transaction Permissions",
+    path: ROUTES.TRANSACTION_PERMISSIONS,
+    icon: RocketLaunchIcon,
+    roles: ["admin"],
+  },
 ];

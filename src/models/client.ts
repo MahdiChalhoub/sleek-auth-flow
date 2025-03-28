@@ -5,7 +5,7 @@ export interface Client {
   email: string;
   phone: string;
   address: string;
-  type: 'regular' | 'vip' | 'credit' | 'wholesale'; // Updated to include 'wholesale'
+  type: 'regular' | 'vip' | 'credit' | 'wholesale';
   status: 'active' | 'inactive';
   isVip?: boolean;
   creditLimit?: number;
