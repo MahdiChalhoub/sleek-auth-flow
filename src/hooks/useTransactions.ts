@@ -7,7 +7,7 @@ import { useFinancialYears } from './useFinancialYears';
 
 export const useTransactions = () => {
   const queryClient = useQueryClient();
-  const { activeYear } = useFinancialYears();
+  const { currentFinancialYear } = useFinancialYears();
   
   // Fetch all transactions from Supabase
   const { data: transactions = [], isLoading, error } = useQuery({
@@ -65,7 +65,7 @@ export const useTransactions = () => {
   const createTransaction = useMutation({
     mutationFn: async (transactionData: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
       // If financial year is not provided, use the current financial year
-      const financialYearId = transactionData.financialYearId || activeYear?.id;
+      const financialYearId = transactionData.financialYearId || currentFinancialYear?.id;
       
       if (!financialYearId) {
         throw new Error('No active financial year. Cannot create transaction without a financial year.');
@@ -118,7 +118,7 @@ export const useTransactions = () => {
       toast.error(`Failed to create transaction: ${error.message}`);
     }
   });
-  
+
   // Change transaction status mutation
   const changeStatus = useMutation({
     mutationFn: async ({ transactionId, newStatus }: { transactionId: string, newStatus: TransactionStatus }) => {

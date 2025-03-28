@@ -140,7 +140,7 @@ export const productsService = {
   
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
-      // First check if the product_batches table exists using SQL query
+      // First check if the product_batches table exists using RPC
       const { data: exists } = await supabase.rpc('check_table_exists', { 
         table_name: 'product_batches' 
       });
@@ -150,7 +150,7 @@ export const productsService = {
         return [];
       }
       
-      // Execute the query directly since we've confirmed the table exists
+      // Execute the query using RPC since we've confirmed the table exists
       const { data, error } = await supabase.rpc('get_product_batches', { 
         product_id_param: productId 
       });

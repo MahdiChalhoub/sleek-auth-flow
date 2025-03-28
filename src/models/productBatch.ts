@@ -24,6 +24,8 @@ export const createProductBatch = (data: Partial<ProductBatch>): ProductBatch =>
 
 // Helper function to map database column names to interface property names
 export const mapDbProductBatchToModel = (dbBatch: any): ProductBatch => {
+  if (!dbBatch) return createProductBatch({});
+  
   return {
     id: dbBatch.id,
     productId: dbBatch.product_id,

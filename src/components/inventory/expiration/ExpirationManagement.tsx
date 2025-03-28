@@ -25,7 +25,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   useEffect(() => {
     const checkTableAndFetchBatches = async () => {
       try {
-        // Check if product_batches table exists using RPC
+        // Check if product_batches table exists using custom RPC
         const { data: exists, error: checkError } = await supabase
           .rpc('check_table_exists', { table_name: 'product_batches' });
         

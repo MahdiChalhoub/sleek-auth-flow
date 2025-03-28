@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar, Check, Lock, Plus, Unlock } from 'lucide-react';
-import { useFinancialYears, FinancialYearStatus } from '@/hooks/useFinancialYears';
+import { useFinancialYears } from '@/hooks/useFinancialYears';
+import { FinancialYearStatus } from '@/models/interfaces/financialYearInterfaces';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import { format } from 'date-fns';
@@ -22,7 +23,7 @@ const FinancialYearManagement: React.FC = () => {
   const { user } = useAuth();
   const { 
     financialYears, 
-    activeYear, 
+    currentFinancialYear, 
     isLoading, 
     createFinancialYear,
     closeFinancialYear,
@@ -90,13 +91,13 @@ const FinancialYearManagement: React.FC = () => {
         </div>
       ) : (
         <>
-          {activeYear && (
+          {currentFinancialYear && (
             <Card className="mb-6 border-2 border-primary/20">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Active Financial Year</span>
-                  <Badge variant={activeYear.status === 'open' ? 'success' : 'destructive'}>
-                    {activeYear.status === 'open' ? 'Open' : 'Closed'}
+                  <Badge variant={currentFinancialYear.status === 'open' ? 'success' : 'destructive'}>
+                    {currentFinancialYear.status === 'open' ? 'Open' : 'Closed'}
                   </Badge>
                 </CardTitle>
               </CardHeader>
@@ -104,28 +105,28 @@ const FinancialYearManagement: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h3 className="font-medium text-gray-500">Name</h3>
-                    <p>{activeYear.name}</p>
+                    <p>{currentFinancialYear.name}</p>
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-500">Period</h3>
-                    <p>{format(new Date(activeYear.startDate), 'MMM dd, yyyy')} - {format(new Date(activeYear.endDate), 'MMM dd, yyyy')}</p>
+                    <p>{format(new Date(currentFinancialYear.startDate), 'MMM dd, yyyy')} - {format(new Date(currentFinancialYear.endDate), 'MMM dd, yyyy')}</p>
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-500">Created By</h3>
-                    <p>{activeYear.createdBy}</p>
+                    <p>{currentFinancialYear.createdBy}</p>
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-500">Created At</h3>
-                    <p>{format(new Date(activeYear.createdAt), 'MMM dd, yyyy')}</p>
+                    <p>{format(new Date(currentFinancialYear.createdAt), 'MMM dd, yyyy')}</p>
                   </div>
                 </div>
                 
                 <div className="mt-4 flex justify-end">
-                  {activeYear.status === 'open' ? (
+                  {currentFinancialYear.status === 'open' ? (
                     <Button 
                       variant="destructive" 
                       size="sm" 
-                      onClick={() => handleStatusChange(activeYear.id, 'closed')}
+                      onClick={() => handleStatusChange(currentFinancialYear.id, 'closed')}
                     >
                       <Lock className="h-4 w-4 mr-2" />
                       Close Year
@@ -134,7 +135,7 @@ const FinancialYearManagement: React.FC = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => handleStatusChange(activeYear.id, 'open')}
+                      onClick={() => handleStatusChange(currentFinancialYear.id, 'open')}
                     >
                       <Unlock className="h-4 w-4 mr-2" />
                       Reopen Year
@@ -149,12 +150,12 @@ const FinancialYearManagement: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {financialYears.map(year => (
-              <Card key={year.id} className={year.id === activeYear?.id ? "border-2 border-primary/20" : ""}>
+              <Card key={year.id} className={year.id === currentFinancialYear?.id ? "border-2 border-primary/20" : ""}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>{year.name}</span>
-                    <Badge variant={year.status === 'open' ? 'success' : 'secondary'}>
-                      {year.status === 'open' ? 'Open' : 'Closed'}
+                    <Badge variant={year.status === 'open' || year.status === 'active' ? 'success' : 'secondary'}>
+                      {year.status === 'open' || year.status === 'active' ? 'Open' : 'Closed'}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
@@ -174,7 +175,7 @@ const FinancialYearManagement: React.FC = () => {
                   </div>
                   
                   <div className="mt-4 flex justify-end">
-                    {year.status === 'open' ? (
+                    {year.status === 'open' || year.status === 'active' ? (
                       <Button 
                         variant="destructive" 
                         size="sm" 
@@ -188,7 +189,7 @@ const FinancialYearManagement: React.FC = () => {
                         variant="outline" 
                         size="sm" 
                         onClick={() => handleStatusChange(year.id, 'open')}
-                        disabled={activeYear && activeYear.status === 'open' && activeYear.id !== year.id}
+                        disabled={currentFinancialYear && (currentFinancialYear.status === 'open' || currentFinancialYear.status === 'active') && currentFinancialYear.id !== year.id}
                       >
                         <Unlock className="h-4 w-4 mr-2" />
                         Reopen

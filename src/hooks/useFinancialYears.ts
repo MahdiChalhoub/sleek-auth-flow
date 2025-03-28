@@ -186,13 +186,30 @@ const deleteFinancialYear = async (id: string): Promise<void> => {
   }
 };
 
+// Close a financial year
+const closeFinancialYear = async (id: string, userId?: string): Promise<FinancialYear> => {
+  return updateFinancialYearStatus({
+    id,
+    status: 'closed',
+    closedBy: userId
+  });
+};
+
+// Reopen a financial year
+const reopenFinancialYear = async (id: string): Promise<FinancialYear> => {
+  return updateFinancialYearStatus({
+    id,
+    status: 'open'
+  });
+};
+
 // Custom hook to manage financial years
 export const useFinancialYears = () => {
   const queryClient = useQueryClient();
 
   // Get all financial years
   const {
-    data: financialYears,
+    data: financialYears = [],
     isLoading,
     error
   } = useQuery({
@@ -201,7 +218,8 @@ export const useFinancialYears = () => {
   });
 
   // Get current active financial year
-  const currentFinancialYear = financialYears?.find(fy => fy.status === 'active');
+  const currentFinancialYear = financialYears.find(fy => fy.status === 'active' || fy.status === 'open');
+  const activeYear = currentFinancialYear;
 
   // Create a new financial year
   const createMutation = useMutation({
@@ -240,6 +258,30 @@ export const useFinancialYears = () => {
     }
   });
 
+  // Close a financial year
+  const closeMutation = useMutation({
+    mutationFn: (id: string) => closeFinancialYear(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['financialYears'] });
+      toast.success('Financial year closed successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error closing financial year: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  });
+
+  // Reopen a financial year
+  const reopenMutation = useMutation({
+    mutationFn: reopenFinancialYear,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['financialYears'] });
+      toast.success('Financial year reopened successfully');
+    },
+    onError: (error) => {
+      toast.error(`Error reopening financial year: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  });
+
   // Delete a financial year
   const deleteMutation = useMutation({
     mutationFn: deleteFinancialYear,
@@ -255,12 +297,15 @@ export const useFinancialYears = () => {
   return {
     financialYears,
     currentFinancialYear,
+    activeYear,
     isLoading,
     error,
     createFinancialYear: createMutation.mutate,
     updateFinancialYear: (id: string, updates: Partial<FinancialYear>) => 
       updateMutation.mutate({ id, updates }),
     updateFinancialYearStatus: updateStatusMutation.mutate,
+    closeFinancialYear: closeMutation.mutate,
+    reopenFinancialYear: reopenMutation.mutate,
     deleteFinancialYear: deleteMutation.mutate,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
@@ -269,4 +314,5 @@ export const useFinancialYears = () => {
   };
 };
 
+export { FinancialYearStatus };
 export default useFinancialYears;
