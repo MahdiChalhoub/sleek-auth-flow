@@ -92,18 +92,32 @@ function App() {
               <Route path="suppliers" element={<Suppliers />} />
               <Route path="stock-transfers" element={<StockTransfers />} />
               <Route path="stock-adjustments" element={<StockAdjustments />} />
-              <Route path="pos/sales" element={<POSSales />} />
-              <Route path="pos-sales" element={<POSSales />} />
-              <Route path="register" element={<POSRegister />} />
-              <Route path="pos/register" element={<POSRegister />} />
+              
+              {/* POS Routes */}
+              <Route path="pos">
+                <Route path="sales" element={<POSSales />} />
+                <Route path="register" element={<POSRegister />} />
+              </Route>
+              
+              {/* Legacy POS routes to maintain compatibility */}
+              <Route path="pos-sales" element={<Navigate to="/pos/sales" replace />} />
+              <Route path="register" element={<Navigate to="/pos/register" replace />} />
+              
               <Route path="settings" element={<Settings />} />
               <Route path="contacts" element={<Contacts />} />
+              
+              {/* Client Routes */}
               <Route path="clients" element={<ClientsList />} />
               <Route path="clients/:clientId" element={<ClientProfile />} />
               <Route path="clients/:clientId/edit" element={<ClientEditForm />} />
               <Route path="clients/new" element={<ClientEditForm />} />
+              
+              {/* Add more routes for missing features */}
+              <Route path="returns" element={<Navigate to="/pos/returns" replace />} />
+              <Route path="loyalty" element={<Navigate to="/clients" replace />} />
             </Route>
             
+            {/* Important: Catch-all route for 404 pages */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

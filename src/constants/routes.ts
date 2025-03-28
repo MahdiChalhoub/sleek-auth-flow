@@ -1,3 +1,4 @@
+
 export const ROUTES = {
   // Public routes
   LOGIN: '/login',
@@ -7,8 +8,8 @@ export const ROUTES = {
   // Main navigation
   HOME: '/home',
   DASHBOARD: '/dashboard',
-  POS_SALES: '/pos-sales',
-  REGISTER: '/register',
+  POS_SALES: '/pos/sales',  // Updated to match new route structure
+  REGISTER: '/pos/register', // Updated to match new route structure
   REGISTER_SESSIONS: '/register-sessions',
   
   // Inventory
@@ -37,6 +38,7 @@ export const ROUTES = {
   
   // Customers
   CONTACTS: '/contacts',
+  CLIENTS: '/clients',
   LOYALTY: '/loyalty',
   RETURNS: '/returns',
   

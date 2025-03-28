@@ -11,13 +11,13 @@ export const salesItems: NavItem[] = [
     children: [
       {
         title: "Factures",
-        path: "/pos-sales",
+        path: "/pos/sales",
         icon: ShoppingCart,
         roles: ["admin", "cashier", "manager"]
       },
       {
         title: "Clients",
-        path: "/loyalty",
+        path: "/clients",
         icon: Gift,
         roles: ["admin", "manager", "cashier"]
       },

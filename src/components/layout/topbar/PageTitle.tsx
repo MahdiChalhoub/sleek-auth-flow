@@ -11,6 +11,7 @@ const getPageTitle = (pathname: string): string => {
     [ROUTES.HOME]: "Dashboard",
     [ROUTES.DASHBOARD]: "Tableau de Bord",
     [ROUTES.POS_SALES]: "Ventes POS",
+    ["/pos/sales"]: "Ventes POS",  // Added this line to handle both routes
     [ROUTES.INVENTORY]: "Inventaire",
     [ROUTES.PURCHASE_ORDERS]: "Commandes d'Achat",
     [ROUTES.RETURNS]: "Retours",
@@ -45,6 +46,7 @@ const getPageTitle = (pathname: string): string => {
     [ROUTES.BARCODE_PRINTING]: "Impression de Codes-barres",
     [ROUTES.EXPIRATION_MANAGEMENT]: "Gestion des Expirations",
     [ROUTES.ROLES]: "Gestion des Rôles",
+    ["/clients"]: "Gestion des Clients",
   };
   
   return routes[pathname] || "Système POS";
