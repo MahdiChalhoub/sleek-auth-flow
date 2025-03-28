@@ -27,10 +27,17 @@ export const useClientsData = () => {
           email: client.email || '',
           phone: client.phone || '',
           address: client.address || '',
+          type: client.type || 'regular',
+          status: client.status || 'active',
           loyaltyPoints: client.loyalty_points || 0,
+          isVip: client.is_vip || false,
           createdAt: client.created_at,
-          updatedAt: client.updated_at
-        }));
+          updatedAt: client.updated_at,
+          outstanding_balance: client.outstanding_balance || 0,
+          credit_limit: client.credit_limit || 0,
+          tags: client.tags || [],
+          notes: client.notes || ''
+        })) as Client[];
         
         setClients(transformedClients);
       } else {
@@ -63,7 +70,10 @@ export const useClientsData = () => {
           email: clientData.email,
           phone: clientData.phone,
           address: clientData.address,
-          loyalty_points: clientData.loyaltyPoints || 0
+          type: clientData.type || 'regular',
+          status: clientData.status || 'active',
+          loyalty_points: clientData.loyaltyPoints || 0,
+          is_vip: clientData.isVip || false
         }])
         .select()
         .single();
@@ -88,7 +98,10 @@ export const useClientsData = () => {
           email: clientData.email,
           phone: clientData.phone,
           address: clientData.address,
-          loyalty_points: clientData.loyaltyPoints
+          type: clientData.type,
+          status: clientData.status,
+          loyalty_points: clientData.loyaltyPoints,
+          is_vip: clientData.isVip
         })
         .eq('id', id)
         .select()

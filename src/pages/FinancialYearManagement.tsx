@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useFinancialYears } from "@/hooks/useFinancialYears";
 import { FinancialYearFormData, FinancialYearStatus } from "@/models/interfaces/financialYearInterfaces";
@@ -74,8 +73,9 @@ const FinancialYearManagement: React.FC = () => {
   };
 
   const confirmStatusChange = (id: string, name: string, newStatus: FinancialYearStatus) => {
-    // Block non-admin users from reopening closed years
-    if (newStatus === 'open' && !user?.isAdmin) {
+    const isUserAdmin = user?.isAdmin || user?.isGlobalAdmin || user?.role === 'admin';
+    
+    if (newStatus === 'open' && !isUserAdmin) {
       toast.error("Only administrators can reopen a closed financial year");
       return;
     }
@@ -95,6 +95,8 @@ const FinancialYearManagement: React.FC = () => {
         return <Badge variant="outline">Unknown</Badge>;
     }
   };
+
+  const isUserAdmin = user?.isAdmin || user?.isGlobalAdmin || user?.role === 'admin';
 
   return (
     <div className="container mx-auto p-4 space-y-6">
@@ -266,7 +268,7 @@ const FinancialYearManagement: React.FC = () => {
                             </Button>
                           </>
                         )}
-                        {year.status === 'closed' && user?.isAdmin && (
+                        {year.status === 'closed' && isUserAdmin && (
                           <Button 
                             variant="outline" 
                             size="sm"

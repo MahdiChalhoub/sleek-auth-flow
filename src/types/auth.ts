@@ -16,6 +16,7 @@ export interface User {
   role: UserRole;
   avatarUrl?: string;
   isGlobalAdmin?: boolean;
+  isAdmin?: boolean; // Added missing property
   permissions?: UserPermission[];
 }
 
