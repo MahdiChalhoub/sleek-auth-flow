@@ -27,6 +27,22 @@ import { initializeDatabase } from './lib/supabase';
 import { Skeleton } from './components/ui/skeleton';
 import { toast } from 'sonner';
 import { AuthProvider } from './providers/AuthProvider';
+import PrivateRoute from './components/auth/PrivateRoute';
+import BackupRestore from './pages/BackupRestore';
+import Returns from './pages/Returns';
+import Transactions from './pages/Transactions';
+import Units from './pages/Units';
+import Loyalty from './pages/Loyalty';
+import ShiftReports from './pages/ShiftReports';
+import RegisterSessions from './pages/RegisterSessions';
+import AuditTrail from './pages/AuditTrail';
+import UserActivity from './pages/UserActivity';
+import Expenses from './pages/Expenses';
+import RecurringExpenses from './pages/RecurringExpenses';
+import FinancialYearManagement from './pages/FinancialYearManagement';
+import Exports from './pages/Exports';
+import RoleManagement from './pages/RoleManagement';
+import Users from './pages/Users';
 
 function App() {
   const [isInitializing, setIsInitializing] = useState(true);
@@ -83,7 +99,11 @@ function App() {
             <Route path="signup" element={<Signup />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
             
-            <Route path="/" element={<AppLayout />}>
+            <Route path="/" element={
+              <PrivateRoute>
+                <AppLayout />
+              </PrivateRoute>
+            }>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="home" element={<Dashboard />} />
               <Route path="inventory" element={<Inventory />} />
@@ -92,6 +112,7 @@ function App() {
               <Route path="suppliers" element={<Suppliers />} />
               <Route path="stock-transfers" element={<StockTransfers />} />
               <Route path="stock-adjustments" element={<StockAdjustments />} />
+              <Route path="units" element={<Units />} />
               
               {/* POS Routes */}
               <Route path="pos">
@@ -99,23 +120,40 @@ function App() {
                 <Route path="register" element={<POSRegister />} />
               </Route>
               
-              {/* Legacy POS routes to maintain compatibility */}
-              <Route path="pos-sales" element={<Navigate to="/pos/sales" replace />} />
-              <Route path="register" element={<Navigate to="/pos/register" replace />} />
-              
-              <Route path="settings" element={<Settings />} />
-              <Route path="contacts" element={<Contacts />} />
-              
               {/* Client Routes */}
               <Route path="clients" element={<ClientsList />} />
               <Route path="clients/:clientId" element={<ClientProfile />} />
               <Route path="clients/:clientId/edit" element={<ClientEditForm />} />
               <Route path="clients/new" element={<ClientEditForm />} />
+              <Route path="contacts" element={<Contacts />} />
+              <Route path="loyalty" element={<Loyalty />} />
               
-              {/* Add more routes for missing features */}
-              <Route path="returns" element={<Navigate to="/pos/returns" replace />} />
-              <Route path="loyalty" element={<Navigate to="/clients" replace />} />
+              {/* Financial Routes */}
+              <Route path="transactions" element={<Transactions />} />
+              <Route path="expenses" element={<Expenses />} />
+              <Route path="recurring-expenses" element={<RecurringExpenses />} />
+              <Route path="financial-years" element={<FinancialYearManagement />} />
+              
+              {/* Reports */}
+              <Route path="shift-reports" element={<ShiftReports />} />
+              <Route path="register-sessions" element={<RegisterSessions />} />
+              <Route path="audit-trail" element={<AuditTrail />} />
+              <Route path="user-activity" element={<UserActivity />} />
+              <Route path="exports" element={<Exports />} />
+              
+              {/* Returns */}
+              <Route path="returns" element={<Returns />} />
+              
+              {/* Settings & Admin */}
+              <Route path="settings" element={<Settings />} />
+              <Route path="backup-restore" element={<BackupRestore />} />
+              <Route path="roles" element={<RoleManagement />} />
+              <Route path="users" element={<Users />} />
             </Route>
+            
+            {/* Legacy POS routes to maintain compatibility */}
+            <Route path="/pos-sales" element={<Navigate to="/pos/sales" replace />} />
+            <Route path="/register" element={<Navigate to="/pos/register" replace />} />
             
             {/* Important: Catch-all route for 404 pages */}
             <Route path="*" element={<NotFound />} />

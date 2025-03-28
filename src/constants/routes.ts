@@ -8,8 +8,8 @@ export const ROUTES = {
   // Main navigation
   HOME: '/home',
   DASHBOARD: '/dashboard',
-  POS_SALES: '/pos/sales',  // Updated to match new route structure
-  REGISTER: '/pos/register', // Updated to match new route structure
+  POS_SALES: '/pos/sales',
+  REGISTER: '/pos/register',
   REGISTER_SESSIONS: '/register-sessions',
   
   // Inventory
@@ -55,6 +55,6 @@ export const ROUTES = {
   NOTIFICATIONS: '/notifications',
   BACKUP_RESTORE: '/backup-restore',
   
-  // Add new route
+  // Additional routes
   FINANCIAL_YEARS: '/financial-years'
 };
