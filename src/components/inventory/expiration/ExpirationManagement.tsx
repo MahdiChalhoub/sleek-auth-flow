@@ -25,11 +25,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   useEffect(() => {
     const checkTableAndFetchBatches = async () => {
       try {
-        // Cast parameters to any to avoid type errors
+        // Use any type for parameters to avoid type errors with Supabase RPC
         const { data, error: checkError } = await supabase
           .rpc('check_table_exists', { 
             table_name: 'product_batches' 
-          } as Record<string, any>);
+          } as any);
         
         if (checkError) {
           console.error("Error checking if table exists:", checkError);
@@ -44,11 +44,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
           return;
         }
         
-        // Cast parameters to any to avoid type errors
+        // Use any type for parameters to avoid type errors with Supabase RPC
         const { data: batchesData, error } = await supabase
           .rpc('get_product_batches', { 
             product_id_param: product.id 
-          } as Record<string, any>);
+          } as any);
         
         if (error) {
           console.error("Error fetching batches:", error);
@@ -81,11 +81,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
       // Convert the model to database format for insertion
       const dbBatch = mapModelProductBatchToDb(newBatch);
       
-      // Cast parameters to any to avoid type errors
+      // Use any type for parameters to avoid type errors with Supabase RPC
       const { data, error } = await supabase
         .rpc('insert_product_batch', { 
           batch: dbBatch 
-        } as Record<string, any>);
+        } as any);
       
       if (error) throw error;
       
@@ -127,11 +127,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
     }
     
     try {
-      // Cast parameters to any to avoid type errors
+      // Use any type for parameters to avoid type errors with Supabase RPC
       const { data: success, error } = await supabase
         .rpc('delete_product_batch', { 
           batch_id: batchId 
-        } as Record<string, any>);
+        } as any);
       
       if (error) throw error;
       

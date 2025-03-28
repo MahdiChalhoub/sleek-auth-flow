@@ -140,10 +140,10 @@ export const productsService = {
   
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
-      // Use Record<string, any> for parameters to avoid type errors
+      // Use any type for parameters to avoid type errors with Supabase RPC
       const { data, error: checkError } = await supabase.rpc('check_table_exists', { 
         table_name: 'product_batches' 
-      } as Record<string, any>);
+      } as any);
       
       if (checkError) {
         console.error("Error checking if table exists:", checkError);
@@ -155,10 +155,10 @@ export const productsService = {
         return [];
       }
       
-      // Use Record<string, any> for parameters to avoid type errors
+      // Use any type for parameters to avoid type errors with Supabase RPC
       const { data: batchesData, error } = await supabase.rpc('get_product_batches', { 
         product_id_param: productId 
-      } as Record<string, any>);
+      } as any);
       
       if (error) {
         console.error(`Error calling get_product_batches RPC:`, error);
