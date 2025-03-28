@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { ProductBatch, mapDbProductBatchToModel } from './productBatch';
 
@@ -92,7 +91,6 @@ export const createProduct = (data: Partial<Product>): Product => {
   };
 };
 
-// Create a products service to fetch from Supabase instead of mock data
 import { supabase } from '@/lib/supabase';
 
 export const productsService = {
@@ -106,9 +104,10 @@ export const productsService = {
       
       return data.map((product: any) => createProduct({
         ...product,
+        categoryId: product.category_id,
         category: product.categories?.name,
-        image: product.image_url,
-        imageUrl: product.image_url
+        imageUrl: product.image_url,
+        image: product.image_url
       }));
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -128,9 +127,10 @@ export const productsService = {
       
       return createProduct({
         ...data,
+        categoryId: data.category_id,
         category: data.categories?.name,
-        image: data.image_url,
-        imageUrl: data.image_url
+        imageUrl: data.image_url,
+        image: data.image_url
       });
     } catch (error) {
       console.error(`Error fetching product ${id}:`, error);
@@ -140,15 +140,30 @@ export const productsService = {
   
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
-      // Using a more direct approach to avoid TypeScript errors
-      const response = await supabase
+      const { data: tables, error: schemaError } = await supabase
+        .from('information_schema.tables')
+        .select('table_name')
+        .eq('table_name', 'product_batches')
+        .eq('table_schema', 'public');
+      
+      if (schemaError) {
+        console.error('Error checking schema:', schemaError);
+        return [];
+      }
+      
+      if (!tables || tables.length === 0) {
+        console.log('product_batches table not found in database');
+        return [];
+      }
+      
+      const { data, error } = await supabase
         .from('product_batches')
         .select('*')
         .eq('product_id', productId);
       
-      if (response.error) throw response.error;
+      if (error) throw error;
       
-      return response.data.map(mapDbProductBatchToModel);
+      return data.map(mapDbProductBatchToModel);
     } catch (error) {
       console.error(`Error fetching batches for product ${productId}:`, error);
       return [];
@@ -180,7 +195,6 @@ export const productsService = {
   }
 };
 
-// Temporary solution until all components are updated to use the productsService
 export const mockProducts: Product[] = Array(10).fill(null).map((_, i) => createProduct({
   id: `temp-${i+1}`,
   name: `Temporary Product ${i+1}`,

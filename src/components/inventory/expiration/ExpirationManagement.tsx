@@ -20,47 +20,72 @@ interface ExpirationManagementProps {
 const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, onUpdate }) => {
   const [activeTab, setActiveTab] = useState<'view' | 'add'>('view');
   const [batches, setBatches] = useState<ProductBatch[]>(product.batches || []);
+  const [tableExists, setTableExists] = useState(false);
   
   useEffect(() => {
-    const fetchBatches = async () => {
+    const checkTableAndFetchBatches = async () => {
       try {
-        // Using .from('product_batches') directly might cause TypeScript errors
-        // if the table isn't in the Supabase typings yet
-        // We can use the non-typed version to work around this
-        const response = await supabase
+        // Check if product_batches table exists
+        const { data: tableExists, error: checkError } = await supabase
+          .rpc('check_table_exists', { table_name: 'product_batches' });
+        
+        if (checkError) {
+          console.error("Error checking if table exists:", checkError);
+          return;
+        }
+        
+        setTableExists(!!tableExists);
+        
+        if (!tableExists) {
+          console.log("product_batches table doesn't exist");
+          toast.error('Product batches table does not exist. Please create it first.');
+          return;
+        }
+        
+        // Fetch batches if table exists
+        const { data, error } = await supabase
           .from('product_batches')
           .select('*')
           .eq('product_id', product.id);
         
-        if (response.error) throw response.error;
+        if (error) {
+          console.error("Error fetching batches:", error);
+          toast.error('Failed to load product batches');
+          return;
+        }
         
-        const mappedBatches = response.data.map(mapDbProductBatchToModel);
+        const mappedBatches = data.map(mapDbProductBatchToModel);
         setBatches(mappedBatches);
       } catch (error) {
-        console.error('Error fetching batches:', error);
-        toast.error('Failed to load product batches');
+        console.error('Error in initialization:', error);
+        toast.error('Failed during initialization');
       }
     };
     
-    fetchBatches();
+    checkTableAndFetchBatches();
   }, [product.id]);
   
   const handleAddBatch = async (newBatch: Omit<ProductBatch, "id">) => {
+    if (!tableExists) {
+      toast.error('Product batches table does not exist. Please create it first.');
+      return;
+    }
+    
     try {
       // Convert the model to database format for insertion
       const dbBatch = mapModelProductBatchToDb(newBatch);
       
       // Insert the batch into Supabase using non-typed approach
-      const response = await supabase
+      const { data, error } = await supabase
         .from('product_batches')
         .insert([dbBatch])
         .select()
         .single();
       
-      if (response.error) throw response.error;
+      if (error) throw error;
       
       // Map the database response back to our model
-      const batchWithId = mapDbProductBatchToModel(response.data);
+      const batchWithId = mapDbProductBatchToModel(data);
       
       // Add the new batch to the list
       const updatedBatches = [...batches, batchWithId];
@@ -87,14 +112,19 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   };
   
   const handleDeleteBatch = async (batchId: string) => {
+    if (!tableExists) {
+      toast.error('Product batches table does not exist. Please create it first.');
+      return;
+    }
+    
     try {
       // Delete the batch from Supabase using non-typed approach
-      const response = await supabase
+      const { error } = await supabase
         .from('product_batches')
         .delete()
         .eq('id', batchId);
       
-      if (response.error) throw response.error;
+      if (error) throw error;
       
       // Filter out the batch to delete
       const updatedBatches = batches.filter(batch => batch.id !== batchId);
@@ -121,7 +151,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Gestion des lots et dates d'expiration</CardTitle>
-        {activeTab === 'view' && (
+        {activeTab === 'view' && tableExists && (
           <Button 
             size="sm" 
             onClick={() => setActiveTab('add')}
@@ -130,30 +160,48 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
             Ajouter un lot
           </Button>
         )}
+        {!tableExists && (
+          <Button 
+            size="sm" 
+            variant="secondary"
+            onClick={() => {
+              toast.info('Please create the product_batches table first using the provided SQL migration');
+            }}
+          >
+            Setup Required
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
-        <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'view' | 'add')}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="view">Lots existants</TabsTrigger>
-            <TabsTrigger value="add">Ajouter un lot</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="view">
-            <BatchTable 
-              batches={batches} 
-              product={product} 
-              onDeleteBatch={handleDeleteBatch} 
-            />
-          </TabsContent>
-          
-          <TabsContent value="add">
-            <BatchForm 
-              onSubmit={handleAddBatch}
-              onCancel={() => setActiveTab('view')}
-              productId={product.id}
-            />
-          </TabsContent>
-        </Tabs>
+        {!tableExists ? (
+          <div className="p-4 bg-yellow-50 text-yellow-800 rounded-md">
+            <h3 className="font-medium">Database Setup Required</h3>
+            <p className="mt-1">The product batches table doesn't exist in your database. Please run the migration to create it first.</p>
+          </div>
+        ) : (
+          <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'view' | 'add')}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="view">Lots existants</TabsTrigger>
+              <TabsTrigger value="add">Ajouter un lot</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="view">
+              <BatchTable 
+                batches={batches} 
+                product={product} 
+                onDeleteBatch={handleDeleteBatch} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="add">
+              <BatchForm 
+                onSubmit={handleAddBatch}
+                onCancel={() => setActiveTab('view')}
+                productId={product.id}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
       </CardContent>
     </Card>
   );

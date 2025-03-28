@@ -1,3 +1,4 @@
+
 // Export the ProductBatch interface so it can be imported by other files
 export interface ProductBatch {
   id: string;

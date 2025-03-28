@@ -1,5 +1,5 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { transactionsApi } from '@/api/database';
 import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
