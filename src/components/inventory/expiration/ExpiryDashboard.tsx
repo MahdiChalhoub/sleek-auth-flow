@@ -21,7 +21,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
       setIsLoading(true);
       try {
         // Create SQL to check if product_batches table exists
-        const { data: tableExists, error: tableCheckError } = await supabase
+        const { data, error: tableCheckError } = await supabase
           .rpc('check_table_exists', { table_name: 'product_batches' });
         
         if (tableCheckError) {
@@ -30,7 +30,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
           return;
         }
         
-        if (!tableExists) {
+        if (!data) {
           console.log('product_batches table does not exist yet');
           setIsLoading(false);
           return;
@@ -50,7 +50,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
   }, []);
 
   // Update the fetchBatches function
-  const fetchBatches = async () => {
+  const fetchBatches = async (): Promise<ProductBatch[]> => {
     try {
       // Use custom RPC to get all batches
       const { data, error } = await supabase.rpc('get_all_product_batches');
@@ -69,7 +69,13 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
         });
         
         if (result.error) throw result.error;
-        return Array.isArray(result.data) ? result.data.map(mapDbProductBatchToModel) : [];
+        
+        // Make sure to check if result.data exists and is an array
+        if (result.data && Array.isArray(result.data)) {
+          return result.data.map(mapDbProductBatchToModel);
+        } else {
+          return [];
+        }
       }
       
       return data.map(mapDbProductBatchToModel);

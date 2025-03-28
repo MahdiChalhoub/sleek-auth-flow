@@ -314,5 +314,6 @@ export const useFinancialYears = () => {
   };
 };
 
-export { FinancialYearStatus };
+// Fix the export to use 'export type' instead of just 'export'
+export type { FinancialYearStatus };
 export default useFinancialYears;
