@@ -85,6 +85,7 @@ function App() {
             
             <Route path="/" element={<AppLayout />}>
               <Route path="dashboard" element={<Dashboard />} />
+              <Route path="home" element={<Dashboard />} />
               <Route path="inventory" element={<Inventory />} />
               <Route path="categories" element={<Categories />} />
               <Route path="purchase-orders" element={<PurchaseOrders />} />
@@ -92,6 +93,8 @@ function App() {
               <Route path="stock-transfers" element={<StockTransfers />} />
               <Route path="stock-adjustments" element={<StockAdjustments />} />
               <Route path="pos/sales" element={<POSSales />} />
+              <Route path="pos-sales" element={<POSSales />} />
+              <Route path="register" element={<POSRegister />} />
               <Route path="pos/register" element={<POSRegister />} />
               <Route path="settings" element={<Settings />} />
               <Route path="contacts" element={<Contacts />} />

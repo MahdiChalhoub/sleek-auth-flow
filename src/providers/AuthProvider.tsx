@@ -152,11 +152,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = async (): Promise<void> => { // Changed to async function returning Promise<void>
+  const logout = async (): Promise<void> => {
     clearAuthStorage();
     setUser(null);
     navigate("/login");
-    return Promise.resolve(); // Added to return a Promise
+    return Promise.resolve();
   };
 
   const hasPermission = (permissionName: string): boolean => {
