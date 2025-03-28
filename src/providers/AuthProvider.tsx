@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "@/contexts/AuthContext";
@@ -26,7 +25,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     switchBusiness
   } = useBusinessSelection(user);
 
-  // Check for existing session when the component mounts
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -47,7 +45,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
           } catch (e) {
             console.error("Failed to parse user data", e);
-            // Clear corrupted storage data
             storage.removeItem("pos_user");
             storage.removeItem("pos_current_business");
           }
@@ -64,7 +61,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkSession();
   }, [initializeBusinessSelection]);
 
-  // Handle automatic redirects based on authentication status
   useEffect(() => {
     if (!isLoading && user && location.pathname === "/login") {
       const redirectPath = localStorage.getItem("intended_redirect") || getRoleDefaultPage(user.role);
@@ -89,13 +85,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Please select a business to continue");
       }
 
-      // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
       let role: UserRole = "cashier";
       let isGlobalAdmin = false;
       
-      // For demo accounts, determine role based on email
       if (email.includes("admin")) {
         role = "admin";
         isGlobalAdmin = true;
@@ -103,35 +97,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role = "manager";
       }
       
-      // Create mock user with given email
       const mockUser = generateMockUser(email, role, isGlobalAdmin);
       
-      // Get permissions for the user's role
       const permissions = getMockPermissions(role);
       
-      // Add permissions to user object
       const userWithPermissions: User = {
         ...mockUser,
         permissions
       };
       
-      // Check if user has access to the selected business
       if (!checkBusinessAccess(mockUser.id, businessId)) {
         throw new Error("Access denied: You do not have permission to access the selected business");
       }
       
       console.log("Login successful:", userWithPermissions.email);
       
-      // Update state with authenticated user
       setUser(userWithPermissions);
       
-      // Store authentication data based on remember me preference
       setAuthStorage(userWithPermissions, businessId, rememberMe);
       
-      // Initialize business selection
       initializeBusinessSelection(userWithPermissions, businessId);
       
-      // Get redirect path or fallback to role-specific default page
       const redirectPath = localStorage.getItem("intended_redirect") || getRoleDefaultPage(userWithPermissions.role);
       localStorage.removeItem("intended_redirect");
       

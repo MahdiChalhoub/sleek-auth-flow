@@ -28,8 +28,8 @@ export interface AuthContextType {
   currentBusiness: Business | null;
   userBusinesses: Business[];
   login: (email: string, password: string, businessId: string, rememberMe?: boolean) => Promise<void>;
-  logout: () => void;
-  signIn?: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  signIn?: (email: string, password: string, businessId: string, rememberMe?: boolean) => Promise<void>;
   signUp?: (email: string, password: string, name: string) => Promise<void>;
   signOut?: () => Promise<void>;
   error?: string | null;
