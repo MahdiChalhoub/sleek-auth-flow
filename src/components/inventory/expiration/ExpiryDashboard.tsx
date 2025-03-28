@@ -8,6 +8,11 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { mapDbProductBatchToModel, ProductBatch } from '@/models/productBatch';
 
+// Define interfaces for RPC parameters and returns to fix type issues
+interface CheckTableExistsParams {
+  table_name: string;
+}
+
 interface ExpiryDashboardProps {
   // Define any props here
 }
@@ -20,9 +25,11 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
     const loadBatches = async () => {
       setIsLoading(true);
       try {
-        // Use RPC to check if table exists instead of direct query
+        // Use RPC to check if table exists instead of direct query with proper type
         const { data, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', { table_name: 'product_batches' } as any);
+          .rpc<boolean, CheckTableExistsParams>('check_table_exists', { 
+            table_name: 'product_batches' 
+          });
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -52,8 +59,8 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
   // Update the fetchBatches function to use the RPC
   const fetchBatches = async (): Promise<ProductBatch[]> => {
     try {
-      // Use custom RPC function to get all batches
-      const { data, error } = await supabase.rpc('get_all_product_batches' as any);
+      // Use custom RPC function to get all batches with proper type annotation
+      const { data, error } = await supabase.rpc<any[]>('get_all_product_batches');
       
       if (error) {
         throw error;
@@ -63,6 +70,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
         return [];
       }
       
+      // Add explicit check for array before mapping
       return Array.isArray(data) ? data.map(mapDbProductBatchToModel) : [];
     } catch (error) {
       console.error('Error fetching product batches:', error);

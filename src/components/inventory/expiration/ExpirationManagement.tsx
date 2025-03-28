@@ -17,6 +17,23 @@ interface ExpirationManagementProps {
   onUpdate: (updatedProduct: Product) => void;
 }
 
+// Define interfaces for RPC parameters and returns to fix type issues
+interface CheckTableExistsParams {
+  table_name: string;
+}
+
+interface GetProductBatchesParams {
+  product_id_param: string;
+}
+
+interface InsertProductBatchParams {
+  batch: Record<string, any>;
+}
+
+interface DeleteProductBatchParams {
+  batch_id: string;
+}
+
 const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, onUpdate }) => {
   const [activeTab, setActiveTab] = useState<'view' | 'add'>('view');
   const [batches, setBatches] = useState<ProductBatch[]>(product.batches || []);
@@ -25,9 +42,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   useEffect(() => {
     const checkTableAndFetchBatches = async () => {
       try {
-        // Check if product_batches table exists using custom RPC
+        // Check if product_batches table exists using custom RPC with proper type
         const { data, error: checkError } = await supabase
-          .rpc('check_table_exists', { table_name: 'product_batches' } as any);
+          .rpc<boolean, CheckTableExistsParams>('check_table_exists', { 
+            table_name: 'product_batches' 
+          });
         
         if (checkError) {
           console.error("Error checking if table exists:", checkError);
@@ -42,9 +61,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
           return;
         }
         
-        // Fetch batches if table exists
+        // Fetch batches if table exists with proper type
         const { data: batchesData, error } = await supabase
-          .rpc('get_product_batches', { product_id_param: product.id } as any);
+          .rpc<any[], GetProductBatchesParams>('get_product_batches', { 
+            product_id_param: product.id 
+          });
         
         if (error) {
           console.error("Error fetching batches:", error);
@@ -52,6 +73,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
           return;
         }
         
+        // Check if batchesData is an array before mapping
         const mappedBatches = batchesData && Array.isArray(batchesData) 
           ? batchesData.map(mapDbProductBatchToModel) 
           : [];
@@ -76,9 +98,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
       // Convert the model to database format for insertion
       const dbBatch = mapModelProductBatchToDb(newBatch);
       
-      // Insert the batch using the RPC function
+      // Insert the batch using the RPC function with proper type
       const { data, error } = await supabase
-        .rpc('insert_product_batch', { batch: dbBatch } as any);
+        .rpc<any, InsertProductBatchParams>('insert_product_batch', { 
+          batch: dbBatch 
+        });
       
       if (error) throw error;
       
@@ -120,9 +144,11 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
     }
     
     try {
-      // Delete the batch using RPC
+      // Delete the batch using RPC with proper type
       const { data: success, error } = await supabase
-        .rpc('delete_product_batch', { batch_id: batchId } as any);
+        .rpc<boolean, DeleteProductBatchParams>('delete_product_batch', { 
+          batch_id: batchId 
+        });
       
       if (error) throw error;
       

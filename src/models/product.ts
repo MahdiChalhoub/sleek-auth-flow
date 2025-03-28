@@ -1,7 +1,14 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { ProductBatch, mapDbProductBatchToModel } from './productBatch';
 import { supabase } from '@/lib/supabase';
+
+interface CheckTableExistsParams {
+  table_name: string;
+}
+
+interface GetProductBatchesParams {
+  product_id_param: string;
+}
 
 export interface ComboComponent {
   id: string;
@@ -140,10 +147,9 @@ export const productsService = {
   
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
-      // Use RPC to check if the table exists
-      const { data, error: checkError } = await supabase.rpc('check_table_exists', { 
+      const { data, error: checkError } = await supabase.rpc<boolean, CheckTableExistsParams>('check_table_exists', { 
         table_name: 'product_batches' 
-      } as any);
+      });
       
       if (checkError) {
         console.error("Error checking if table exists:", checkError);
@@ -155,17 +161,18 @@ export const productsService = {
         return [];
       }
       
-      // Use RPC to fetch batches when we know the table exists
-      const { data: batchesData, error } = await supabase.rpc('get_product_batches', { 
+      const { data: batchesData, error } = await supabase.rpc<any[], GetProductBatchesParams>('get_product_batches', { 
         product_id_param: productId 
-      } as any);
+      });
       
       if (error) {
         console.error(`Error calling get_product_batches RPC:`, error);
         throw error;
       }
       
-      return batchesData && Array.isArray(batchesData) ? batchesData.map(mapDbProductBatchToModel) : [];
+      return (batchesData && Array.isArray(batchesData)) 
+        ? batchesData.map(mapDbProductBatchToModel) 
+        : [];
     } catch (error) {
       console.error(`Error fetching batches for product ${productId}:`, error);
       return [];
