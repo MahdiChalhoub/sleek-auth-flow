@@ -27,12 +27,14 @@ export const useClientsData = () => {
           email: client.email || '',
           phone: client.phone || '',
           address: client.address || '',
+          type: 'regular', // Default type
+          status: 'active', // Default status
           loyaltyPoints: client.loyalty_points || 0,
           createdAt: client.created_at,
           updatedAt: client.updated_at
         }));
         
-        setClients(transformedClients);
+        setClients(transformedClients as Client[]);
       } else {
         // Fallback to mock API if Supabase fails
         const clientsData = await clientsApi.getAll();

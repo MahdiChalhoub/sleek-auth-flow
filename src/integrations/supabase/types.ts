@@ -108,11 +108,51 @@ export type Database = {
           },
         ]
       }
+      financial_years: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string | null
+          created_by: string
+          end_date: string
+          id: string
+          name: string
+          start_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string | null
+          created_by: string
+          end_date: string
+          id?: string
+          name: string
+          start_date: string
+          status: string
+          updated_at?: string | null
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string | null
+          created_by?: string
+          end_date?: string
+          id?: string
+          name?: string
+          start_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       journal_entries: {
         Row: {
           account: string
           amount: number
           created_at: string | null
+          financial_year_id: string | null
           id: string
           transaction_id: string
           type: string
@@ -122,6 +162,7 @@ export type Database = {
           account: string
           amount: number
           created_at?: string | null
+          financial_year_id?: string | null
           id?: string
           transaction_id: string
           type: string
@@ -131,12 +172,20 @@ export type Database = {
           account?: string
           amount?: number
           created_at?: string | null
+          financial_year_id?: string | null
           id?: string
           transaction_id?: string
           type?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "journal_entries_financial_year_id_fkey"
+            columns: ["financial_year_id"]
+            isOneToOne: false
+            referencedRelation: "financial_years"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "journal_entries_transaction_id_fkey"
             columns: ["transaction_id"]
@@ -814,6 +863,7 @@ export type Database = {
         Row: {
           amount: number
           created_at: string | null
+          financial_year_id: string | null
           id: string
           location_id: string | null
           notes: string | null
@@ -826,6 +876,7 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string | null
+          financial_year_id?: string | null
           id?: string
           location_id?: string | null
           notes?: string | null
@@ -838,6 +889,7 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string | null
+          financial_year_id?: string | null
           id?: string
           location_id?: string | null
           notes?: string | null
@@ -848,6 +900,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "transactions_financial_year_id_fkey"
+            columns: ["financial_year_id"]
+            isOneToOne: false
+            referencedRelation: "financial_years"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "transactions_location_id_fkey"
             columns: ["location_id"]
