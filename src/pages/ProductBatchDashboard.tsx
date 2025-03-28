@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Search, Filter, Calendar, AlertTriangle } from 'lucide-react';
 import { format, parseISO, isAfter, addDays, isBefore } from 'date-fns';
-import { ProductBatch } from '@/models/productBatch';
+import { ProductBatch, mapDbProductBatchToModel } from '@/models/productBatch';
 import { Product, productsService } from '@/models/product';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
@@ -31,11 +30,10 @@ const ProductBatchDashboard = () => {
       setIsLoading(true);
       try {
         // First check if the product_batches table exists
-        type CheckTableParams = { table_name: string };
         const { data: tableExists, error: checkError } = await supabase
-          .rpc<boolean, CheckTableParams>('check_table_exists', { 
+          .rpc('check_table_exists', { 
             table_name: 'product_batches' 
-          });
+          } as { table_name: string });
           
         if (checkError) {
           console.error('Error checking table:', checkError);
@@ -51,9 +49,8 @@ const ProductBatchDashboard = () => {
         }
 
         // Load batches
-        type GetAllBatchesParams = Record<string, never>;
         const { data: batchesData, error: batchesError } = await supabase
-          .rpc<any[], GetAllBatchesParams>('get_all_product_batches', {});
+          .rpc('get_all_product_batches', {});
         
         if (batchesError) {
           console.error('Error loading batches:', batchesError);
@@ -67,7 +64,7 @@ const ProductBatchDashboard = () => {
         setProducts(allProducts);
         
         // Map the batches data and set state
-        const mappedBatches = Array.isArray(batchesData) 
+        const mappedBatches = batchesData && Array.isArray(batchesData) 
           ? batchesData.map(batch => ({
               ...batch,
               id: batch.id,

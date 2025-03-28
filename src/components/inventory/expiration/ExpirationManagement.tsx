@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,11 +24,10 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   useEffect(() => {
     const checkTableAndFetchBatches = async () => {
       try {
-        type CheckTableParams = { table_name: string };
         const { data, error: checkError } = await supabase
-          .rpc<boolean, CheckTableParams>('check_table_exists', { 
+          .rpc('check_table_exists', { 
             table_name: 'product_batches' 
-          });
+          } as { table_name: string });
         
         if (checkError) {
           console.error("Error checking if table exists:", checkError);
@@ -44,11 +42,10 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
           return;
         }
         
-        type GetBatchesParams = { product_id_param: string };
         const { data: batchesData, error } = await supabase
-          .rpc<any[], GetBatchesParams>('get_product_batches', { 
+          .rpc('get_product_batches', { 
             product_id_param: product.id 
-          });
+          } as { product_id_param: string });
         
         if (error) {
           console.error("Error fetching batches:", error);
@@ -81,11 +78,10 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
       // Convert the model to database format for insertion
       const dbBatch = mapModelProductBatchToDb(newBatch);
       
-      type InsertBatchParams = { batch: any };
       const { data, error } = await supabase
-        .rpc<any, InsertBatchParams>('insert_product_batch', { 
+        .rpc('insert_product_batch', { 
           batch: dbBatch 
-        });
+        } as { batch: any });
       
       if (error) throw error;
       
@@ -127,11 +123,10 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
     }
     
     try {
-      type DeleteBatchParams = { batch_id: string };
       const { data: success, error } = await supabase
-        .rpc<boolean, DeleteBatchParams>('delete_product_batch', { 
+        .rpc('delete_product_batch', { 
           batch_id: batchId 
-        });
+        } as { batch_id: string });
       
       if (error) throw error;
       
