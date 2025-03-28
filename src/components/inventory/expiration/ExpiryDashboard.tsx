@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { mapDbProductBatchToModel, ProductBatch } from '@/models/productBatch';
 
-// Define interfaces for RPC parameters and returns to fix type issues
+// Define interfaces for RPC parameters and returns to properly type the calls
 interface CheckTableExistsParams {
   table_name: string;
 }
@@ -25,9 +25,9 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
     const loadBatches = async () => {
       setIsLoading(true);
       try {
-        // Use RPC to check if table exists instead of direct query with proper type
+        // Fix the RPC call by using proper generics
         const { data, error: tableCheckError } = await supabase
-          .rpc<boolean, CheckTableExistsParams>('check_table_exists', { 
+          .rpc<boolean>('check_table_exists', { 
             table_name: 'product_batches' 
           });
         
@@ -56,11 +56,11 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
     loadBatches();
   }, []);
 
-  // Update the fetchBatches function to use the RPC
+  // Update the fetchBatches function with proper typing
   const fetchBatches = async (): Promise<ProductBatch[]> => {
     try {
-      // Use custom RPC function to get all batches with proper type annotation
-      const { data, error } = await supabase.rpc<any[]>('get_all_product_batches');
+      // Fix typing by using a generic for the return type only
+      const { data, error } = await supabase.rpc('get_all_product_batches');
       
       if (error) {
         throw error;

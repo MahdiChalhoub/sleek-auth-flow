@@ -17,7 +17,7 @@ interface ExpirationManagementProps {
   onUpdate: (updatedProduct: Product) => void;
 }
 
-// Define interfaces for RPC parameters and returns to fix type issues
+// Define interfaces for RPC parameters and returns
 interface CheckTableExistsParams {
   table_name: string;
 }
@@ -42,9 +42,9 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   useEffect(() => {
     const checkTableAndFetchBatches = async () => {
       try {
-        // Check if product_batches table exists using custom RPC with proper type
+        // Use proper typing for the RPC call
         const { data, error: checkError } = await supabase
-          .rpc<boolean, CheckTableExistsParams>('check_table_exists', { 
+          .rpc<boolean>('check_table_exists', { 
             table_name: 'product_batches' 
           });
         
@@ -61,9 +61,9 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
           return;
         }
         
-        // Fetch batches if table exists with proper type
+        // Fix typing for the get_product_batches RPC call
         const { data: batchesData, error } = await supabase
-          .rpc<any[], GetProductBatchesParams>('get_product_batches', { 
+          .rpc('get_product_batches', { 
             product_id_param: product.id 
           });
         
@@ -98,9 +98,9 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
       // Convert the model to database format for insertion
       const dbBatch = mapModelProductBatchToDb(newBatch);
       
-      // Insert the batch using the RPC function with proper type
+      // Fix typing for the insert_product_batch RPC call
       const { data, error } = await supabase
-        .rpc<any, InsertProductBatchParams>('insert_product_batch', { 
+        .rpc('insert_product_batch', { 
           batch: dbBatch 
         });
       
@@ -144,9 +144,9 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
     }
     
     try {
-      // Delete the batch using RPC with proper type
+      // Fix typing for the delete_product_batch RPC call
       const { data: success, error } = await supabase
-        .rpc<boolean, DeleteProductBatchParams>('delete_product_batch', { 
+        .rpc<boolean>('delete_product_batch', { 
           batch_id: batchId 
         });
       

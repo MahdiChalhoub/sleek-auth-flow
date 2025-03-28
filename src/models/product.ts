@@ -1,7 +1,9 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { ProductBatch, mapDbProductBatchToModel } from './productBatch';
 import { supabase } from '@/lib/supabase';
 
+// Define interfaces for RPC parameters to fix type issues
 interface CheckTableExistsParams {
   table_name: string;
 }
@@ -147,7 +149,8 @@ export const productsService = {
   
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
-      const { data, error: checkError } = await supabase.rpc<boolean, CheckTableExistsParams>('check_table_exists', { 
+      // Fix the RPC call typing by only specifying return type where needed
+      const { data, error: checkError } = await supabase.rpc<boolean>('check_table_exists', { 
         table_name: 'product_batches' 
       });
       
@@ -161,7 +164,8 @@ export const productsService = {
         return [];
       }
       
-      const { data: batchesData, error } = await supabase.rpc<any[], GetProductBatchesParams>('get_product_batches', { 
+      // Update the RPC call to use the right format
+      const { data: batchesData, error } = await supabase.rpc('get_product_batches', { 
         product_id_param: productId 
       });
       
