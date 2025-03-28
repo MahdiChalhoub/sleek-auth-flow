@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Client } from '@/models/client';
 import { ClientTransaction } from '@/models/clientTransaction';
@@ -10,11 +9,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { ClientInfoCard } from './ClientInfoCard';
 import { ClientFinancialCard } from './ClientFinancialCard';
 import { ClientTransactionsTable } from './ClientTransactionsTable';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, CreditCard, AlertCircle } from 'lucide-react';
 import { clientsApi } from '@/api/clientsApi';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 
 interface ClientProfileViewProps {
   client: Client;
@@ -389,7 +390,3 @@ export const ClientProfileView: React.FC<ClientProfileViewProps> = ({
     </div>
   );
 };
-
-// Helper imports for credit sales table
-import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
-import { formatDate } from '@/lib/utils';
