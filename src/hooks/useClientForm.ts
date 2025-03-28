@@ -66,11 +66,11 @@ export const useClientForm = () => {
               address: data.address || '',
               city: data.city || '',
               country: data.country || '',
-              type: data.type,
+              type: data.type as 'regular' | 'vip' | 'credit' | 'wholesale',
               notes: data.notes || '',
-              status: data.status,
+              status: data.status as 'active' | 'inactive',
               tags: data.tags || [],
-              creditLimit: data.creditLimit,
+              creditLimit: data.credit_limit,
             });
           }
         })

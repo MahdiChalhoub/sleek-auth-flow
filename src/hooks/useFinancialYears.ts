@@ -1,82 +1,161 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { FinancialYear, FinancialYearFormData, FinancialYearStatus } from '@/models/interfaces/financialYearInterfaces';
+import { useAuth } from '@/providers/AuthProvider';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
+
+export type FinancialYearStatus = 'open' | 'closed';
+
+export interface FinancialYear {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  status: FinancialYearStatus;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  closedBy?: string;
+  closedAt?: string;
+}
 
 export const useFinancialYears = () => {
   const [financialYears, setFinancialYears] = useState<FinancialYear[]>([]);
-  const [currentFinancialYear, setCurrentFinancialYear] = useState<FinancialYear | null>(null);
+  const [activeYear, setActiveYear] = useState<FinancialYear | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
   const fetchFinancialYears = async () => {
-    setIsLoading(true);
-    setError(null);
-
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('financial_years')
         .select('*')
-        .order('startDate', { ascending: false });
+        .order('start_date', { ascending: false });
 
       if (error) throw error;
 
-      // Set the financial years
-      setFinancialYears(data || []);
+      // Map the database response to our FinancialYear interface
+      const transformedData: FinancialYear[] = data.map(item => ({
+        id: item.id,
+        name: item.name,
+        startDate: item.start_date,
+        endDate: item.end_date,
+        status: item.status as FinancialYearStatus,
+        createdBy: item.created_by,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at,
+        closedBy: item.closed_by,
+        closedAt: item.closed_at
+      }));
 
-      // Find current financial year (year with status open that includes today's date)
-      const today = new Date().toISOString().split('T')[0];
-      const current = data?.find(year => 
-        year.status === 'open' && 
-        year.startDate <= today && 
-        year.endDate >= today
-      );
+      setFinancialYears(transformedData);
 
-      setCurrentFinancialYear(current || null);
-    } catch (err) {
-      console.error('Error fetching financial years:', err);
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      // Set the active financial year (first open one or the most recent one)
+      const openYear = transformedData.find(y => y.status === 'open');
+      setActiveYear(openYear || (transformedData.length > 0 ? transformedData[0] : null));
+    } catch (error) {
+      console.error('Error fetching financial years:', error);
+      toast.error('Failed to load financial years');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const createFinancialYear = async (yearData: FinancialYearFormData) => {
+  const createFinancialYear = async (yearData: Omit<FinancialYear, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      // Check for overlapping financial years
-      const { data: overlapping } = await supabase
-        .from('financial_years')
-        .select('*')
-        .or(`startDate.lte.${yearData.endDate},endDate.gte.${yearData.startDate}`);
-
-      if (overlapping && overlapping.length > 0) {
-        toast.error('Cannot create overlapping financial years');
-        return false;
-      }
-
       const { data, error } = await supabase
         .from('financial_years')
         .insert([{
           name: yearData.name,
-          startDate: yearData.startDate,
-          endDate: yearData.endDate,
+          start_date: yearData.startDate,
+          end_date: yearData.endDate,
           status: yearData.status,
-          createdBy: user?.id || 'system',
+          created_by: yearData.createdBy
         }])
         .select()
         .single();
 
       if (error) throw error;
+
+      // Map the database response to our FinancialYear interface
+      const newYear: FinancialYear = {
+        id: data.id,
+        name: data.name,
+        startDate: data.start_date,
+        endDate: data.end_date,
+        status: data.status as FinancialYearStatus,
+        createdBy: data.created_by,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        closedBy: data.closed_by,
+        closedAt: data.closed_at
+      };
+
+      // Update the local state
+      setFinancialYears(prev => [newYear, ...prev]);
       
+      // If this is the first year or it's open, set it as active
+      if (financialYears.length === 0 || newYear.status === 'open') {
+        setActiveYear(newYear);
+      }
+
       toast.success('Financial year created successfully');
+      return newYear;
+    } catch (error) {
+      console.error('Error creating financial year:', error);
+      toast.error('Failed to create financial year');
+      throw error;
+    }
+  };
+
+  const closeFinancialYear = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('financial_years')
+        .update({ status: 'closed', closedBy: user?.id || 'system', closedAt: new Date().toISOString() })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Get the updated year for the toast message
+      const { data: updatedYear } = await supabase
+        .from('financial_years')
+        .select('name')
+        .eq('id', id)
+        .single();
+      
+      toast.success(`Financial year ${updatedYear?.name} closed successfully`);
       fetchFinancialYears();
       return true;
     } catch (err) {
-      console.error('Error creating financial year:', err);
-      toast.error(err instanceof Error ? err.message : 'Failed to create financial year');
+      console.error('Error closing financial year:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to close financial year');
+      return false;
+    }
+  };
+
+  const reopenFinancialYear = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('financial_years')
+        .update({ status: 'open' })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Get the updated year for the toast message
+      const { data: updatedYear } = await supabase
+        .from('financial_years')
+        .select('name')
+        .eq('id', id)
+        .single();
+      
+      toast.success(`Financial year ${updatedYear?.name} reopened successfully`);
+      fetchFinancialYears();
+      return true;
+    } catch (err) {
+      console.error('Error reopening financial year:', err);
+      toast.error(err instanceof Error ? err.message : 'Failed to reopen financial year');
       return false;
     }
   };
@@ -121,11 +200,12 @@ export const useFinancialYears = () => {
 
   return {
     financialYears,
-    currentFinancialYear,
+    activeYear,
     isLoading,
-    error,
+    fetchFinancialYears,
     createFinancialYear,
-    updateFinancialYearStatus,
-    refreshFinancialYears: fetchFinancialYears
+    closeFinancialYear,
+    reopenFinancialYear,
+    updateFinancialYearStatus
   };
 };

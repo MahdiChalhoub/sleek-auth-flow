@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Client } from "@/models/client";
-import { Client as ClientModel } from "@/models/clientModel";
 
 // Create mock clients here directly instead of importing them
 const mockClients: Client[] = [
@@ -24,8 +22,8 @@ const mockClients: Client[] = [
     type: "regular",
     status: "active",
     isVip: false,
-    creditLimit: 1000,
-    outstandingBalance: 250,
+    credit_limit: 1000,
+    outstanding_balance: 250,
     lastVisit: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
     createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date().toISOString()
@@ -39,8 +37,8 @@ const mockClients: Client[] = [
     type: "vip",
     status: "active",
     isVip: true,
-    creditLimit: 5000,
-    outstandingBalance: 750,
+    credit_limit: 5000,
+    outstanding_balance: 750,
     lastVisit: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
     createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date().toISOString()
@@ -54,8 +52,8 @@ const mockClients: Client[] = [
     type: "credit",
     status: "active",
     isVip: false,
-    creditLimit: 3000,
-    outstandingBalance: 3000, // Credit limit reached
+    credit_limit: 3000,
+    outstanding_balance: 3000, // Credit limit reached
     lastVisit: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days ago
     createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date().toISOString()
@@ -69,8 +67,8 @@ const mockClients: Client[] = [
     type: "wholesale",
     status: "active",
     isVip: true,
-    creditLimit: 10000,
-    outstandingBalance: 2500,
+    credit_limit: 10000,
+    outstanding_balance: 2500,
     lastVisit: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
     createdAt: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date().toISOString()
@@ -139,14 +137,14 @@ const ClientItem = ({ client, onSelect, isBlocked }: {
             </div>
           )}
         </div>
-        {client.creditLimit !== undefined && (
+        {client.credit_limit !== undefined && (
           <div className="text-right text-xs">
             <div className="flex items-center justify-end gap-1">
               <CreditCard className="h-3 w-3" />
-              <span>${client.creditLimit}</span>
+              <span>${client.credit_limit}</span>
             </div>
             <p className="text-muted-foreground">
-              Balance: ${client.outstandingBalance || 0}
+              Balance: ${client.outstanding_balance || 0}
             </p>
             {isBlocked && (
               <p className="text-red-500 text-xs">Account blocked</p>
@@ -304,9 +302,9 @@ const ClientList = ({
   
   // Check if client is blocked
   const isClientBlocked = (client: Client) => {
-    return client.creditLimit !== undefined && 
-           client.outstandingBalance !== undefined &&
-           client.outstandingBalance >= client.creditLimit;
+    return client.credit_limit !== undefined && 
+           client.outstanding_balance !== undefined &&
+           client.outstanding_balance >= client.credit_limit;
   };
   
   return (

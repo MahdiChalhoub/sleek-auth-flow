@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Client } from '@/models/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,10 +10,10 @@ interface ClientFinancialCardProps {
 
 export const ClientFinancialCard: React.FC<ClientFinancialCardProps> = ({ client }) => {
   // Get financial data from client
-  const totalDue = client.financialAccount?.totalDue || 0;
+  const totalDue = client.financialAccount?.totalDue || client.outstanding_balance || 0;
   const totalPaid = client.financialAccount?.totalPaid || 0;
-  const availableCredit = client.financialAccount?.availableCredit || 0;
-  const creditLimit = client.creditLimit || 0;
+  const availableCredit = client.financialAccount?.availableCredit || client.loyaltyPoints || 0;
+  const creditLimit = client.credit_limit || 0;
 
   // Calculate credit utilization percentage
   const creditUtilization = creditLimit > 0 ? (totalDue / creditLimit) * 100 : 0;

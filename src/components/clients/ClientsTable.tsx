@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Client } from '@/models/client';
 import { Badge } from '@/components/ui/badge';
@@ -93,7 +92,7 @@ export const ClientsTable: React.FC<ClientsTableProps> = ({
                 <TableCell>{getClientTypeBadge(client)}</TableCell>
                 <TableCell>{client.lastVisit ? formatDate(client.lastVisit) : 'Never'}</TableCell>
                 <TableCell className="text-right">
-                  {client.outstandingBalance ? formatCurrency(client.outstandingBalance) : '-'}
+                  {client.outstanding_balance ? formatCurrency(client.outstanding_balance) : '-'}
                 </TableCell>
                 <TableCell>
                   <Button variant="ghost" size="sm" onClick={() => onViewClient(client.id)}>
