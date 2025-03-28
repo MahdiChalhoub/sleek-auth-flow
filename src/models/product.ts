@@ -3,15 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { ProductBatch, mapDbProductBatchToModel } from './productBatch';
 import { supabase } from '@/lib/supabase';
 
-// Define interfaces for RPC parameters to fix type issues
-interface CheckTableExistsParams {
-  table_name: string;
-}
-
-interface GetProductBatchesParams {
-  product_id_param: string;
-}
-
 export interface ComboComponent {
   id: string;
   comboProductId: string;
@@ -149,10 +140,10 @@ export const productsService = {
   
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
-      // Remove type parameters for the RPC call
+      // Use type 'any' for parameters to avoid type errors
       const { data, error: checkError } = await supabase.rpc('check_table_exists', { 
         table_name: 'product_batches' 
-      });
+      } as any);
       
       if (checkError) {
         console.error("Error checking if table exists:", checkError);
@@ -164,18 +155,18 @@ export const productsService = {
         return [];
       }
       
-      // Remove type parameters for the RPC call
+      // Use type 'any' for parameters to avoid type errors
       const { data: batchesData, error } = await supabase.rpc('get_product_batches', { 
         product_id_param: productId 
-      });
+      } as any);
       
       if (error) {
         console.error(`Error calling get_product_batches RPC:`, error);
         throw error;
       }
       
-      // Add array check before mapping
-      return (batchesData && Array.isArray(batchesData)) 
+      // Ensure batchesData is not null and is an array before mapping
+      return batchesData && Array.isArray(batchesData) 
         ? batchesData.map(mapDbProductBatchToModel) 
         : [];
     } catch (error) {
