@@ -4,9 +4,11 @@ import { transactionsApi } from '@/api/database';
 import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useFinancialYears } from './useFinancialYears';
 
 export const useTransactions = () => {
   const queryClient = useQueryClient();
+  const { currentFinancialYear } = useFinancialYears();
   
   // Fetch all transactions from Supabase
   const { data: transactions = [], isLoading, error } = useQuery({
@@ -37,6 +39,7 @@ export const useTransactions = () => {
         referenceId: item.reference_id,
         referenceType: item.reference_type,
         type: item.type,
+        financialYearId: item.financial_year_id,
         journalEntries: (item.journal_entries || []).map(entry => ({
           id: entry.id,
           transactionId: entry.transaction_id,
@@ -45,15 +48,88 @@ export const useTransactions = () => {
           isDebit: entry.type === 'debit',
           description: '',
           createdAt: entry.created_at,
-          createdBy: "System"
+          createdBy: "System",
+          financialYearId: entry.financial_year_id
         })) as LedgerEntry[]
       })) as Transaction[];
+    }
+  });
+  
+  // Create transaction mutation
+  const createTransaction = useMutation({
+    mutationFn: async (transactionData: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
+      // If financial year is not provided, use the current financial year
+      const financialYearId = transactionData.financialYearId || currentFinancialYear?.id;
+      
+      if (!financialYearId) {
+        throw new Error('No active financial year. Cannot create transaction without a financial year.');
+      }
+      
+      // Check if the financial year is closed
+      const { data: yearData, error: yearError } = await supabase
+        .from('financial_years')
+        .select('status')
+        .eq('id', financialYearId)
+        .single();
+      
+      if (yearError) throw yearError;
+      
+      if (yearData.status === 'closed') {
+        throw new Error('Cannot create transaction in a closed financial year');
+      }
+      
+      // Create the transaction
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert([{
+          ...transactionData,
+          financial_year_id: financialYearId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Transaction created successfully');
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to create transaction: ${error.message}`);
     }
   });
   
   // Change transaction status mutation
   const changeStatus = useMutation({
     mutationFn: async ({ transactionId, newStatus }: { transactionId: string, newStatus: TransactionStatus }) => {
+      // Get the transaction to check its financial year
+      const { data: transaction, error: transactionError } = await supabase
+        .from('transactions')
+        .select('financial_year_id')
+        .eq('id', transactionId)
+        .single();
+      
+      if (transactionError) throw transactionError;
+      
+      // Check if the financial year is closed
+      if (transaction.financial_year_id) {
+        const { data: yearData, error: yearError } = await supabase
+          .from('financial_years')
+          .select('status')
+          .eq('id', transaction.financial_year_id)
+          .single();
+        
+        if (yearError) throw yearError;
+        
+        if (yearData.status === 'closed') {
+          throw new Error('Cannot modify transactions in a closed financial year');
+        }
+      }
+      
       const { data, error } = await supabase
         .from('transactions')
         .update({ status: newStatus, updated_at: new Date().toISOString() })
@@ -79,6 +155,30 @@ export const useTransactions = () => {
   // Delete transaction mutation
   const deleteTransaction = useMutation({
     mutationFn: async (transactionId: string) => {
+      // Get the transaction to check its financial year
+      const { data: transaction, error: transactionError } = await supabase
+        .from('transactions')
+        .select('financial_year_id')
+        .eq('id', transactionId)
+        .single();
+      
+      if (transactionError) throw transactionError;
+      
+      // Check if the financial year is closed
+      if (transaction.financial_year_id) {
+        const { data: yearData, error: yearError } = await supabase
+          .from('financial_years')
+          .select('status')
+          .eq('id', transaction.financial_year_id)
+          .single();
+        
+        if (yearError) throw yearError;
+        
+        if (yearData.status === 'closed') {
+          throw new Error('Cannot delete transactions in a closed financial year');
+        }
+      }
+      
       const { error } = await supabase
         .from('transactions')
         .delete()
@@ -97,11 +197,18 @@ export const useTransactions = () => {
     }
   });
   
+  // Filter transactions by financial year
+  const getTransactionsByFinancialYear = (financialYearId: string): Transaction[] => {
+    return transactions.filter(transaction => transaction.financialYearId === financialYearId);
+  };
+  
   return {
     transactions,
     isLoading,
     error,
+    createTransaction: createTransaction.mutate,
     changeStatus: changeStatus.mutate,
-    deleteTransaction: deleteTransaction.mutate
+    deleteTransaction: deleteTransaction.mutate,
+    getTransactionsByFinancialYear
   };
 };

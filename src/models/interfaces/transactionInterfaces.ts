@@ -12,6 +12,7 @@ export interface LedgerEntry {
   createdBy: string;
   reference?: string;
   metadata?: Record<string, any>;
+  financialYearId?: string; // Add reference to financial year
 }
 
 export interface JournalTransaction {
@@ -26,6 +27,7 @@ export interface JournalTransaction {
   verifiedAt?: string;
   notes?: string;
   reference?: string;
+  financialYearId?: string; // Add reference to financial year
 }
 
 export interface Transaction {
@@ -52,6 +54,7 @@ export interface Transaction {
   referenceType?: string;
   notes?: string;
   type?: string;
+  financialYearId?: string; // Add reference to financial year
 }
 
 export interface TransactionItem {

@@ -1,4 +1,3 @@
-
 export const ROUTES = {
   // Public routes
   LOGIN: '/login',
@@ -52,5 +51,8 @@ export const ROUTES = {
   USERS: '/users',
   SETTINGS: '/settings',
   NOTIFICATIONS: '/notifications',
-  BACKUP_RESTORE: '/backup-restore'
+  BACKUP_RESTORE: '/backup-restore',
+  
+  // Add new route
+  FINANCIAL_YEARS: '/financial-years'
 };

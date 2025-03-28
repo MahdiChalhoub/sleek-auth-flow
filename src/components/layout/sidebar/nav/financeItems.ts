@@ -1,5 +1,5 @@
 
-import { DollarSign, CreditCard, ReceiptText, Wallet, PiggyBank, FileText, BarChart3, BookOpen, FileSpreadsheet, Scale, CircleDollarSign } from "lucide-react";
+import { DollarSign, CreditCard, ReceiptText, Wallet, PiggyBank, FileText, BarChart3, BookOpen, FileSpreadsheet, Scale, CircleDollarSign, CalendarRange } from "lucide-react";
 import { NavItem } from "./index";
 
 export const financeItems: NavItem[] = [
@@ -57,6 +57,12 @@ export const financeItems: NavItem[] = [
         title: "Profit & Pertes",
         path: "/profit-loss",
         icon: Scale,
+        roles: ["admin", "manager"]
+      },
+      {
+        title: "Années Financières",
+        path: "/financial-years",
+        icon: CalendarRange,
         roles: ["admin", "manager"]
       }
     ]

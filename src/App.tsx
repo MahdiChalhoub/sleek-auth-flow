@@ -1,4 +1,3 @@
-
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -54,6 +53,7 @@ import TransactionPermissions from './pages/TransactionPermissions';
 import { ROUTES } from './constants/routes';
 import PrivateRoute from './components/auth/PrivateRoute';
 import ClientEditForm from './pages/ClientEditForm';
+import FinancialYearManagement from './pages/FinancialYearManagement';
 
 function App() {
   return (
@@ -91,6 +91,7 @@ function App() {
                 <Route path="/clients/:clientId" element={<ClientProfile />} />
                 <Route path="/clients/:clientId/edit" element={<ClientEditForm />} />
                 <Route path="/clients/new" element={<ClientEditForm />} />
+                <Route path="/financial-years" element={<FinancialYearManagement />} />
                 <Route path={ROUTES.EXPENSES} element={<Expenses />} />
                 <Route path={ROUTES.RETURNS} element={<Returns />} />
                 <Route path={ROUTES.TRANSACTIONS} element={<Transactions />} />
