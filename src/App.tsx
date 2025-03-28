@@ -21,6 +21,8 @@ import Categories from './pages/Categories';
 import StockAdjustments from './pages/StockAdjustments';
 import Units from './pages/Units';
 import Contacts from './pages/Contacts';
+import ClientsList from './pages/ClientsList';
+import ClientProfile from './pages/ClientProfile';
 import Expenses from './pages/Expenses';
 import Returns from './pages/Returns';
 import Transactions from './pages/Transactions';
@@ -85,6 +87,7 @@ function App() {
                 <Route path={ROUTES.STOCK_ADJUSTMENTS} element={<StockAdjustments />} />
                 <Route path={ROUTES.UNITS} element={<Units />} />
                 <Route path={ROUTES.CONTACTS} element={<Contacts />} />
+                <Route path="/clients" element={<ClientsList />} />
                 <Route path="/clients/:clientId" element={<ClientProfile />} />
                 <Route path={ROUTES.EXPENSES} element={<Expenses />} />
                 <Route path={ROUTES.RETURNS} element={<Returns />} />

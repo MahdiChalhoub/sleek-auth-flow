@@ -1,121 +1,115 @@
 
-import { useState, useEffect, useMemo } from "react";
-import { CategoryNode } from "@/components/inventory/CategoryTree";
-import { supabase } from "@/lib/supabase";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
-interface Category {
+export interface Category {
   id: string;
   name: string;
-  parent_id: string | null;
-  level?: number;
-  count?: number;
+  description?: string;
+  parentId?: string;
+  children?: Category[];
 }
 
-interface CategoryCount {
-  category_id: string;
-  count: string;
+export interface Product {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  categoryId?: string;
+  imageUrl?: string;
 }
 
 export const useCategoryTree = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      setIsLoading(true);
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
-        // Fetch categories from Supabase
-        const { data, error } = await supabase
+        // Fetch categories
+        const { data: categoriesData, error: categoriesError } = await supabase
           .from('categories')
-          .select('*')
-          .order('name');
-        
-        if (error) throw new Error(error.message);
-        
-        // Fetch product counts per category - fixed query
-        const { data: categoryCounts, error: countsError } = await supabase
+          .select('*');
+
+        if (categoriesError) throw categoriesError;
+
+        // Fetch products
+        const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('category_id, count(*)')
-          .group('category_id');
-          
-        if (countsError) throw new Error(countsError.message);
+          .select('*');
+
+        if (productsError) throw productsError;
+
+        // Process categories into a tree
+        const categoryTree = buildCategoryTree(categoriesData || []);
+        setCategories(categoryTree);
+
+        // Group products by category
+        const productsByCat: Record<string, Product[]> = {};
         
-        // Create a map of category ID to product count
-        const countMap = new Map();
-        (categoryCounts as CategoryCount[] || []).forEach((item) => {
-          countMap.set(item.category_id, parseInt(item.count));
+        // Instead of using the unsupported 'group' method, manually group products
+        (productsData || []).forEach((product: any) => {
+          const categoryId = product.category_id || 'uncategorized';
+          if (!productsByCat[categoryId]) {
+            productsByCat[categoryId] = [];
+          }
+          productsByCat[categoryId].push({
+            id: product.id,
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            categoryId: product.category_id,
+            imageUrl: product.image_url
+          });
         });
-        
-        // Add product count to each category
-        const categoriesWithCount = data?.map((category) => ({
-          ...category,
-          count: countMap.get(category.id) || 0,
-        })) || [];
-        
-        setCategories(categoriesWithCount);
+
+        setProductsByCategory(productsByCat);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-        console.error('Error fetching categories:', err);
-        // Use empty array to prevent UI crashes
-        setCategories([]);
+        console.error('Error fetching category data:', err);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
-    fetchCategories();
+    fetchData();
   }, []);
 
-  // Transform flat category list into a hierarchical tree structure
-  const categoryTree = useMemo(() => {
-    if (!categories.length) return [];
-    
-    const idMap: Record<string, CategoryNode> = {};
-    const root: CategoryNode[] = [];
-    
-    // First pass: create nodes
-    categories.forEach(category => {
-      idMap[category.id] = {
-        id: category.id,
-        name: category.name,
-        parentId: category.parent_id,
-        level: category.level || 0,
-        count: category.count,
+  // Helper function to build a category tree
+  const buildCategoryTree = (flatCategories: any[]): Category[] => {
+    const categoryMap: Record<string, Category> = {};
+    const rootCategories: Category[] = [];
+
+    // First pass: create all category objects with their IDs
+    flatCategories.forEach(cat => {
+      categoryMap[cat.id] = {
+        id: cat.id,
+        name: cat.name,
+        description: cat.description,
+        parentId: cat.parent_id,
         children: []
       };
     });
-    
-    // Second pass: create hierarchy
-    categories.forEach(category => {
-      const node = idMap[category.id];
-      
-      if (category.parent_id && idMap[category.parent_id]) {
-        // If the category has a parent and the parent exists, add it as a child
-        idMap[category.parent_id].children = idMap[category.parent_id].children || [];
-        idMap[category.parent_id].children?.push(node);
+
+    // Second pass: build the tree structure
+    flatCategories.forEach(cat => {
+      const category = categoryMap[cat.id];
+      if (cat.parent_id && categoryMap[cat.parent_id]) {
+        // This is a child category
+        categoryMap[cat.parent_id].children?.push(category);
       } else {
-        // If it doesn't have a parent, it's a root category
-        root.push(node);
+        // This is a root category
+        rootCategories.push(category);
       }
     });
-    
-    return root;
-  }, [categories]);
 
-  // Handle category selection
-  const selectCategory = (category: CategoryNode) => {
-    setSelectedCategoryId(category.id);
+    return rootCategories;
   };
 
-  return {
-    categoryTree,
-    isLoading,
-    error,
-    selectedCategoryId,
-    selectCategory,
-    setSelectedCategoryId,
-    flatCategories: categories
-  };
+  return { categories, productsByCategory, loading, error };
 };
