@@ -16,8 +16,6 @@ interface DashboardFiltersProps {
   setRegister: React.Dispatch<React.SetStateAction<string>>;
   product: string;
   setProduct: React.Dispatch<React.SetStateAction<string>>;
-  category: string;
-  setCategory: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
@@ -29,8 +27,6 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
   setRegister,
   product,
   setProduct,
-  category,
-  setCategory,
 }) => {
   return (
     <Card className="mb-6">
@@ -41,7 +37,7 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <p className="text-sm font-medium mb-2">Date Range</p>
             <DatePickerWithRange 
@@ -81,28 +77,12 @@ export const DashboardFilters: React.FC<DashboardFiltersProps> = ({
           </div>
           
           <div>
-            <p className="text-sm font-medium mb-2">Category</p>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="electronics">Electronics</SelectItem>
-                <SelectItem value="clothing">Clothing</SelectItem>
-                <SelectItem value="groceries">Groceries</SelectItem>
-                <SelectItem value="home">Home & Kitchen</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <p className="text-sm font-medium mb-2">Product</p>
+            <p className="text-sm font-medium mb-2">Product/Category</p>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search products..."
+                placeholder="Search products or categories..."
                 className="pl-8"
                 value={product}
                 onChange={(e) => setProduct(e.target.value)}

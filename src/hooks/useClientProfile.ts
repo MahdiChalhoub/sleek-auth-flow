@@ -1,19 +1,15 @@
 
 import { useState, useEffect } from 'react';
-import { Client } from '@/models/client';
-import { ClientTransaction } from '@/models/clientTransaction';
-import { clientsApi } from '@/api/clientsApi';
+import { Client, ClientTransaction } from '@/models/client';
+import { clientsApi } from '@/api/database';
 
 export const useClientProfile = (clientId?: string) => {
   const [client, setClient] = useState<Client | null>(null);
   const [transactions, setTransactions] = useState<ClientTransaction[] | null>(null);
-  const [creditSales, setCreditSales] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [areTransactionsLoading, setAreTransactionsLoading] = useState(true);
-  const [areCreditSalesLoading, setAreCreditSalesLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch client data
   useEffect(() => {
     const fetchClient = async () => {
       if (!clientId) {
@@ -39,7 +35,6 @@ export const useClientProfile = (clientId?: string) => {
     fetchClient();
   }, [clientId]);
 
-  // Fetch client transactions
   useEffect(() => {
     const fetchTransactions = async () => {
       if (!clientId) {
@@ -50,8 +45,51 @@ export const useClientProfile = (clientId?: string) => {
       setAreTransactionsLoading(true);
 
       try {
-        const transactionsData = await clientsApi.getClientTransactions(clientId);
-        setTransactions(transactionsData);
+        // For now, we'll use mock data since the API endpoint is not implemented
+        // In a real implementation, you would fetch from the API:
+        // const data = await clientsApi.getClientTransactions(clientId);
+        
+        // Mock transactions data
+        const mockTransactions: ClientTransaction[] = [
+          {
+            id: "1",
+            clientId: clientId,
+            type: "invoice",
+            referenceId: "INV-001",
+            date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+            amount: 250.00,
+            description: "Monthly subscription",
+            status: "completed",
+            createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: "2",
+            clientId: clientId,
+            type: "payment",
+            referenceId: "PMT-001",
+            date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+            amount: 250.00,
+            description: "Payment for INV-001",
+            status: "completed",
+            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: "3",
+            clientId: clientId,
+            type: "invoice",
+            referenceId: "INV-002",
+            date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            amount: 175.50,
+            description: "Additional services",
+            status: "pending",
+            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ];
+
+        setTransactions(mockTransactions);
       } catch (err) {
         console.error("Error fetching client transactions:", err);
       } finally {
@@ -62,63 +100,5 @@ export const useClientProfile = (clientId?: string) => {
     fetchTransactions();
   }, [clientId]);
 
-  // Fetch client credit sales
-  useEffect(() => {
-    const fetchCreditSales = async () => {
-      if (!clientId) {
-        setAreCreditSalesLoading(false);
-        return;
-      }
-
-      setAreCreditSalesLoading(true);
-
-      try {
-        const creditSalesData = await clientsApi.getClientCreditSales(clientId);
-        setCreditSales(creditSalesData);
-      } catch (err) {
-        console.error("Error fetching client credit sales:", err);
-      } finally {
-        setAreCreditSalesLoading(false);
-      }
-    };
-
-    fetchCreditSales();
-  }, [clientId]);
-
-  // Record a payment
-  const recordPayment = async (amount: number, description?: string) => {
-    if (!clientId || !client) return null;
-    
-    try {
-      const payment = await clientsApi.recordPayment(clientId, amount, description);
-      
-      // Update local state
-      setTransactions(prev => prev ? [payment, ...prev] : [payment]);
-      
-      // Update client balance
-      setClient(prev => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          outstandingBalance: (prev.outstandingBalance || 0) - amount
-        };
-      });
-      
-      return payment;
-    } catch (err) {
-      console.error("Error recording payment:", err);
-      throw err;
-    }
-  };
-
-  return { 
-    client, 
-    isLoading, 
-    error, 
-    transactions, 
-    areTransactionsLoading,
-    creditSales,
-    areCreditSalesLoading,
-    recordPayment
-  };
+  return { client, isLoading, error, transactions, areTransactionsLoading };
 };

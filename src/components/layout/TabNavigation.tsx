@@ -32,15 +32,6 @@ const TabNavigation: React.FC = () => {
       return;
     }
     
-    // Special case handling for redirects
-    if (location.pathname === '/contacts') {
-      const clientsTab = findTabByPath('/clients');
-      if (clientsTab) {
-        activateTab(clientsTab.id);
-        return;
-      }
-    }
-    
     // Find matching nav item for the current path
     const matchingNavItem = findMatchingNavItem(location.pathname);
     

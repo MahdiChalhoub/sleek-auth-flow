@@ -7,9 +7,3 @@ const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 // Create a single supabase client for interacting with your database
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Import the initialization function from setupDatabase module, don't call it here
-import { initializeDatabase as initDb } from '@/api/setupDatabase';
-
-// Export the function without circular dependency
-export const initializeDatabase = initDb;

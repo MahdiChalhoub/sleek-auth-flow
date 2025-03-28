@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { 
   SidebarMenuItem, 
@@ -10,7 +10,7 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useTabs } from "@/contexts/tabs"; 
+import { useTabs } from "@/contexts/tabs"; // Updated import path
 import { NavItem as NavItemType } from "../nav";
 
 interface NavItemProps {
@@ -20,16 +20,8 @@ interface NavItemProps {
 
 const NavItem: React.FC<NavItemProps> = ({ item, isActive }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { openTab, isTabOpen, findTabByPath, activateTab } = useTabs();
-  const [isGroupOpen, setIsGroupOpen] = useState(() => {
-    // Auto-expand the current section
-    if (item.children) {
-      return item.children.some(child => location.pathname === child.path || 
-        (child.path !== '/' && location.pathname.startsWith(child.path)));
-    }
-    return false;
-  });
+  const [isGroupOpen, setIsGroupOpen] = useState(false);
   
   const hasChildren = item.children && item.children.length > 0;
   const isCurrentActive = isActive(item.path) || 
@@ -41,7 +33,7 @@ const NavItem: React.FC<NavItemProps> = ({ item, isActive }) => {
       // Toggle the group open/closed
       setIsGroupOpen(!isGroupOpen);
     } else {
-      // Navigate to the path
+      // Check if tab is already open
       const existingTab = findTabByPath(item.path);
       if (existingTab) {
         // If tab exists, just activate it
@@ -54,9 +46,6 @@ const NavItem: React.FC<NavItemProps> = ({ item, isActive }) => {
           icon: item.icon
         });
       }
-      
-      // Also make sure to use the router to navigate
-      navigate(item.path);
     }
   };
   
@@ -94,7 +83,7 @@ const NavItem: React.FC<NavItemProps> = ({ item, isActive }) => {
           tooltip={item.title}
           onClick={handleNavigation}
         >
-          {Icon && <Icon className="h-5 w-5 mr-2" />}
+          {Icon && <Icon className="h-5 w-5" />}
           <span>{item.title}</span>
         </SidebarMenuButton>
       )}
@@ -110,7 +99,6 @@ interface SubNavItemsProps {
 }
 
 const SubNavItems: React.FC<SubNavItemsProps> = ({ items, isActive }) => {
-  const navigate = useNavigate();
   const { openTab, findTabByPath, activateTab } = useTabs();
 
   const handleNavigation = (item: NavItemType) => {
@@ -127,9 +115,6 @@ const SubNavItems: React.FC<SubNavItemsProps> = ({ items, isActive }) => {
         icon: item.icon
       });
     }
-    
-    // Use the router to navigate
-    navigate(item.path);
   };
 
   return (

@@ -13,12 +13,8 @@ import { Business } from "@/models/interfaces/businessInterfaces";
 
 // Define form schema with zod
 const formSchema = z.object({
-  email: z.string()
-    .min(1, { message: "Email is required" })
-    .email({ message: "Please enter a valid email address" }),
-  password: z.string()
-    .min(1, { message: "Password is required" })
-    .min(6, { message: "Password must be at least 6 characters" }),
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   businessId: z.string().min(1, { message: "Please select a business" }),
   rememberMe: z.boolean().default(true)
 });

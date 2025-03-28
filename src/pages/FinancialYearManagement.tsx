@@ -1,9 +1,10 @@
+
 import React, { useState } from "react";
 import { useFinancialYears } from "@/hooks/useFinancialYears";
 import { FinancialYearFormData, FinancialYearStatus } from "@/models/interfaces/financialYearInterfaces";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -74,7 +75,7 @@ const FinancialYearManagement: React.FC = () => {
 
   const confirmStatusChange = (id: string, name: string, newStatus: FinancialYearStatus) => {
     // Block non-admin users from reopening closed years
-    if (newStatus === 'open' && user?.role !== 'admin' && !user?.isAdmin) {
+    if (newStatus === 'open' && !user?.isAdmin) {
       toast.error("Only administrators can reopen a closed financial year");
       return;
     }
@@ -265,7 +266,7 @@ const FinancialYearManagement: React.FC = () => {
                             </Button>
                           </>
                         )}
-                        {year.status === 'closed' && (user?.role === 'admin' || user?.isAdmin) && (
+                        {year.status === 'closed' && user?.isAdmin && (
                           <Button 
                             variant="outline" 
                             size="sm"

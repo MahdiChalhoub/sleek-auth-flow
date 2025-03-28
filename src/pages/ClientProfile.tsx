@@ -1,48 +1,18 @@
 
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useParams } from 'react-router-dom';
 import { ClientProfileView } from '@/components/clients/ClientProfileView';
 import { useClientProfile } from '@/hooks/useClientProfile';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { clientsApi } from '@/api/clientsApi';
-import { useToast } from '@/hooks/use-toast';
 
 const ClientProfile = () => {
   const { clientId } = useParams<{ clientId: string }>();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
   const { 
     client, 
     isLoading, 
     error,
     transactions,
-    areTransactionsLoading,
-    creditSales,
-    areCreditSalesLoading,
-    recordPayment
+    areTransactionsLoading
   } = useClientProfile(clientId);
-
-  const handleDeleteClient = async () => {
-    if (!clientId) return;
-    
-    try {
-      await clientsApi.delete(clientId);
-      toast({
-        title: 'Client deleted',
-        description: 'The client has been successfully deleted'
-      });
-      navigate('/clients');
-    } catch (err) {
-      console.error('Error deleting client:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete client. Please try again.',
-        variant: 'destructive'
-      });
-    }
-  };
 
   if (isLoading) {
     return (
@@ -72,33 +42,11 @@ const ClientProfile = () => {
   }
 
   return (
-    <>
-      <ClientProfileView 
-        client={client}
-        transactions={transactions || []}
-        creditSales={creditSales || []}
-        areTransactionsLoading={areTransactionsLoading}
-        areCreditSalesLoading={areCreditSalesLoading}
-        onRecordPayment={recordPayment}
-        onDeleteClient={handleDeleteClient}
-      />
-      
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the client and all associated data.
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteClient}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    <ClientProfileView 
+      client={client}
+      transactions={transactions || []}
+      areTransactionsLoading={areTransactionsLoading}
+    />
   );
 };
 

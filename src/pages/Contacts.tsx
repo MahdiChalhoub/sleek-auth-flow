@@ -7,7 +7,7 @@ const Contacts = () => {
   
   useEffect(() => {
     // Redirect to the new Clients List page
-    navigate("/clients", { replace: true });
+    navigate("/clients");
   }, [navigate]);
   
   return (

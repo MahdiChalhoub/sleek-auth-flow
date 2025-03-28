@@ -1,4 +1,3 @@
-
 export const ROUTES = {
   // Public routes
   LOGIN: '/login',
@@ -8,8 +7,8 @@ export const ROUTES = {
   // Main navigation
   HOME: '/home',
   DASHBOARD: '/dashboard',
-  POS_SALES: '/pos/sales',
-  REGISTER: '/pos/register',
+  POS_SALES: '/pos-sales',
+  REGISTER: '/register',
   REGISTER_SESSIONS: '/register-sessions',
   
   // Inventory
@@ -38,7 +37,6 @@ export const ROUTES = {
   
   // Customers
   CONTACTS: '/contacts',
-  CLIENTS: '/clients',
   LOYALTY: '/loyalty',
   RETURNS: '/returns',
   
@@ -55,6 +53,6 @@ export const ROUTES = {
   NOTIFICATIONS: '/notifications',
   BACKUP_RESTORE: '/backup-restore',
   
-  // Additional routes
+  // Add new route
   FINANCIAL_YEARS: '/financial-years'
 };

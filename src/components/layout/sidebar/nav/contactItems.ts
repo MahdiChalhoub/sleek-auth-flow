@@ -5,9 +5,9 @@ import { NavItem } from "./index";
 export const contactItems: NavItem[] = [
   {
     title: "Clients",
-    path: "/clients",
+    path: "/contacts",
     icon: Contact,
-    roles: ["admin", "manager", "cashier"]
+    roles: ["admin", "manager"]
   },
   {
     title: "Fidélité",

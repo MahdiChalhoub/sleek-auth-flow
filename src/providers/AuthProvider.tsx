@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "@/contexts/AuthContext";
-import { User, UserRole } from "@/types/auth";
 import { toast } from "sonner";
+import { User } from "@/types/auth";
 import { useBusinessSelection } from "@/hooks/useBusinessSelection";
 import { getMockPermissions, getRoleDefaultPage } from "@/hooks/usePermissions";
 import { 
@@ -25,46 +26,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     switchBusiness
   } = useBusinessSelection(user);
 
+  // Check if user session exists
   useEffect(() => {
     const checkSession = async () => {
-      try {
-        const storageType = localStorage.getItem("auth_storage_type") || "local";
-        const storage = storageType === "local" ? localStorage : sessionStorage;
-        
-        const savedUser = storage.getItem("pos_user");
-        const savedBusinessId = storage.getItem("pos_current_business");
-        
-        if (savedUser) {
-          try {
-            const parsedUser = JSON.parse(savedUser);
-            console.log("Found saved user:", parsedUser ? parsedUser.email : null);
-            setUser(parsedUser);
-            
-            if (parsedUser) {
-              initializeBusinessSelection(parsedUser, savedBusinessId);
-            }
-          } catch (e) {
-            console.error("Failed to parse user data", e);
-            storage.removeItem("pos_user");
-            storage.removeItem("pos_current_business");
+      // Get the storage type (localStorage or sessionStorage) based on remember me setting
+      const storageType = localStorage.getItem("auth_storage_type") || "local";
+      const storage = storageType === "local" ? localStorage : sessionStorage;
+      
+      const savedUser = storage.getItem("pos_user");
+      const savedBusinessId = storage.getItem("pos_current_business");
+      
+      if (savedUser) {
+        try {
+          const parsedUser = JSON.parse(savedUser);
+          setUser(parsedUser);
+          
+          // Initialize business selection if user exists
+          if (parsedUser) {
+            initializeBusinessSelection(parsedUser, savedBusinessId);
           }
-        } else {
-          console.log("No saved user found in storage");
+        } catch (e) {
+          console.error("Failed to parse user data", e);
+          storage.removeItem("pos_user");
+          storage.removeItem("pos_current_business");
         }
-      } catch (e) {
-        console.error("Error checking session:", e);
-      } finally {
-        setIsLoading(false);
       }
+      
+      setIsLoading(false);
     };
     
     checkSession();
   }, [initializeBusinessSelection]);
 
+  // Only redirect on initial login, not on every render
   useEffect(() => {
     if (!isLoading && user && location.pathname === "/login") {
+      // Get the intended redirect path from localStorage or use default based on role
       const redirectPath = localStorage.getItem("intended_redirect") || getRoleDefaultPage(user.role);
-      localStorage.removeItem("intended_redirect");
+      localStorage.removeItem("intended_redirect"); // Clear the stored path
+      
       navigate(redirectPath);
     }
   }, [user, isLoading, navigate, location.pathname]);
@@ -73,21 +73,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      if (!email || email.trim() === "") {
-        throw new Error("Please enter your email");
-      }
-      
-      if (!password || password.trim() === "") {
-        throw new Error("Please enter your password");
-      }
-      
       if (!businessId || businessId.trim() === "") {
         throw new Error("Please select a business to continue");
       }
 
+      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      let role: UserRole = "cashier";
+      // Mock user data based on email
+      let role: User["role"] = "cashier";
       let isGlobalAdmin = false;
       
       if (email.includes("admin")) {
@@ -97,31 +91,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role = "manager";
       }
       
+      // Generate mock user
       const mockUser = generateMockUser(email, role, isGlobalAdmin);
       
+      // Generate mock permissions based on role
       const permissions = getMockPermissions(role);
       
-      const userWithPermissions: User = {
+      // Add permissions to the user
+      const userWithPermissions = {
         ...mockUser,
         permissions
       };
       
+      // Check if user has access to the selected business
       if (!checkBusinessAccess(mockUser.id, businessId)) {
         throw new Error("Access denied: You do not have permission to access the selected business");
       }
       
-      console.log("Login successful:", userWithPermissions.email);
-      
       setUser(userWithPermissions);
       
+      // Store auth data in appropriate storage
       setAuthStorage(userWithPermissions, businessId, rememberMe);
       
+      // Initialize business selection after user is set
       initializeBusinessSelection(userWithPermissions, businessId);
       
+      // Navigate to the appropriate page based on role
       const redirectPath = localStorage.getItem("intended_redirect") || getRoleDefaultPage(userWithPermissions.role);
       localStorage.removeItem("intended_redirect");
-      
-      console.log("Redirecting to:", redirectPath);
       navigate(redirectPath);
       
       toast.success(`Welcome, ${userWithPermissions.name}`, {
@@ -129,6 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     } catch (error) {
       console.error("Login failed", error);
+      // Show detailed error message
       toast.error("Login failed", { 
         description: error instanceof Error ? error.message : "Authentication failed. Please check your credentials."
       });
@@ -138,44 +136,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = async (): Promise<void> => {
+  const logout = () => {
     clearAuthStorage();
     setUser(null);
     navigate("/login");
-    return Promise.resolve();
-  };
-
-  const hasPermission = (permissionName: string): boolean => {
-    if (!user || !user.permissions) return false;
-    
-    if (user.isAdmin) return true;
-    
-    return user.permissions.some(p => 
-      typeof p === 'string' 
-        ? p === permissionName
-        : p.name === permissionName && p.enabled
-    );
   };
 
   return (
     <AuthContext.Provider value={{ 
       user, 
       isLoading, 
-      loading: isLoading,
       login, 
       logout, 
       currentBusiness, 
       userBusinesses,
-      switchBusiness,
-      hasPermission,
-      signIn: login,
-      signUp: async () => {},
-      signOut: logout,
-      error: null
+      switchBusiness 
     }}>
       {children}
     </AuthContext.Provider>
   );
 };
-
-export default AuthProvider;

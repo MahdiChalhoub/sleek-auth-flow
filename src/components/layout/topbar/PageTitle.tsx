@@ -7,18 +7,15 @@ import MobileDrawerMenu from "../MobileDrawerMenu";
 import { ROUTES } from "@/constants/routes";
 
 const getPageTitle = (pathname: string): string => {
-  // First check exact matches
   const routes: Record<string, string> = {
     [ROUTES.HOME]: "Dashboard",
     [ROUTES.DASHBOARD]: "Tableau de Bord",
     [ROUTES.POS_SALES]: "Ventes POS",
-    ["/pos/sales"]: "Ventes POS",  // Handle both route formats
     [ROUTES.INVENTORY]: "Inventaire",
     [ROUTES.PURCHASE_ORDERS]: "Commandes d'Achat",
     [ROUTES.RETURNS]: "Retours",
     [ROUTES.SETTINGS]: "Paramètres",
     [ROUTES.REGISTER]: "Caisse Enregistreuse",
-    ["/pos/register"]: "Caisse Enregistreuse", // Handle both route formats
     [ROUTES.REGISTER_SESSIONS]: "Sessions de Caisse",
     [ROUTES.TRANSACTIONS]: "Transactions",
     [ROUTES.TRANSACTION_PERMISSIONS]: "Autorisations de Dépenses",
@@ -48,31 +45,9 @@ const getPageTitle = (pathname: string): string => {
     [ROUTES.BARCODE_PRINTING]: "Impression de Codes-barres",
     [ROUTES.EXPIRATION_MANAGEMENT]: "Gestion des Expirations",
     [ROUTES.ROLES]: "Gestion des Rôles",
-    [ROUTES.FINANCIAL_YEARS]: "Années Financières",
-    ["/clients"]: "Gestion des Clients",
   };
   
-  if (routes[pathname]) {
-    return routes[pathname];
-  }
-  
-  // If not an exact match, try to match parent routes
-  const pathSegments = pathname.split('/').filter(Boolean);
-  if (pathSegments.length > 0) {
-    const baseRoute = `/${pathSegments[0]}`;
-    if (routes[baseRoute]) {
-      return routes[baseRoute];
-    }
-    
-    if (pathSegments.length > 1) {
-      const secondLevelRoute = `/${pathSegments[0]}/${pathSegments[1]}`;
-      if (routes[secondLevelRoute]) {
-        return routes[secondLevelRoute];
-      }
-    }
-  }
-  
-  return "Système POS";
+  return routes[pathname] || "Système POS";
 };
 
 const PageTitle: React.FC = () => {

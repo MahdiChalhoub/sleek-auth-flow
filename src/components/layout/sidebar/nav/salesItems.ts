@@ -5,19 +5,19 @@ import { NavItem } from "./index";
 export const salesItems: NavItem[] = [
   {
     title: "Ventes",
-    path: "/pos/sales",
+    path: "/sales",
     icon: ArrowUpCircle,
     roles: ["admin", "manager", "cashier"],
     children: [
       {
         title: "Factures",
-        path: "/pos/sales",
+        path: "/pos-sales",
         icon: ShoppingCart,
         roles: ["admin", "cashier", "manager"]
       },
       {
         title: "Clients",
-        path: "/clients",
+        path: "/loyalty",
         icon: Gift,
         roles: ["admin", "manager", "cashier"]
       },

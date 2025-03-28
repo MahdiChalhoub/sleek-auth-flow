@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocationContext } from '@/contexts/LocationContext';
 import { toast } from 'sonner';
 import { UserRole } from '@/types/auth';
 
@@ -19,6 +20,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   requiredLocationAccess = false
 }) => {
   const { user, isLoading, currentBusiness, hasPermission } = useAuth();
+  const { currentLocation, userHasAccessToLocation } = useLocationContext();
   const location = useLocation();
 
   // Store the current location to redirect back after login
@@ -51,7 +53,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     const roleDefaultPage = {
       admin: "/home",
       manager: "/inventory",
-      cashier: "/pos/sales"
+      cashier: "/pos-sales"
     };
     
     const redirectTo = roleDefaultPage[user.role] || "/home";
@@ -74,6 +76,12 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   if (!currentBusiness && !location.pathname.includes('/login') && !location.pathname.includes('/business-selection')) {
     toast.error("Please select a business to continue");
     return <Navigate to="/business-selection" replace />;
+  }
+
+  // Check if location access is required and user has access to the current location
+  if (requiredLocationAccess && currentLocation && !userHasAccessToLocation(currentLocation.id)) {
+    toast.error("You don't have access to this location");
+    return <Navigate to="/home" replace />;
   }
 
   // If authenticated and has the required role/permissions, render the children components

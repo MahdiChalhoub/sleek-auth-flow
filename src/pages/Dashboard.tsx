@@ -40,8 +40,6 @@ const Dashboard: React.FC = () => {
           setRegister={setRegister}
           product={product}
           setProduct={setProduct}
-          category={category}
-          setCategory={setCategory}
         />
         
         {/* Tab Contents */}

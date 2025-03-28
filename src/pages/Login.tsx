@@ -26,7 +26,7 @@ const Login: React.FC = () => {
   // If already logged in, redirect to appropriate page
   if (user) {
     // Check for an intended redirect path or use the default
-    const redirectTo = localStorage.getItem("intended_redirect") || "/dashboard";
+    const redirectTo = localStorage.getItem("intended_redirect") || "/home";
     localStorage.removeItem("intended_redirect");
     return <Navigate to={redirectTo} replace />;
   }
@@ -40,17 +40,10 @@ const Login: React.FC = () => {
         return;
       }
       
-      // Add debug logging for login attempt
-      console.log("Login attempt with:", { 
-        email: data.email, 
-        businessId: data.businessId, 
-        rememberMe: data.rememberMe 
-      });
-      
       await login(data.email, data.password, data.businessId, data.rememberMe);
       toast.success("Login successful");
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error(error);
       // Display the actual error message from the authentication process
       toast.error(error instanceof Error ? error.message : "Login failed. Please check your credentials.");
     } finally {

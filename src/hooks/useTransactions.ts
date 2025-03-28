@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { transactionsApi } from '@/api/database';
 import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useFinancialYears } from './useFinancialYears';
 
 export const useTransactions = () => {
@@ -82,14 +82,10 @@ export const useTransactions = () => {
       const { data, error } = await supabase
         .from('transactions')
         .insert([{
-          amount: transactionData.amount,
-          type: transactionData.type,
-          status: transactionData.status || 'open',
-          notes: transactionData.description,
-          location_id: transactionData.branchId,
-          reference_id: transactionData.referenceId,
-          reference_type: transactionData.referenceType,
-          financial_year_id: financialYearId
+          ...transactionData,
+          financial_year_id: financialYearId,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }])
         .select()
         .single();

@@ -33,163 +33,35 @@ export type Database = {
         }
         Relationships: []
       }
-      client_credit_sales: {
-        Row: {
-          amount: number
-          client_id: string | null
-          created_at: string | null
-          due_date: string | null
-          id: string
-          paid_amount: number | null
-          sale_id: string | null
-          status: string
-          updated_at: string | null
-        }
-        Insert: {
-          amount: number
-          client_id?: string | null
-          created_at?: string | null
-          due_date?: string | null
-          id?: string
-          paid_amount?: number | null
-          sale_id?: string | null
-          status?: string
-          updated_at?: string | null
-        }
-        Update: {
-          amount?: number
-          client_id?: string | null
-          created_at?: string | null
-          due_date?: string | null
-          id?: string
-          paid_amount?: number | null
-          sale_id?: string | null
-          status?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_credit_sales_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "client_credit_sales_sale_id_fkey"
-            columns: ["sale_id"]
-            isOneToOne: false
-            referencedRelation: "sales"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      client_transactions: {
-        Row: {
-          amount: number
-          client_id: string | null
-          created_at: string | null
-          date: string
-          description: string | null
-          id: string
-          reference_id: string | null
-          status: string
-          type: string
-          updated_at: string | null
-        }
-        Insert: {
-          amount: number
-          client_id?: string | null
-          created_at?: string | null
-          date?: string
-          description?: string | null
-          id?: string
-          reference_id?: string | null
-          status?: string
-          type: string
-          updated_at?: string | null
-        }
-        Update: {
-          amount?: number
-          client_id?: string | null
-          created_at?: string | null
-          date?: string
-          description?: string | null
-          id?: string
-          reference_id?: string | null
-          status?: string
-          type?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "client_transactions_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       clients: {
         Row: {
           address: string | null
-          city: string | null
-          country: string | null
           created_at: string | null
-          credit_limit: number | null
           email: string | null
           id: string
-          is_vip: boolean | null
-          last_visit: string | null
           loyalty_points: number | null
           name: string
-          notes: string | null
-          outstanding_balance: number | null
           phone: string | null
-          status: string
-          tags: string[] | null
-          type: string
           updated_at: string | null
         }
         Insert: {
           address?: string | null
-          city?: string | null
-          country?: string | null
           created_at?: string | null
-          credit_limit?: number | null
           email?: string | null
           id?: string
-          is_vip?: boolean | null
-          last_visit?: string | null
           loyalty_points?: number | null
           name: string
-          notes?: string | null
-          outstanding_balance?: number | null
           phone?: string | null
-          status?: string
-          tags?: string[] | null
-          type?: string
           updated_at?: string | null
         }
         Update: {
           address?: string | null
-          city?: string | null
-          country?: string | null
           created_at?: string | null
-          credit_limit?: number | null
           email?: string | null
           id?: string
-          is_vip?: boolean | null
-          last_visit?: string | null
           loyalty_points?: number | null
           name?: string
-          notes?: string | null
-          outstanding_balance?: number | null
           phone?: string | null
-          status?: string
-          tags?: string[] | null
-          type?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -236,51 +108,11 @@ export type Database = {
           },
         ]
       }
-      financial_years: {
-        Row: {
-          closed_at: string | null
-          closed_by: string | null
-          created_at: string | null
-          created_by: string
-          end_date: string
-          id: string
-          name: string
-          start_date: string
-          status: string
-          updated_at: string | null
-        }
-        Insert: {
-          closed_at?: string | null
-          closed_by?: string | null
-          created_at?: string | null
-          created_by: string
-          end_date: string
-          id?: string
-          name: string
-          start_date: string
-          status: string
-          updated_at?: string | null
-        }
-        Update: {
-          closed_at?: string | null
-          closed_by?: string | null
-          created_at?: string | null
-          created_by?: string
-          end_date?: string
-          id?: string
-          name?: string
-          start_date?: string
-          status?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       journal_entries: {
         Row: {
           account: string
           amount: number
           created_at: string | null
-          financial_year_id: string | null
           id: string
           transaction_id: string
           type: string
@@ -290,7 +122,6 @@ export type Database = {
           account: string
           amount: number
           created_at?: string | null
-          financial_year_id?: string | null
           id?: string
           transaction_id: string
           type: string
@@ -300,20 +131,12 @@ export type Database = {
           account?: string
           amount?: number
           created_at?: string | null
-          financial_year_id?: string | null
           id?: string
           transaction_id?: string
           type?: string
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "journal_entries_financial_year_id_fkey"
-            columns: ["financial_year_id"]
-            isOneToOne: false
-            referencedRelation: "financial_years"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "journal_entries_transaction_id_fkey"
             columns: ["transaction_id"]
@@ -991,7 +814,6 @@ export type Database = {
         Row: {
           amount: number
           created_at: string | null
-          financial_year_id: string | null
           id: string
           location_id: string | null
           notes: string | null
@@ -1004,7 +826,6 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string | null
-          financial_year_id?: string | null
           id?: string
           location_id?: string | null
           notes?: string | null
@@ -1017,7 +838,6 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string | null
-          financial_year_id?: string | null
           id?: string
           location_id?: string | null
           notes?: string | null
@@ -1028,13 +848,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "transactions_financial_year_id_fkey"
-            columns: ["financial_year_id"]
-            isOneToOne: false
-            referencedRelation: "financial_years"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "transactions_location_id_fkey"
             columns: ["location_id"]

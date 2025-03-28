@@ -1,32 +1,30 @@
-
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-import { format, parseISO } from "date-fns";
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
+}
+
+export function formatDate(dateString?: string): string {
+  if (!dateString) return 'N/A';
+  
+  try {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }).format(date);
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return 'Invalid date';
+  }
 }
 
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 2
   }).format(amount);
-}
-
-export function formatDate(dateString: string): string {
-  try {
-    const date = parseISO(dateString);
-    return format(date, 'MMM d, yyyy');
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return dateString;
-  }
-}
-
-export function truncateText(text: string, maxLength: number = 50): string {
-  if (!text) return '';
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + '...';
 }

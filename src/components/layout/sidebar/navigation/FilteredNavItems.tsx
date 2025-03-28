@@ -18,23 +18,13 @@ const FilteredNavItems: React.FC<FilteredNavItemsProps> = ({ navItems, userRole 
     item => !item.roles || (userRole && item.roles.includes(userRole))
   );
   
-  const isActive = (path: string) => {
-    // Handle exact path matching 
-    if (location.pathname === path) return true;
-    
-    // Handle parent routes with child routes
-    // For example, if path is "/inventory" and current location is "/inventory/item/123"
-    if (path !== '/' && location.pathname.startsWith(path) && 
-       (path.length > 1 || location.pathname === '/')) return true;
-    
-    return false;
-  };
+  const isActive = (path: string) => location.pathname === path;
   
   return (
     <SidebarMenu>
       {filteredItems.map(item => (
         <NavItem 
-          key={item.title + item.path} 
+          key={item.path} 
           item={item} 
           isActive={isActive} 
         />
