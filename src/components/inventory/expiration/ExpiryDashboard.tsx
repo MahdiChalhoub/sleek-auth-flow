@@ -21,7 +21,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
       setIsLoading(true);
       try {
         // Create SQL to check if product_batches table exists
-        const { data: tableCheck, error: tableCheckError } = await supabase
+        const { data: tableExists, error: tableCheckError } = await supabase
           .rpc('check_table_exists', { table_name: 'product_batches' });
         
         if (tableCheckError) {
@@ -30,7 +30,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
           return;
         }
         
-        if (!tableCheck) {
+        if (!tableExists) {
           console.log('product_batches table does not exist yet');
           setIsLoading(false);
           return;
@@ -52,31 +52,24 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
   // Update the fetchBatches function
   const fetchBatches = async () => {
     try {
-      // Check if the table exists first by querying information_schema
-      const { data: tables, error: schemaError } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_name', 'product_batches')
-        .eq('table_schema', 'public');
-      
-      if (schemaError) {
-        console.error('Error checking schema:', schemaError);
-        return [];
-      }
-      
-      if (!tables || tables.length === 0) {
-        console.log('product_batches table not found in database');
-        return [];
-      }
-      
-      // Table exists, proceed with the fetch
-      const { data, error } = await supabase
-        .from('product_batches')
-        .select('*')
-        .order('expiry_date', { ascending: true });
+      // Use custom RPC to get all batches
+      const { data, error } = await supabase.rpc('get_all_product_batches');
       
       if (error) {
         throw error;
+      }
+      
+      // If the function doesn't exist yet, try a different approach
+      if (!data || !Array.isArray(data)) {
+        console.log('get_all_product_batches function not available, using direct SQL query');
+        
+        // Execute direct SQL query via function
+        const result = await supabase.rpc('execute_sql_safely', {
+          sql_query: 'SELECT * FROM product_batches ORDER BY expiry_date ASC'
+        });
+        
+        if (result.error) throw result.error;
+        return Array.isArray(result.data) ? result.data.map(mapDbProductBatchToModel) : [];
       }
       
       return data.map(mapDbProductBatchToModel);

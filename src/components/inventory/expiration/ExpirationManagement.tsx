@@ -25,8 +25,8 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
   useEffect(() => {
     const checkTableAndFetchBatches = async () => {
       try {
-        // Check if product_batches table exists
-        const { data: tableExists, error: checkError } = await supabase
+        // Check if product_batches table exists using RPC
+        const { data: exists, error: checkError } = await supabase
           .rpc('check_table_exists', { table_name: 'product_batches' });
         
         if (checkError) {
@@ -34,9 +34,9 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
           return;
         }
         
-        setTableExists(!!tableExists);
+        setTableExists(!!exists);
         
-        if (!tableExists) {
+        if (!exists) {
           console.log("product_batches table doesn't exist");
           toast.error('Product batches table does not exist. Please create it first.');
           return;
@@ -44,9 +44,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
         
         // Fetch batches if table exists
         const { data, error } = await supabase
-          .from('product_batches')
-          .select('*')
-          .eq('product_id', product.id);
+          .rpc('get_product_batches', { product_id_param: product.id });
         
         if (error) {
           console.error("Error fetching batches:", error);
@@ -54,7 +52,7 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
           return;
         }
         
-        const mappedBatches = data.map(mapDbProductBatchToModel);
+        const mappedBatches = Array.isArray(data) ? data.map(mapDbProductBatchToModel) : [];
         setBatches(mappedBatches);
       } catch (error) {
         console.error('Error in initialization:', error);
@@ -75,14 +73,15 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
       // Convert the model to database format for insertion
       const dbBatch = mapModelProductBatchToDb(newBatch);
       
-      // Insert the batch into Supabase using non-typed approach
+      // Insert the batch using the RPC function
       const { data, error } = await supabase
-        .from('product_batches')
-        .insert([dbBatch])
-        .select()
-        .single();
+        .rpc('insert_product_batch', { batch: dbBatch });
       
       if (error) throw error;
+      
+      if (!data) {
+        throw new Error('Failed to insert batch - no data returned');
+      }
       
       // Map the database response back to our model
       const batchWithId = mapDbProductBatchToModel(data);
@@ -118,13 +117,15 @@ const ExpirationManagement: React.FC<ExpirationManagementProps> = ({ product, on
     }
     
     try {
-      // Delete the batch from Supabase using non-typed approach
-      const { error } = await supabase
-        .from('product_batches')
-        .delete()
-        .eq('id', batchId);
+      // Delete the batch using RPC
+      const { data: success, error } = await supabase
+        .rpc('delete_product_batch', { batch_id: batchId });
       
       if (error) throw error;
+      
+      if (!success) {
+        throw new Error('Failed to delete batch');
+      }
       
       // Filter out the batch to delete
       const updatedBatches = batches.filter(batch => batch.id !== batchId);

@@ -4,7 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
-import { Product, ProductBatch } from '@/models/product';
+import { Product } from '@/models/product';
+import { ProductBatch } from '@/models/productBatch';
 
 export interface BatchTableProps {
   product: Product;

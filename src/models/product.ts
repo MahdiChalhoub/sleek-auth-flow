@@ -1,5 +1,7 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { ProductBatch, mapDbProductBatchToModel } from './productBatch';
+import { supabase } from '@/lib/supabase';
 
 export interface ComboComponent {
   id: string;
@@ -91,8 +93,6 @@ export const createProduct = (data: Partial<Product>): Product => {
   };
 };
 
-import { supabase } from '@/lib/supabase';
-
 export const productsService = {
   async getAll(): Promise<Product[]> {
     try {
@@ -140,30 +140,24 @@ export const productsService = {
   
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
-      const { data: tables, error: schemaError } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_name', 'product_batches')
-        .eq('table_schema', 'public');
+      // First check if the product_batches table exists using SQL query
+      const { data: exists } = await supabase.rpc('check_table_exists', { 
+        table_name: 'product_batches' 
+      });
       
-      if (schemaError) {
-        console.error('Error checking schema:', schemaError);
-        return [];
-      }
-      
-      if (!tables || tables.length === 0) {
+      if (!exists) {
         console.log('product_batches table not found in database');
         return [];
       }
       
-      const { data, error } = await supabase
-        .from('product_batches')
-        .select('*')
-        .eq('product_id', productId);
+      // Execute the query directly since we've confirmed the table exists
+      const { data, error } = await supabase.rpc('get_product_batches', { 
+        product_id_param: productId 
+      });
       
       if (error) throw error;
       
-      return data.map(mapDbProductBatchToModel);
+      return Array.isArray(data) ? data.map(mapDbProductBatchToModel) : [];
     } catch (error) {
       console.error(`Error fetching batches for product ${productId}:`, error);
       return [];
