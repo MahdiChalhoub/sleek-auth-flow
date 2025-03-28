@@ -20,8 +20,8 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
     const loadBatches = async () => {
       setIsLoading(true);
       try {
-        // Create SQL to check if product_batches table exists
-        const { data, error: tableCheckError } = await supabase
+        // Use RPC to check if table exists instead of direct query
+        const { data: tableExists, error: tableCheckError } = await supabase
           .rpc('check_table_exists', { table_name: 'product_batches' });
         
         if (tableCheckError) {
@@ -30,7 +30,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
           return;
         }
         
-        if (!data) {
+        if (!tableExists) {
           console.log('product_batches table does not exist yet');
           setIsLoading(false);
           return;
@@ -49,36 +49,21 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
     loadBatches();
   }, []);
 
-  // Update the fetchBatches function
+  // Update the fetchBatches function to use the RPC
   const fetchBatches = async (): Promise<ProductBatch[]> => {
     try {
-      // Use custom RPC to get all batches
+      // Use custom RPC function to get all batches
       const { data, error } = await supabase.rpc('get_all_product_batches');
       
       if (error) {
         throw error;
       }
       
-      // If the function doesn't exist yet, try a different approach
-      if (!data || !Array.isArray(data)) {
-        console.log('get_all_product_batches function not available, using direct SQL query');
-        
-        // Execute direct SQL query via function
-        const result = await supabase.rpc('execute_sql_safely', {
-          sql_query: 'SELECT * FROM product_batches ORDER BY expiry_date ASC'
-        });
-        
-        if (result.error) throw result.error;
-        
-        // Make sure to check if result.data exists and is an array
-        if (result.data && Array.isArray(result.data)) {
-          return result.data.map(mapDbProductBatchToModel);
-        } else {
-          return [];
-        }
+      if (!data) {
+        return [];
       }
       
-      return data.map(mapDbProductBatchToModel);
+      return Array.isArray(data) ? data.map(mapDbProductBatchToModel) : [];
     } catch (error) {
       console.error('Error fetching product batches:', error);
       toast.error('Failed to load product batches');

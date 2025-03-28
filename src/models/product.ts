@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { ProductBatch, mapDbProductBatchToModel } from './productBatch';
 import { supabase } from '@/lib/supabase';
@@ -165,7 +164,7 @@ export const productsService = {
         throw error;
       }
       
-      return Array.isArray(data) ? data.map(mapDbProductBatchToModel) : [];
+      return data && Array.isArray(data) ? data.map(mapDbProductBatchToModel) : [];
     } catch (error) {
       console.error(`Error fetching batches for product ${productId}:`, error);
       return [];
