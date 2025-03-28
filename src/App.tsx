@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './components/theme-provider';
@@ -23,13 +23,39 @@ import Contacts from './pages/Contacts';
 import ClientsList from './pages/ClientsList';
 import ClientProfile from './pages/ClientProfile';
 import ClientEditForm from './pages/ClientEditForm';
-import { initializeDatabase } from './lib/supabase';
+import { initializeDatabase } from './api/setupDatabase';
+import { Skeleton } from './components/ui/skeleton';
+import { toast } from 'sonner';
 
 function App() {
+  const [isInitializing, setIsInitializing] = useState(true);
+
   useEffect(() => {
     // Initialize Supabase database functions
-    initializeDatabase().catch(console.error);
+    const init = async () => {
+      try {
+        await initializeDatabase();
+        console.log('Database initialized successfully');
+      } catch (error) {
+        console.error('Error initializing database:', error);
+        toast.error('Failed to initialize database. Some features may not work properly.');
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+    
+    init();
   }, []);
+
+  if (isInitializing) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center flex-col gap-4">
+        <Skeleton className="h-12 w-64" />
+        <Skeleton className="h-4 w-48" />
+        <p className="text-sm text-muted-foreground">Initializing application...</p>
+      </div>
+    );
+  }
 
   return (
     <ThemeProvider defaultTheme="light">
