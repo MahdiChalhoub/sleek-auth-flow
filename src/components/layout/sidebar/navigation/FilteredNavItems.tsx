@@ -24,7 +24,8 @@ const FilteredNavItems: React.FC<FilteredNavItemsProps> = ({ navItems, userRole 
     
     // Handle parent routes with child routes
     // For example, if path is "/inventory" and current location is "/inventory/item/123"
-    if (path !== '/' && location.pathname.startsWith(path)) return true;
+    if (path !== '/' && location.pathname.startsWith(path) && 
+       (path.length > 1 || location.pathname === '/')) return true;
     
     return false;
   };
@@ -33,7 +34,7 @@ const FilteredNavItems: React.FC<FilteredNavItemsProps> = ({ navItems, userRole 
     <SidebarMenu>
       {filteredItems.map(item => (
         <NavItem 
-          key={item.path} 
+          key={item.title + item.path} 
           item={item} 
           isActive={isActive} 
         />

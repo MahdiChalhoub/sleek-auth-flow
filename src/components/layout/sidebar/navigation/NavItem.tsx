@@ -25,7 +25,8 @@ const NavItem: React.FC<NavItemProps> = ({ item, isActive }) => {
   const [isGroupOpen, setIsGroupOpen] = useState(() => {
     // Auto-expand the current section
     if (item.children) {
-      return item.children.some(child => location.pathname === child.path);
+      return item.children.some(child => location.pathname === child.path || 
+        (child.path !== '/' && location.pathname.startsWith(child.path)));
     }
     return false;
   });
@@ -53,6 +54,9 @@ const NavItem: React.FC<NavItemProps> = ({ item, isActive }) => {
           icon: item.icon
         });
       }
+      
+      // Also make sure to use the router to navigate
+      navigate(item.path);
     }
   };
   
@@ -106,6 +110,7 @@ interface SubNavItemsProps {
 }
 
 const SubNavItems: React.FC<SubNavItemsProps> = ({ items, isActive }) => {
+  const navigate = useNavigate();
   const { openTab, findTabByPath, activateTab } = useTabs();
 
   const handleNavigation = (item: NavItemType) => {
@@ -122,6 +127,9 @@ const SubNavItems: React.FC<SubNavItemsProps> = ({ items, isActive }) => {
         icon: item.icon
       });
     }
+    
+    // Use the router to navigate
+    navigate(item.path);
   };
 
   return (

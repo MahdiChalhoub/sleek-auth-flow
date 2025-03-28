@@ -7,6 +7,7 @@ import MobileDrawerMenu from "../MobileDrawerMenu";
 import { ROUTES } from "@/constants/routes";
 
 const getPageTitle = (pathname: string): string => {
+  // First check exact matches
   const routes: Record<string, string> = {
     [ROUTES.HOME]: "Dashboard",
     [ROUTES.DASHBOARD]: "Tableau de Bord",
@@ -51,7 +52,27 @@ const getPageTitle = (pathname: string): string => {
     ["/clients"]: "Gestion des Clients",
   };
   
-  return routes[pathname] || "Système POS";
+  if (routes[pathname]) {
+    return routes[pathname];
+  }
+  
+  // If not an exact match, try to match parent routes
+  const pathSegments = pathname.split('/').filter(Boolean);
+  if (pathSegments.length > 0) {
+    const baseRoute = `/${pathSegments[0]}`;
+    if (routes[baseRoute]) {
+      return routes[baseRoute];
+    }
+    
+    if (pathSegments.length > 1) {
+      const secondLevelRoute = `/${pathSegments[0]}/${pathSegments[1]}`;
+      if (routes[secondLevelRoute]) {
+        return routes[secondLevelRoute];
+      }
+    }
+  }
+  
+  return "Système POS";
 };
 
 const PageTitle: React.FC = () => {
