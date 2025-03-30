@@ -1,5 +1,5 @@
 
-import { ArrowDownCircle, ClipboardList, Building, Truck } from "lucide-react";
+import { ArrowDownCircle, ClipboardList, Building, Truck, AlertTriangle, BarChart4 } from "lucide-react";
 import { NavItem } from "./index";
 
 export const purchaseItems: NavItem[] = [
@@ -16,6 +16,12 @@ export const purchaseItems: NavItem[] = [
         roles: ["admin", "manager"]
       },
       {
+        title: "Demandes",
+        path: "/purchase-requests",
+        icon: AlertTriangle,
+        roles: ["admin", "manager"]
+      },
+      {
         title: "Fournisseurs",
         path: "/suppliers",
         icon: Building,
@@ -25,6 +31,12 @@ export const purchaseItems: NavItem[] = [
         title: "Réceptions",
         path: "/stock-transfers",
         icon: Truck,
+        roles: ["admin", "manager"]
+      },
+      {
+        title: "Analyse",
+        path: "/purchase-analytics",
+        icon: BarChart4,
         roles: ["admin", "manager"]
       }
     ]

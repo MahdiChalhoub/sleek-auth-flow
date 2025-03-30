@@ -7,6 +7,8 @@ import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { mapDbProductBatchToModel, ProductBatch } from '@/models/productBatch';
+import { asParams, safeArray } from '@/utils/supabaseUtils';
+import { getBatchStatus, formatDaysUntilExpiry } from '@/utils/expirationUtils';
 
 interface ExpiryDashboardProps {
   // Define any props here
@@ -21,9 +23,9 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
       setIsLoading(true);
       try {
         const { data, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', { 
+          .rpc('check_table_exists', asParams({ 
             table_name: 'product_batches' 
-          } as { table_name: string });
+          }));
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -45,9 +47,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
         }
         
         // Add explicit check for array before mapping
-        const fetchedBatches = batchesData && Array.isArray(batchesData) 
-          ? batchesData.map(mapDbProductBatchToModel) 
-          : [];
+        const fetchedBatches = safeArray(batchesData, mapDbProductBatchToModel);
         
         setBatches(fetchedBatches);
       } catch (error) {
@@ -64,20 +64,14 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
   // Update the fetchBatches function with proper typing
   const fetchBatches = async (): Promise<ProductBatch[]> => {
     try {
-      type GetAllBatchesParams = Record<string, never>;
       const { data, error } = await supabase
-        .rpc<any[], GetAllBatchesParams>('get_all_product_batches', {});
+        .rpc('get_all_product_batches', {});
       
       if (error) {
         throw error;
       }
       
-      if (!data) {
-        return [];
-      }
-      
-      // Add explicit check for array before mapping
-      return Array.isArray(data) ? data.map(mapDbProductBatchToModel) : [];
+      return safeArray(data, mapDbProductBatchToModel);
     } catch (error) {
       console.error('Error fetching product batches:', error);
       toast.error('Failed to load product batches');
@@ -97,8 +91,11 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
           batches.length > 0 ? (
             <ul>
               {batches.map(batch => (
-                <li key={batch.id}>
-                  Batch Number: {batch.batchNumber}, Expiry Date: {batch.expiryDate}
+                <li key={batch.id} className="mb-2 p-2 border rounded">
+                  <div className="font-medium">Product: {batch.productName || 'Unknown'}</div>
+                  <div>Batch Number: {batch.batchNumber}</div>
+                  <div>Expiry Date: {batch.expiryDate}</div>
+                  <div>{formatDaysUntilExpiry(batch.expiryDate)}</div>
                 </li>
               ))}
             </ul>
