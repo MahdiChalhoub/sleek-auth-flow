@@ -6,15 +6,23 @@ import { Edit, Trash2 } from 'lucide-react';
 import { ProductBatch } from '@/models/productBatch';
 import BatchStatusBadge from './BatchStatusBadge';
 import { formatDaysUntilExpiry } from '@/utils/expirationUtils';
+import { Product } from '@/models/product';
 
 export interface BatchTableProps {
   batches: ProductBatch[];
-  isLoading: boolean;
-  onEdit: (batch: ProductBatch) => void;
-  onDelete: (batchId: string) => void;
+  isLoading?: boolean;
+  onEdit?: (batch: ProductBatch) => void;
+  onDelete?: (batchId: string) => void;
+  product?: Product;
 }
 
-const BatchTable: React.FC<BatchTableProps> = ({ batches, isLoading, onEdit, onDelete }) => {
+const BatchTable: React.FC<BatchTableProps> = ({ 
+  batches, 
+  isLoading = false, 
+  onEdit, 
+  onDelete,
+  product 
+}) => {
   if (isLoading) {
     return <div className="flex justify-center p-6">Loading batches...</div>;
   }
@@ -37,13 +45,15 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, isLoading, onEdit, onD
             <TableHead>Quantity</TableHead>
             <TableHead>Expiry Date</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
+            {(onEdit || onDelete) && <TableHead>Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
           {batches.map(batch => (
             <TableRow key={batch.id}>
-              <TableCell className="font-medium">{batch.productId}</TableCell>
+              <TableCell className="font-medium">
+                {product?.name || batch.productId}
+              </TableCell>
               <TableCell>{batch.batchNumber}</TableCell>
               <TableCell>{batch.quantity}</TableCell>
               <TableCell>{batch.expiryDate}</TableCell>
@@ -53,16 +63,22 @@ const BatchTable: React.FC<BatchTableProps> = ({ batches, isLoading, onEdit, onD
                   {formatDaysUntilExpiry(batch.expiryDate)}
                 </div>
               </TableCell>
-              <TableCell>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="icon" onClick={() => onEdit(batch)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon" className="text-destructive" onClick={() => onDelete(batch.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
+              {(onEdit || onDelete) && (
+                <TableCell>
+                  <div className="flex gap-2">
+                    {onEdit && (
+                      <Button variant="outline" size="icon" onClick={() => onEdit(batch)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button variant="outline" size="icon" className="text-destructive" onClick={() => onDelete(batch.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,9 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, AlertTriangle, Clock, Filter, ChevronDown } from 'lucide-react';
 import { Product } from '@/models/product';
-import { ProductBatch } from '@/models/productBatch';
+import { ProductBatch, createProductBatch } from '@/models/productBatch';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -103,7 +101,8 @@ const ExpirationManagement: React.FC = () => {
     const batchWithId: ProductBatch = {
       ...newBatch,
       id: `batch-${Date.now()}`,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     };
     
     setBatches(prev => [...prev, batchWithId]);
@@ -222,8 +221,8 @@ const ExpirationManagement: React.FC = () => {
                         <CardContent className="p-0">
                           <BatchTable 
                             batches={productBatches}
+                            onDelete={deleteBatch}
                             product={product}
-                            onDeleteBatch={deleteBatch}
                           />
                         </CardContent>
                       </Card>
@@ -250,7 +249,11 @@ const ExpirationManagement: React.FC = () => {
             <CardContent>
               {selectedProduct ? (
                 <BatchForm 
-                  onSubmit={addBatch}
+                  batch={null}
+                  onSave={async (batch) => {
+                    addBatch(batch);
+                    return Promise.resolve();
+                  }}
                   onCancel={() => setSelectedProduct(null)}
                   productId={selectedProduct.id}
                 />

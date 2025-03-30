@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { ProductBatch, mapDbProductBatchToModel } from '@/models/productBatch';
 import { Product, productsService } from '@/models/product';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { asParams } from '@/utils/supabaseUtils';
 import BatchStatusBadge from '@/components/inventory/expiration/BatchStatusBadge';
 
 const ProductBatchDashboard = () => {
@@ -31,9 +33,9 @@ const ProductBatchDashboard = () => {
       try {
         // First check if the product_batches table exists
         const { data: tableExists, error: checkError } = await supabase
-          .rpc('check_table_exists', { 
+          .rpc('check_table_exists', asParams({ 
             table_name: 'product_batches' 
-          } as { table_name: string });
+          }));
           
         if (checkError) {
           console.error('Error checking table:', checkError);
@@ -65,16 +67,7 @@ const ProductBatchDashboard = () => {
         
         // Map the batches data and set state
         const mappedBatches = batchesData && Array.isArray(batchesData) 
-          ? batchesData.map(batch => ({
-              ...batch,
-              id: batch.id,
-              productId: batch.product_id,
-              batchNumber: batch.batch_number,
-              quantity: batch.quantity,
-              expiryDate: batch.expiry_date,
-              createdAt: batch.created_at,
-              updatedAt: batch.updated_at
-            }))
+          ? batchesData.map(batch => mapDbProductBatchToModel(batch))
           : [];
           
         setBatches(mappedBatches);

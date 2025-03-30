@@ -26,9 +26,9 @@ const ExpirationManagement: React.FC = () => {
     try {
       // First check if the product_batches table exists
       const { data: tableExists, error: checkError } = await supabase
-        .rpc('check_table_exists', { 
+        .rpc('check_table_exists', asParams({ 
           table_name: 'product_batches' 
-        });
+        }));
       
       if (checkError) {
         console.error("Error checking if table exists:", checkError);
@@ -72,9 +72,9 @@ const ExpirationManagement: React.FC = () => {
   const handleDeleteBatch = async (batchId: string) => {
     try {
       const { error } = await supabase
-        .rpc('delete_product_batch', { 
+        .rpc('delete_product_batch', asParams({ 
           batch_id: batchId 
-        });
+        }));
       
       if (error) throw error;
       
@@ -92,13 +92,13 @@ const ExpirationManagement: React.FC = () => {
         // Update existing batch
         const { error } = await supabase.rpc(
           'update_product_batch',
-          {
+          asParams({
             batch_id: batch.id,
             product_id: batch.productId,
             batch_number: batch.batchNumber,
             expiry_date: batch.expiryDate,
             quantity: batch.quantity
-          }
+          })
         );
         
         if (error) throw error;
@@ -107,12 +107,12 @@ const ExpirationManagement: React.FC = () => {
         // Create new batch
         const { error } = await supabase.rpc(
           'create_product_batch',
-          {
+          asParams({
             product_id: batch.productId,
             batch_number: batch.batchNumber,
             expiry_date: batch.expiryDate,
             quantity: batch.quantity
-          }
+          })
         );
         
         if (error) throw error;

@@ -12,23 +12,33 @@ export interface BatchFormProps {
   batch: ProductBatch | null;
   onSave: (batch: ProductBatch) => Promise<void>;
   onCancel: () => void;
+  onSubmit?: (batch: Omit<ProductBatch, "id">) => void;
+  productId?: string;
 }
 
-const BatchForm: React.FC<BatchFormProps> = ({ batch, onSave, onCancel }) => {
+const BatchForm: React.FC<BatchFormProps> = ({ 
+  batch, 
+  onSave, 
+  onCancel,
+  onSubmit,
+  productId
+}) => {
   const { products } = useProducts();
   const [formData, setFormData] = useState<ProductBatch>(
-    batch || createProductBatch({})
+    batch || createProductBatch({ productId })
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Update form when batch prop changes
+    // Update form when batch prop changes or productId changes
     if (batch) {
       setFormData(batch);
+    } else if (productId) {
+      setFormData(createProductBatch({ productId }));
     } else {
       setFormData(createProductBatch({}));
     }
-  }, [batch]);
+  }, [batch, productId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -44,7 +54,14 @@ const BatchForm: React.FC<BatchFormProps> = ({ batch, onSave, onCancel }) => {
     setIsSubmitting(true);
     
     try {
-      await onSave(formData);
+      if (onSubmit) {
+        // Use onSubmit for simpler scenarios
+        const { id, ...batchWithoutId } = formData;
+        onSubmit(batchWithoutId);
+      } else {
+        // Use onSave for async operations
+        await onSave(formData);
+      }
     } catch (error) {
       console.error('Error saving batch:', error);
     } finally {
@@ -70,6 +87,7 @@ const BatchForm: React.FC<BatchFormProps> = ({ batch, onSave, onCancel }) => {
               onChange={handleChange}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               required
+              disabled={!!productId}
             >
               <option value="">Select a product</option>
               {products.map(product => (

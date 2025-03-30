@@ -1,34 +1,48 @@
 
-import React, { useState } from 'react';
-import { format } from 'date-fns';
+import React, { useState, useEffect } from 'react';
+import { format, parseISO } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export interface ExpiryDatePickerProps {
-  value?: Date;
-  onChange: (date: Date | undefined) => void;
+  selectedDate?: string;
+  onDateChange: (date: string) => void;
   disabled?: boolean;
 }
 
 const ExpiryDatePicker: React.FC<ExpiryDatePickerProps> = ({ 
-  value, 
-  onChange, 
+  selectedDate, 
+  onDateChange, 
   disabled = false 
 }) => {
-  const [date, setDate] = useState<Date | undefined>(value);
+  const [date, setDate] = useState<Date | undefined>(
+    selectedDate ? parseISO(selectedDate) : undefined
+  );
+
+  useEffect(() => {
+    if (selectedDate) {
+      setDate(parseISO(selectedDate));
+    } else {
+      setDate(undefined);
+    }
+  }, [selectedDate]);
 
   const handleSelect = (newDate: Date | undefined) => {
     setDate(newDate);
-    onChange(newDate);
+    if (newDate) {
+      onDateChange(newDate.toISOString());
+    } else {
+      onDateChange('');
+    }
   };
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant={"outline"}
+          variant="outline"
           disabled={disabled}
           className={`w-full justify-start text-left font-normal ${!date && "text-muted-foreground"}`}
         >
