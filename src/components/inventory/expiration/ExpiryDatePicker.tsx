@@ -1,60 +1,45 @@
 
-import React, { useState, useEffect } from 'react';
-import { format, parseISO } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import React from 'react';
 import { Calendar } from '@/components/ui/calendar';
-import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export interface ExpiryDatePickerProps {
-  selectedDate?: string;
+  selectedDate: string;
   onDateChange: (date: string) => void;
-  disabled?: boolean;
 }
 
-const ExpiryDatePicker: React.FC<ExpiryDatePickerProps> = ({ 
-  selectedDate, 
-  onDateChange, 
-  disabled = false 
-}) => {
-  const [date, setDate] = useState<Date | undefined>(
-    selectedDate ? parseISO(selectedDate) : undefined
-  );
-
-  useEffect(() => {
-    if (selectedDate) {
-      setDate(parseISO(selectedDate));
-    } else {
-      setDate(undefined);
-    }
-  }, [selectedDate]);
-
-  const handleSelect = (newDate: Date | undefined) => {
-    setDate(newDate);
+const ExpiryDatePicker: React.FC<ExpiryDatePickerProps> = ({ selectedDate, onDateChange }) => {
+  const date = selectedDate ? parseISO(selectedDate) : new Date();
+  
+  const handleDateSelect = (newDate: Date | undefined) => {
     if (newDate) {
       onDateChange(newDate.toISOString());
-    } else {
-      onDateChange('');
     }
   };
-
+  
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          disabled={disabled}
-          className={`w-full justify-start text-left font-normal ${!date && "text-muted-foreground"}`}
+          className={cn(
+            "w-full justify-start text-left font-normal",
+            !selectedDate && "text-muted-foreground"
+          )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : "Select expiry date"}
+          {selectedDate ? format(date, "PPP") : "Select a date"}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
         <Calendar
           mode="single"
           selected={date}
-          onSelect={handleSelect}
+          onSelect={handleDateSelect}
           initialFocus
         />
       </PopoverContent>

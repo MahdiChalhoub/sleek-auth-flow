@@ -15,7 +15,7 @@ const ClientProfile = () => {
     error,
     transactions,
     areTransactionsLoading,
-    refetch
+    refetch = () => Promise.resolve() // Add default implementation for refetch
   } = useClientProfile(clientId);
 
   // Add a retry mechanism if loading fails
@@ -24,7 +24,7 @@ const ClientProfile = () => {
     const retryTimeout = setTimeout(() => {
       if (isLoading && retryCount < 3) {
         console.log(`Retrying client profile fetch (${retryCount + 1}/3)...`);
-        refetch?.();
+        refetch();
         retryCount++;
       }
     }, 3000);
