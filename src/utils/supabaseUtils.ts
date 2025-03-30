@@ -5,7 +5,7 @@
 
 /**
  * Type assertion helper for Supabase RPC calls
- * Used to solve TypeScript errors with RPC parameters
+ * Used to solve TypeScript errors with parameters
  */
 export const asParams = <T>(params: T): Record<string, any> => {
   return params as Record<string, any>;
@@ -26,4 +26,13 @@ export const safeArray = <T, R = T>(
   }
   
   return mapper ? data.map(mapper) : data as unknown as R[];
+};
+
+/**
+ * Helper for type assertions to resolve "string is not assignable to parameter of type never" errors
+ * @param value Any value that needs type assertion
+ * @returns The same value with proper type assertion
+ */
+export const assertType = <T>(value: any): T => {
+  return value as T;
 };
