@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { mapDbProductBatchToModel, ProductBatch } from '@/models/productBatch';
 import { asParams, safeArray } from '@/utils/supabaseUtils';
 import { getBatchStatus, formatDaysUntilExpiry } from '@/utils/expirationUtils';
+import { productsService } from '@/models/product';
 
 interface ExpiryDashboardProps {
   // Define any props here
@@ -23,9 +24,9 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
       setIsLoading(true);
       try {
         const { data, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', asParams({ 
+          .rpc('check_table_exists', { 
             table_name: 'product_batches' 
-          }));
+          });
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -49,7 +50,18 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
         // Add explicit check for array before mapping
         const fetchedBatches = safeArray(batchesData, mapDbProductBatchToModel);
         
-        setBatches(fetchedBatches);
+        // Fetch product names for each batch
+        const batchesWithProductNames = await Promise.all(
+          fetchedBatches.map(async (batch) => {
+            const product = await productsService.getById(batch.productId);
+            return {
+              ...batch,
+              productName: product?.name || 'Unknown'
+            };
+          })
+        );
+
+        setBatches(batchesWithProductNames);
       } catch (error) {
         console.error('Error loading batches:', error);
         toast.error('Failed to load product batches');
@@ -92,7 +104,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
             <ul>
               {batches.map(batch => (
                 <li key={batch.id} className="mb-2 p-2 border rounded">
-                  <div className="font-medium">Product: {batch.productName || 'Unknown'}</div>
+                  <div className="font-medium">Product: {(batch as any).productName || 'Unknown'}</div>
                   <div>Batch Number: {batch.batchNumber}</div>
                   <div>Expiry Date: {batch.expiryDate}</div>
                   <div>{formatDaysUntilExpiry(batch.expiryDate)}</div>
