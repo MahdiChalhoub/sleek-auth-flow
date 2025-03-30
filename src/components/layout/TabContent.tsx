@@ -3,6 +3,7 @@ import React, { Suspense, lazy } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Tab } from "@/contexts/tabs";
 import { ROUTES } from "@/constants/routes";
+import NotFound from "@/pages/NotFound";
 
 interface TabContentProps {
   tabs: Tab[];
@@ -57,7 +58,7 @@ const AppRoutes: React.FC = () => {
           element={<DynamicComponent componentPath={getComponentNameFromPath(path)} />} 
         />
       ))}
-      <Route path="*" element={<div>Page not found</div>} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
@@ -80,6 +81,8 @@ const getComponentNameFromPath = (path: string): string => {
     case 'pos-sales': return 'POSSales';
     case 'register': return 'POSRegister';
     case 'financial-years': return 'FinancialYearManagement';
+    case 'purchase-requests': return 'PurchaseRequestManagement';
+    case 'purchase-analytics': return 'PurchaseAnalytics';
     default:
       // Convert kebab-case to PascalCase
       return pathWithoutSlash
@@ -107,6 +110,10 @@ const DynamicComponent = ({ componentPath }: { componentPath: string }) => {
           return lazy(() => import("../../../src/pages/Suppliers"));
         case "PurchaseOrders":
           return lazy(() => import("../../../src/pages/PurchaseOrders"));
+        case "PurchaseRequestManagement":
+          return lazy(() => import("../../../src/pages/PurchaseRequestManagement"));
+        case "PurchaseAnalytics":
+          return lazy(() => import("../../../src/pages/PurchaseAnalytics"));
         case "StockTransfers":
           return lazy(() => import("../../../src/pages/StockTransfers"));
         case "StockAdjustments":

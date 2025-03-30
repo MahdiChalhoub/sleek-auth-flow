@@ -18,7 +18,24 @@ const FilteredNavItems: React.FC<FilteredNavItemsProps> = ({ navItems, userRole 
     item => !item.roles || (userRole && item.roles.includes(userRole))
   );
   
-  const isActive = (path: string) => location.pathname === path;
+  // Enhanced isActive function to handle child routes
+  const isActive = (path: string) => {
+    if (location.pathname === path) return true;
+    
+    // Check if the path is a parent of the current route
+    if (path !== '/' && location.pathname.startsWith(path)) {
+      // Special case for purchase parent paths
+      if (path === '/purchase' && 
+          (location.pathname.includes('purchase-orders') || 
+           location.pathname.includes('purchase-requests') ||
+           location.pathname.includes('purchase-analytics'))) {
+        return true;
+      }
+      return true;
+    }
+    
+    return false;
+  };
   
   return (
     <SidebarMenu>

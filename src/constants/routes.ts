@@ -18,6 +18,8 @@ export const ROUTES = {
   UNITS: '/units',
   SUPPLIERS: '/suppliers',
   PURCHASE_ORDERS: '/purchase-orders',
+  PURCHASE_REQUESTS: '/purchase-requests',
+  PURCHASE_ANALYTICS: '/purchase-analytics',
   STOCK_TRANSFERS: '/stock-transfers',
   STOCK_ADJUSTMENTS: '/stock-adjustments',
   PACKAGING_MANAGEMENT: '/packaging-management',

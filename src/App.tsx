@@ -1,3 +1,4 @@
+
 import React from 'react';
 import './App.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
@@ -6,6 +7,8 @@ import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import PurchaseOrders from './pages/PurchaseOrders';
+import PurchaseRequestManagement from './pages/PurchaseRequestManagement';
+import PurchaseAnalytics from './pages/PurchaseAnalytics';
 import Suppliers from './pages/Suppliers';
 import StockTransfers from './pages/StockTransfers';
 import Login from './pages/Login';
@@ -79,6 +82,8 @@ function App() {
                 <Route path={ROUTES.DASHBOARD} element={<FinanceDashboard />} />
                 <Route path={ROUTES.INVENTORY} element={<Inventory />} />
                 <Route path={ROUTES.PURCHASE_ORDERS} element={<PurchaseOrders />} />
+                <Route path={ROUTES.PURCHASE_REQUESTS} element={<PurchaseRequestManagement />} />
+                <Route path={ROUTES.PURCHASE_ANALYTICS} element={<PurchaseAnalytics />} />
                 <Route path={ROUTES.SUPPLIERS} element={<Suppliers />} />
                 <Route path={ROUTES.STOCK_TRANSFERS} element={<StockTransfers />} />
                 <Route path={ROUTES.POS_SALES} element={<POSSales />} />
