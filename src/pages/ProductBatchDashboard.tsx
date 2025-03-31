@@ -1,147 +1,124 @@
+
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { supabase } from '@/lib/supabase';
 import { ProductBatch, mapDbProductBatchToModel } from '@/models/productBatch';
-import { getBatchStatus } from '@/utils/expirationUtils';
+import { safeArray } from '@/utils/supabaseUtils';
 import { toast } from 'sonner';
-import { asParams, safeArray } from '@/utils/supabaseUtils';
+import BatchTable from '@/components/inventory/expiration/BatchTable';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Spinner } from '@/components/ui/spinner';
+import { Product } from '@/models/product';
+import { productsService } from '@/models/product';
 
 const ProductBatchDashboard: React.FC = () => {
   const [batches, setBatches] = useState<ProductBatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const [products, setProducts] = useState<Record<string, Product>>({});
+
   useEffect(() => {
-    fetchBatches();
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        // Check if the table exists
+        const { data: tableExists, error: tableCheckError } = await supabase
+          .rpc('check_table_exists', {
+            table_name: 'product_batches'
+          });
+        
+        if (tableCheckError) {
+          console.error('Error checking if table exists:', tableCheckError);
+          toast.error('Error checking database structure');
+          setIsLoading(false);
+          return;
+        }
+        
+        if (!tableExists) {
+          console.log('product_batches table does not exist yet');
+          toast.warning('Product batches database table not found');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Fetch batches
+        const { data: batchesData, error: batchesError } = await supabase
+          .rpc('get_all_product_batches', {});
+        
+        if (batchesError) {
+          throw batchesError;
+        }
+        
+        const fetchedBatches = safeArray(batchesData, mapDbProductBatchToModel);
+        
+        // Get unique product IDs
+        const productIds = [...new Set(fetchedBatches.map(batch => batch.productId))];
+        
+        // Fetch product details
+        const productsMap: Record<string, Product> = {};
+        for (const productId of productIds) {
+          const product = await productsService.getById(productId);
+          if (product) {
+            productsMap[productId] = product;
+          }
+        }
+        
+        setProducts(productsMap);
+        setBatches(fetchedBatches);
+      } catch (error) {
+        console.error('Error loading batch data:', error);
+        toast.error('Failed to load product batches');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
-  
-  const fetchBatches = async () => {
-    setIsLoading(true);
+
+  const handleDeleteBatch = async (batchId: string) => {
     try {
-      // Check if table exists first
-      const { data: tableExists, error: checkError } = await supabase
-        .rpc('check_table_exists', asParams({ 
-          table_name: 'product_batches' 
-        }));
+      const { error } = await supabase
+        .rpc('delete_product_batch', {
+          batch_id: batchId
+        });
       
-      if (checkError) {
-        console.error('Error checking if table exists:', checkError);
-        setIsLoading(false);
-        return;
-      }
+      if (error) throw error;
       
-      if (!tableExists) {
-        console.log('Product batches table does not exist yet');
-        setIsLoading(false);
-        return;
-      }
-      
-      // Fetch all batches
-      const { data, error } = await supabase
-        .rpc('get_all_product_batches', {});
-      
-      if (error) {
-        console.error('Error fetching batches:', error);
-        toast.error('Failed to load batches');
-        setIsLoading(false);
-        return;
-      }
-      
-      const fetchedBatches = safeArray(data, mapDbProductBatchToModel);
-      setBatches(fetchedBatches);
+      toast.success('Batch deleted successfully');
+      // Remove the batch from state
+      setBatches(prev => prev.filter(batch => batch.id !== batchId));
     } catch (error) {
-      console.error('Error in fetchBatches:', error);
-      toast.error('Error loading batches');
-    } finally {
-      setIsLoading(false);
+      console.error('Error deleting batch:', error);
+      toast.error('Failed to delete batch');
     }
   };
-  
-  // Group batches by status
-  const expiredBatches = batches.filter(batch => getBatchStatus(batch.expiryDate) === 'expired');
-  const expiringSoonBatches = batches.filter(batch => getBatchStatus(batch.expiryDate) === 'expiring_soon');
-  const freshBatches = batches.filter(batch => getBatchStatus(batch.expiryDate) === 'fresh');
-  
+
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Product Batch Dashboard</h1>
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Product Batch Dashboard</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="bg-red-50">
-            <CardTitle className="text-red-700">Expired</CardTitle>
-            <CardDescription>{expiredBatches.length} batches</CardDescription>
-          </CardHeader>
-          <CardContent className="max-h-80 overflow-y-auto">
-            {expiredBatches.length > 0 ? (
-              <ul className="space-y-2">
-                {expiredBatches.map(batch => (
-                  <li key={batch.id} className="p-2 border border-red-100 rounded text-sm">
-                    <div>Batch: {batch.batchNumber}</div>
-                    <div>Expiry: {new Date(batch.expiryDate).toLocaleDateString()}</div>
-                    <div>Quantity: {batch.quantity}</div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 text-sm">No expired batches</p>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="bg-amber-50">
-            <CardTitle className="text-amber-700">Expiring Soon</CardTitle>
-            <CardDescription>{expiringSoonBatches.length} batches</CardDescription>
-          </CardHeader>
-          <CardContent className="max-h-80 overflow-y-auto">
-            {expiringSoonBatches.length > 0 ? (
-              <ul className="space-y-2">
-                {expiringSoonBatches.map(batch => (
-                  <li key={batch.id} className="p-2 border border-amber-100 rounded text-sm">
-                    <div>Batch: {batch.batchNumber}</div>
-                    <div>Expiry: {new Date(batch.expiryDate).toLocaleDateString()}</div>
-                    <div>Quantity: {batch.quantity}</div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 text-sm">No batches expiring soon</p>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="bg-green-50">
-            <CardTitle className="text-green-700">Fresh</CardTitle>
-            <CardDescription>{freshBatches.length} batches</CardDescription>
-          </CardHeader>
-          <CardContent className="max-h-80 overflow-y-auto">
-            {freshBatches.length > 0 ? (
-              <ul className="space-y-2">
-                {freshBatches.map(batch => (
-                  <li key={batch.id} className="p-2 border border-green-100 rounded text-sm">
-                    <div>Batch: {batch.batchNumber}</div>
-                    <div>Expiry: {new Date(batch.expiryDate).toLocaleDateString()}</div>
-                    <div>Quantity: {batch.quantity}</div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500 text-sm">No fresh batches</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      
-      <div>
-        {isLoading ? (
-          <div>Loading batches...</div>
-        ) : (
-          batches.length === 0 && (
-            <div>No batches found. Please run the database migration first.</div>
-          )
-        )}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Product Batches</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <Spinner size="lg" />
+            </div>
+          ) : batches.length > 0 ? (
+            <BatchTable 
+              batches={batches} 
+              isLoading={isLoading}
+              onDelete={handleDeleteBatch}
+            />
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No product batches found.</p>
+              <p className="mt-2">If you've just set up the database, try adding your first batch.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

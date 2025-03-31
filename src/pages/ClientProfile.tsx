@@ -15,14 +15,14 @@ const ClientProfile = () => {
     error,
     transactions,
     areTransactionsLoading,
-    refetch = () => Promise.resolve() // Add default implementation for refetch
+    refetch 
   } = useClientProfile(clientId);
 
   // Add a retry mechanism if loading fails
   useEffect(() => {
     let retryCount = 0;
     const retryTimeout = setTimeout(() => {
-      if (isLoading && retryCount < 3) {
+      if (isLoading && retryCount < 3 && refetch) {
         console.log(`Retrying client profile fetch (${retryCount + 1}/3)...`);
         refetch();
         retryCount++;

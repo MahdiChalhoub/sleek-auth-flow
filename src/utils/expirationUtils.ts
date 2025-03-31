@@ -1,19 +1,22 @@
 
-import { parseISO, differenceInDays } from 'date-fns';
+import { differenceInDays, parseISO, isValid } from 'date-fns';
 
 export type BatchStatus = 'fresh' | 'expiring_soon' | 'expired';
 
 /**
- * Determines the status of a batch based on its expiry date
- * @param expiryDate ISO date string of the batch expiry date
- * @returns Status of the batch: 'fresh', 'expiring_soon', or 'expired'
+ * Determine the status of a product batch based on its expiry date
+ * @param expiryDateStr ISO date string of the expiry date
+ * @returns Status of the batch - 'fresh', 'expiring_soon', or 'expired'
  */
-export const getBatchStatus = (expiryDate: string | null): BatchStatus => {
-  if (!expiryDate) return 'expired';
+export const getBatchStatus = (expiryDateStr: string): BatchStatus => {
+  if (!expiryDateStr || !isValid(parseISO(expiryDateStr))) {
+    console.warn('Invalid expiry date:', expiryDateStr);
+    return 'expired';
+  }
   
+  const expiryDate = parseISO(expiryDateStr);
   const today = new Date();
-  const expiryDateObj = parseISO(expiryDate);
-  const daysUntilExpiry = differenceInDays(expiryDateObj, today);
+  const daysUntilExpiry = differenceInDays(expiryDate, today);
   
   if (daysUntilExpiry < 0) {
     return 'expired';
@@ -25,34 +28,18 @@ export const getBatchStatus = (expiryDate: string | null): BatchStatus => {
 };
 
 /**
- * Get appropriate color class for a batch status
- * @param status The batch status
- * @returns Tailwind CSS color class
+ * Format the days until expiry (or since expiry) as a human-readable string
+ * @param expiryDateStr ISO date string of the expiry date
+ * @returns Formatted string like "Expires in 5 days" or "Expired 10 days ago"
  */
-export const getBatchStatusColor = (status: BatchStatus): string => {
-  switch (status) {
-    case 'fresh':
-      return 'text-green-600 border-green-300 bg-green-50';
-    case 'expiring_soon':
-      return 'text-amber-600 border-amber-300 bg-amber-50';
-    case 'expired':
-      return 'text-red-600 border-red-300 bg-red-50';
-    default:
-      return 'text-gray-600 border-gray-300 bg-gray-50';
+export const formatDaysUntilExpiry = (expiryDateStr: string): string => {
+  if (!expiryDateStr || !isValid(parseISO(expiryDateStr))) {
+    return 'Invalid expiry date';
   }
-};
-
-/**
- * Format days until expiry with appropriate text
- * @param expiryDate ISO date string of the batch expiry date
- * @returns Formatted string describing days until expiry
- */
-export const formatDaysUntilExpiry = (expiryDate: string | null): string => {
-  if (!expiryDate) return 'No expiry date';
   
+  const expiryDate = parseISO(expiryDateStr);
   const today = new Date();
-  const expiryDateObj = parseISO(expiryDate);
-  const daysUntilExpiry = differenceInDays(expiryDateObj, today);
+  const daysUntilExpiry = differenceInDays(expiryDate, today);
   
   if (daysUntilExpiry < 0) {
     return `Expired ${Math.abs(daysUntilExpiry)} days ago`;

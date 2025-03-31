@@ -1,191 +1,339 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { mapDbProductBatchToModel, ProductBatch } from '@/models/productBatch';
-import BatchTable from './BatchTable';
-import BatchForm from './BatchForm';
-import ExpiryAlertSettings from './ExpiryAlertSettings';
-import { toast } from 'sonner';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { asParams, safeArray } from '@/utils/supabaseUtils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search, Plus, AlertTriangle, Clock, Filter, ChevronDown } from 'lucide-react';
+import { Product } from '@/models/product';
+import { ProductBatch, createProductBatch } from '@/models/productBatch';
+import { format, parseISO, differenceInDays, addDays } from 'date-fns';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import BatchForm from '@/components/inventory/expiration/BatchForm';
+import BatchTable from '@/components/inventory/expiration/BatchTable';
+import BatchStatusBadge from '@/components/inventory/expiration/BatchStatusBadge';
+import { getBatchStatus } from '@/utils/expirationUtils';
+import useProducts from '@/hooks/useProducts';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { safeArray } from '@/utils/supabaseUtils';
+import { mapDbProductBatchToModel } from '@/models/productBatch';
 
 const ExpirationManagement: React.FC = () => {
+  const { products } = useProducts();
+  const [searchTerm, setSearchTerm] = useState('');
   const [batches, setBatches] = useState<ProductBatch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedBatch, setSelectedBatch] = useState<ProductBatch | null>(null);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [hideExpired, setHideExpired] = useState(false);
+  
   useEffect(() => {
-    fetchBatches();
+    const loadBatches = async () => {
+      setIsLoading(true);
+      try {
+        const { data: tableExists, error: tableCheckError } = await supabase
+          .rpc('check_table_exists', {
+            table_name: 'product_batches'
+          });
+        
+        if (tableCheckError) {
+          console.error('Error checking if table exists:', tableCheckError);
+          setIsLoading(false);
+          return;
+        }
+        
+        if (!tableExists) {
+          console.log('product_batches table does not exist yet');
+          setIsLoading(false);
+          setBatches([]);
+          return;
+        }
+        
+        const { data: batchesData, error } = await supabase
+          .rpc('get_all_product_batches', {});
+        
+        if (error) {
+          throw error;
+        }
+        
+        const fetchedBatches = safeArray(batchesData, mapDbProductBatchToModel);
+        setBatches(fetchedBatches);
+      } catch (error) {
+        console.error('Error loading batches:', error);
+        toast.error('Failed to load product batches');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBatches();
   }, []);
-
-  const fetchBatches = async () => {
-    setIsLoading(true);
-    try {
-      // First check if the product_batches table exists
-      const { data: tableExists, error: checkError } = await supabase
-        .rpc('check_table_exists', asParams({ 
-          table_name: 'product_batches' 
-        }));
-      
-      if (checkError) {
-        console.error("Error checking if table exists:", checkError);
-        setIsLoading(false);
-        return;
-      }
-      
-      if (!tableExists) {
-        toast.error("Product batches table not found. Please run the database migration first.");
-        setIsLoading(false);
-        return;
-      }
-      
-      // Get all batches
-      const { data, error } = await supabase
-        .rpc('get_all_product_batches', {});
-      
-      if (error) {
-        console.error("Error fetching batches:", error);
-        toast.error(`Error fetching batches: ${error.message}`);
-        setIsLoading(false);
-        return;
-      }
-      
-      // Map database records to product batch model
-      const productBatches = safeArray(data, mapDbProductBatchToModel);
-      setBatches(productBatches);
-    } catch (error) {
-      console.error("Error in fetchBatches:", error);
-      toast.error("Error loading batches. Please try again later");
-    } finally {
-      setIsLoading(false);
+  
+  // Get all products with batches
+  const productsWithBatches = products.filter(product => 
+    batches.some(batch => batch.productId === product.id)
+  );
+  
+  // Filter batches by status
+  const filteredBatches = batches.filter(batch => {
+    // First, check if we should hide expired items
+    if (hideExpired && getBatchStatus(batch.expiryDate) === 'expired') {
+      return false;
     }
-  };
+    
+    // Then apply the status filter if not 'all'
+    if (filterStatus !== 'all') {
+      return getBatchStatus(batch.expiryDate) === filterStatus;
+    }
+    
+    return true;
+  });
 
-  const handleEditBatch = (batch: ProductBatch) => {
-    setSelectedBatch(batch);
-    setIsFormOpen(true);
-  };
+  // Filter products by search term and only include those with filtered batches
+  const filteredProducts = productsWithBatches.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (product.barcode && product.barcode.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Check if the product has any batches that match our filters
+    const hasMatchingBatches = filteredBatches.some(batch => batch.productId === product.id);
+    
+    return matchesSearch && hasMatchingBatches;
+  });
 
-  const handleDeleteBatch = async (batchId: string) => {
+  const addBatch = async (newBatch: Omit<ProductBatch, "id" | "createdAt" | "updatedAt">) => {
     try {
-      const { error } = await supabase
-        .rpc('delete_product_batch', asParams({ 
-          batch_id: batchId 
-        }));
+      const { data, error } = await supabase
+        .rpc('insert_product_batch', {
+          batch: {
+            product_id: newBatch.productId,
+            batch_number: newBatch.batchNumber,
+            quantity: newBatch.quantity,
+            expiry_date: newBatch.expiryDate
+          }
+        });
       
       if (error) throw error;
       
-      toast.success('Batch deleted successfully');
-      fetchBatches();
-    } catch (error: any) {
-      console.error('Error deleting batch:', error);
-      toast.error(`Failed to delete batch: ${error.message}`);
-    }
-  };
-
-  const handleAddEditBatch = async (batch: ProductBatch) => {
-    try {
-      if (batch.id) {
-        // Update existing batch
-        const { error } = await supabase.rpc(
-          'update_product_batch',
-          asParams({
-            batch_id: batch.id,
-            product_id: batch.productId,
-            batch_number: batch.batchNumber,
-            expiry_date: batch.expiryDate,
-            quantity: batch.quantity
-          })
-        );
-        
-        if (error) throw error;
-        toast.success('Batch updated successfully');
-      } else {
-        // Create new batch
-        const { error } = await supabase.rpc(
-          'create_product_batch',
-          asParams({
-            product_id: batch.productId,
-            batch_number: batch.batchNumber,
-            expiry_date: batch.expiryDate,
-            quantity: batch.quantity
-          })
-        );
-        
-        if (error) throw error;
+      if (data) {
+        const addedBatch = mapDbProductBatchToModel(data);
+        setBatches(prev => [...prev, addedBatch]);
         toast.success('Batch added successfully');
       }
       
-      setIsFormOpen(false);
-      setSelectedBatch(null);
-      fetchBatches();
-    } catch (error: any) {
-      console.error('Error saving batch:', error);
-      toast.error(`Failed to save batch: ${error.message}`);
+      setSelectedProduct(null); // Reset selected product after adding
+    } catch (error) {
+      console.error('Error adding batch:', error);
+      toast.error('Failed to add batch');
+    }
+  };
+
+  const deleteBatch = async (batchId: string) => {
+    try {
+      const { error } = await supabase
+        .rpc('delete_product_batch', {
+          batch_id: batchId
+        });
+      
+      if (error) throw error;
+      
+      setBatches(prev => prev.filter(batch => batch.id !== batchId));
+      toast.success('Batch deleted successfully');
+    } catch (error) {
+      console.error('Error deleting batch:', error);
+      toast.error('Failed to delete batch');
     }
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Expiration Management</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="batches">
-          <TabsList>
-            <TabsTrigger value="batches">Product Batches</TabsTrigger>
-            <TabsTrigger value="settings">Alert Settings</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="batches" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Product Batches</h2>
-              <div className="space-x-2">
-                <Button 
-                  onClick={() => {
-                    setSelectedBatch(null);
-                    setIsFormOpen(true);
-                  }}
-                >
-                  Add New Batch
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={fetchBatches}
-                >
-                  Refresh
-                </Button>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Gestion des Dates d'Expiration</h1>
+          <p className="text-muted-foreground mt-1">
+            Suivez les dates d'expiration par lot pour chaque produit
+          </p>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle>Produits avec lots</CardTitle>
+              <CardDescription>Gérez les dates d'expiration par produit et par lot</CardDescription>
+              
+              <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher un produit..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="flex gap-2">
+                        <Filter className="h-4 w-4" />
+                        Filtres
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-4">
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <h4 className="font-medium">Statut d'expiration</h4>
+                          <Select 
+                            value={filterStatus} 
+                            onValueChange={(value) => setFilterStatus(value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Tous les statuts" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">Tous les statuts</SelectItem>
+                              <SelectItem value="fresh">Frais</SelectItem>
+                              <SelectItem value="expiring_soon">Expire bientôt</SelectItem>
+                              <SelectItem value="expired">Expiré</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            id="hide-expired"
+                            checked={hideExpired}
+                            onCheckedChange={setHideExpired}
+                          />
+                          <Label htmlFor="hide-expired">Masquer les produits expirés</Label>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
-            </div>
+            </CardHeader>
             
-            <BatchTable 
-              batches={batches} 
-              isLoading={isLoading} 
-              onEdit={handleEditBatch}
-              onDelete={handleDeleteBatch}
-            />
-            
-            {isFormOpen && (
-              <BatchForm 
-                batch={selectedBatch} 
-                onSave={handleAddEditBatch}
-                onCancel={() => {
-                  setIsFormOpen(false);
-                  setSelectedBatch(null);
-                }}
-              />
-            )}
-          </TabsContent>
+            <CardContent>
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <Clock className="animate-spin mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Chargement des produits...</p>
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="text-center py-8">
+                  <AlertTriangle className="mx-auto h-12 w-12 text-amber-500 mb-4" />
+                  <h3 className="text-lg font-medium">Aucun produit trouvé</h3>
+                  <p className="text-muted-foreground mt-1">
+                    Aucun produit ne correspond à vos critères de recherche.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {filteredProducts.map(product => {
+                    // Get batches for this product
+                    const productBatches = filteredBatches.filter(batch => batch.productId === product.id);
+                    
+                    return (
+                      <Card key={product.id} className="overflow-hidden">
+                        <CardHeader className="pb-2 bg-muted/50">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="text-lg font-medium">{product.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Barcode: {product.barcode} | {productBatches.length} lots
+                              </p>
+                            </div>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setSelectedProduct(product)}
+                            >
+                              <Plus className="h-4 w-4 mr-1" />
+                              Ajouter un lot
+                            </Button>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <BatchTable 
+                            batches={productBatches}
+                            onDelete={deleteBatch}
+                            product={product}
+                          />
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div>
+          <Card className="sticky top-4">
+            <CardHeader>
+              <CardTitle>
+                {selectedProduct 
+                  ? `Ajouter un lot : ${selectedProduct.name}`
+                  : "Sélectionnez un produit"}
+              </CardTitle>
+              <CardDescription>
+                Enregistrez un nouveau lot avec une date d'expiration
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {selectedProduct ? (
+                <BatchForm 
+                  batch={null}
+                  onSave={async (batch) => {
+                    await addBatch(batch);
+                  }}
+                  onCancel={() => setSelectedProduct(null)}
+                  productId={selectedProduct.id}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium">Aucun produit sélectionné</h3>
+                  <p className="text-muted-foreground mt-1">
+                    Cliquez sur le bouton "Ajouter un lot" pour un produit
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
           
-          <TabsContent value="settings">
-            <ExpiryAlertSettings />
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Informations</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-2">
+                <BatchStatusBadge expiryDate={addDays(new Date(), 90).toISOString()} />
+                <span>Produit frais</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <BatchStatusBadge expiryDate={addDays(new Date(), 15).toISOString()} />
+                <span>Expire dans moins de 30 jours</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <BatchStatusBadge expiryDate={addDays(new Date(), -1).toISOString()} />
+                <span>Produit expiré</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 };
 

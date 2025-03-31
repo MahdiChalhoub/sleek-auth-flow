@@ -23,10 +23,10 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
     const loadBatches = async () => {
       setIsLoading(true);
       try {
-        const { data, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', asParams({ 
-            table_name: 'product_batches' 
-          }));
+        const { data: tableExists, error: tableCheckError } = await supabase
+          .rpc('check_table_exists', {
+            table_name: 'product_batches'
+          });
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -34,7 +34,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
           return;
         }
         
-        if (!data) {
+        if (!tableExists) {
           console.log('product_batches table does not exist yet');
           setIsLoading(false);
           return;

@@ -3,17 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import { ProductBatch } from '@/models/productBatch';
-import { Product } from '@/models/product';
-import useProducts from '@/hooks/useProducts';
 import ExpiryDatePicker from './ExpiryDatePicker';
-import { parseISO, formatISO } from 'date-fns';
+import { parseISO, formatISO, addDays } from 'date-fns';
 
 export interface BatchFormProps {
   batch: ProductBatch | null;
-  onSave: (batch: ProductBatch) => Promise<void>;
+  onSave: (batch: Omit<ProductBatch, "id" | "createdAt" | "updatedAt">) => Promise<void>;
   onCancel: () => void;
   productId?: string;
 }
@@ -24,11 +21,9 @@ const BatchForm: React.FC<BatchFormProps> = ({
   onCancel,
   productId
 }) => {
-  const { products, isLoading: productsLoading } = useProducts();
   const [selectedDate, setSelectedDate] = useState<string>(
-    batch?.expiryDate || formatISO(new Date(Date.now() + 90 * 24 * 60 * 60 * 1000))
+    batch?.expiryDate || formatISO(addDays(new Date(), 90))
   );
-  const [selectedProductId, setSelectedProductId] = useState<string>(batch?.productId || productId || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const {
@@ -41,7 +36,7 @@ const BatchForm: React.FC<BatchFormProps> = ({
     defaultValues: {
       productId: batch?.productId || productId || '',
       batchNumber: batch?.batchNumber || '',
-      expiryDate: batch?.expiryDate || '',
+      expiryDate: batch?.expiryDate || selectedDate,
       quantity: batch?.quantity || 1
     }
   });
@@ -53,10 +48,8 @@ const BatchForm: React.FC<BatchFormProps> = ({
       setValue('expiryDate', batch.expiryDate);
       setValue('quantity', batch.quantity);
       setSelectedDate(batch.expiryDate);
-      setSelectedProductId(batch.productId);
     } else if (productId) {
       setValue('productId', productId);
-      setSelectedProductId(productId);
     }
   }, [batch, productId, setValue]);
   
@@ -68,14 +61,11 @@ const BatchForm: React.FC<BatchFormProps> = ({
   const onSubmit = async (data: Omit<ProductBatch, 'id' | 'createdAt' | 'updatedAt'>) => {
     setIsSubmitting(true);
     try {
-      const batchData: ProductBatch = {
+      await onSave({
         ...data,
-        id: batch?.id || '',
-        createdAt: batch?.createdAt || new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      await onSave(batchData);
+        expiryDate: selectedDate // Make sure we use the selected date from the date picker
+      });
+      reset();
     } catch (error) {
       console.error('Error saving batch:', error);
     } finally {
@@ -85,38 +75,22 @@ const BatchForm: React.FC<BatchFormProps> = ({
   
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="productId">Product</Label>
-        <Select
-          value={selectedProductId}
-          onValueChange={(value) => {
-            setSelectedProductId(value);
-            setValue('productId', value);
-          }}
-          disabled={!!productId || productsLoading}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a product" />
-          </SelectTrigger>
-          <SelectContent>
-            {products.map((product) => (
-              <SelectItem key={product.id} value={product.id}>
-                {product.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.productId && <p className="text-red-500 text-sm">Product is required</p>}
-      </div>
+      <input 
+        type="hidden" 
+        {...register('productId')} 
+        value={productId || batch?.productId || ''} 
+      />
       
       <div className="space-y-2">
         <Label htmlFor="batchNumber">Batch Number</Label>
         <Input
           id="batchNumber"
-          placeholder="e.g., LOT12345"
-          {...register('batchNumber', { required: true })}
+          placeholder="LOT12345"
+          {...register('batchNumber', { required: 'Batch number is required' })}
         />
-        {errors.batchNumber && <p className="text-red-500 text-sm">Batch number is required</p>}
+        {errors.batchNumber && (
+          <p className="text-sm text-red-500">{errors.batchNumber.message}</p>
+        )}
       </div>
       
       <div className="space-y-2">
@@ -125,7 +99,6 @@ const BatchForm: React.FC<BatchFormProps> = ({
           selectedDate={selectedDate}
           onDateChange={onDateChange}
         />
-        {errors.expiryDate && <p className="text-red-500 text-sm">Expiry date is required</p>}
       </div>
       
       <div className="space-y-2">
@@ -133,22 +106,29 @@ const BatchForm: React.FC<BatchFormProps> = ({
         <Input
           id="quantity"
           type="number"
-          min={1}
+          min="1"
           {...register('quantity', { 
-            required: true,
-            min: 1,
-            valueAsNumber: true
+            required: 'Quantity is required', 
+            min: { value: 1, message: 'Quantity must be at least 1' },
+            valueAsNumber: true 
           })}
         />
-        {errors.quantity && <p className="text-red-500 text-sm">Valid quantity is required</p>}
+        {errors.quantity && (
+          <p className="text-sm text-red-500">{errors.quantity.message}</p>
+        )}
       </div>
       
-      <div className="flex justify-end gap-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel} 
+          disabled={isSubmitting}
+        >
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Saving...' : batch ? 'Update Batch' : 'Add Batch'}
+          {isSubmitting ? 'Saving...' : 'Save Batch'}
         </Button>
       </div>
     </form>
