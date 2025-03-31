@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { ProductBatch, mapDbProductBatchToModel } from './productBatch';
 import { supabase } from '@/lib/supabase';
-import { asParams, safeArray } from '@/utils/supabaseUtils';
+import { asParams, safeArray, rpcParams } from '@/utils/supabaseUtils';
 
 export interface ComboComponent {
   id: string;
@@ -46,7 +46,7 @@ export interface Product {
   description?: string;
   barcode?: string;
   categoryId?: string;
-  category?: string; // Added for backward compatibility
+  category?: string;
   price: number;
   cost?: number;
   stock: number;
@@ -55,7 +55,7 @@ export interface Product {
   isCombo?: boolean;
   hasStock?: boolean;
   imageUrl?: string;
-  image?: string; // Added for backward compatibility with existing code
+  image?: string;
   comboComponents?: ComboComponent[];
   batches?: ProductBatch[];
   costs?: ProductCost[];
@@ -82,7 +82,7 @@ export const createProduct = (data: Partial<Product>): Product => {
     isCombo: data.isCombo || false,
     hasStock: data.hasStock !== undefined ? data.hasStock : true,
     imageUrl: data.imageUrl,
-    image: data.imageUrl, // Map imageUrl to image for compatibility
+    image: data.imageUrl,
     comboComponents: data.comboComponents || [],
     batches: data.batches || [],
     costs: data.costs || [],
@@ -141,7 +141,7 @@ export const productsService = {
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
       const { data, error: checkError } = await supabase
-        .rpc('check_table_exists', rpcParams({ 
+        .rpc('check_table_exists', rpcParams({
           table_name: 'product_batches' 
         }));
       

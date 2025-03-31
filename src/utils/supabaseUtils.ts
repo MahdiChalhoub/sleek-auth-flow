@@ -40,7 +40,7 @@ export const assertType = <T>(value: any): T => {
 /**
  * Type-safe params helper for RPC calls
  * @param params The parameters object to pass to the RPC function
- * @returns The same object with typed params
+ * @returns The same object with proper type assertion
  */
 export const rpcParams = <T extends Record<string, any>>(params: T): Record<string, any> => {
   return params as Record<string, any>;
