@@ -38,7 +38,7 @@ export const assertType = <T>(value: any): T => {
 };
 
 /**
- * Type-safe params helper for RPC calls
+ * Type-safe params helper for RPC calls to fix "string is not assignable to parameter of type never" errors
  * @param params The parameters object to pass to the RPC function
  * @returns The same object with proper type assertion
  */
