@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Client, ClientTransaction } from '@/models/client';
 import { clientsApi } from '@/api/database';
 
@@ -10,30 +10,34 @@ export const useClientProfile = (clientId?: string) => {
   const [areTransactionsLoading, setAreTransactionsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchClient = async () => {
-      if (!clientId) {
-        setIsLoading(false);
-        setError("No client ID provided");
-        return;
-      }
+  const fetchClient = useCallback(async () => {
+    if (!clientId) {
+      setIsLoading(false);
+      setError("No client ID provided");
+      return;
+    }
 
-      setIsLoading(true);
-      setError(null);
+    setIsLoading(true);
+    setError(null);
 
-      try {
-        const clientData = await clientsApi.getById(clientId);
-        setClient(clientData);
-      } catch (err) {
-        console.error("Error fetching client:", err);
-        setError(err instanceof Error ? err.message : "An error occurred while loading the client");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchClient();
+    try {
+      const clientData = await clientsApi.getById(clientId);
+      setClient(clientData);
+    } catch (err) {
+      console.error("Error fetching client:", err);
+      setError(err instanceof Error ? err.message : "An error occurred while loading the client");
+    } finally {
+      setIsLoading(false);
+    }
   }, [clientId]);
+
+  const refetch = useCallback(() => {
+    fetchClient();
+  }, [fetchClient]);
+
+  useEffect(() => {
+    fetchClient();
+  }, [fetchClient]);
 
   useEffect(() => {
     const fetchTransactions = async () => {
@@ -100,5 +104,5 @@ export const useClientProfile = (clientId?: string) => {
     fetchTransactions();
   }, [clientId]);
 
-  return { client, isLoading, error, transactions, areTransactionsLoading };
+  return { client, isLoading, error, transactions, areTransactionsLoading, refetch };
 };

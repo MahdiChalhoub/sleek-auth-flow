@@ -7,9 +7,10 @@ import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { mapDbProductBatchToModel, ProductBatch } from '@/models/productBatch';
-import { asParams, safeArray } from '@/utils/supabaseUtils';
+import { safeArray } from '@/utils/supabaseUtils';
 import { getBatchStatus, formatDaysUntilExpiry } from '@/utils/expirationUtils';
 import { productsService } from '@/models/product';
+import { Spinner } from '@/components/ui/spinner';
 
 interface ExpiryDashboardProps {
   // Define any props here
@@ -61,7 +62,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
           })
         );
 
-        setBatches(batchesWithProductNames);
+        setBatches(batchesWithProductNames as ProductBatch[]);
       } catch (error) {
         console.error('Error loading batches:', error);
         toast.error('Failed to load product batches');
@@ -98,7 +99,9 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div>Loading batches...</div>
+          <div className="flex justify-center py-4">
+            <Spinner size="md" />
+          </div>
         ) : (
           batches.length > 0 ? (
             <ul>

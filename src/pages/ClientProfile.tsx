@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ClientProfileView } from '@/components/clients/ClientProfileView';
@@ -14,23 +13,14 @@ const ClientProfile = () => {
     isLoading, 
     error,
     transactions,
-    areTransactionsLoading,
-    refetch 
+    areTransactionsLoading 
   } = useClientProfile(clientId);
 
-  // Add a retry mechanism if loading fails
   useEffect(() => {
-    let retryCount = 0;
-    const retryTimeout = setTimeout(() => {
-      if (isLoading && retryCount < 3 && refetch) {
-        console.log(`Retrying client profile fetch (${retryCount + 1}/3)...`);
-        refetch();
-        retryCount++;
-      }
-    }, 3000);
-
-    return () => clearTimeout(retryTimeout);
-  }, [isLoading, refetch]);
+    if (error) {
+      console.error('Error loading client profile:', error);
+    }
+  }, [error]);
 
   if (isLoading) {
     return (

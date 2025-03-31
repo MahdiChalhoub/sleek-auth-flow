@@ -7,7 +7,7 @@
  * Type assertion helper for Supabase RPC calls
  * Used to solve TypeScript errors with parameters
  */
-export const asParams = <T extends Record<string, any>>(params: T): Record<string, any> => {
+export const asParams = <T>(params: T): T => {
   return params;
 };
 

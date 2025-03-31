@@ -17,54 +17,61 @@ import BatchTable from '@/components/inventory/expiration/BatchTable';
 import BatchStatusBadge from '@/components/inventory/expiration/BatchStatusBadge';
 import { getBatchStatus } from '@/utils/expirationUtils';
 import useProducts from '@/hooks/useProducts';
-
-// Mock data for batches
-const mockBatches: ProductBatch[] = [
-  {
-    id: "1",
-    productId: "1",
-    batchNumber: "LOT12345",
-    expiryDate: addDays(new Date(), 90).toISOString(),
-    quantity: 30,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: "2",
-    productId: "1",
-    batchNumber: "LOT12346",
-    expiryDate: addDays(new Date(), 20).toISOString(),
-    quantity: 15,
-    createdAt: addDays(new Date(), -30).toISOString(),
-    updatedAt: addDays(new Date(), -30).toISOString()
-  },
-  {
-    id: "3",
-    productId: "2",
-    batchNumber: "LOT54321",
-    expiryDate: addDays(new Date(), -10).toISOString(),
-    quantity: 5,
-    createdAt: addDays(new Date(), -60).toISOString(),
-    updatedAt: addDays(new Date(), -60).toISOString()
-  },
-  {
-    id: "4",
-    productId: "3",
-    batchNumber: "LOT67890",
-    expiryDate: addDays(new Date(), 15).toISOString(),
-    quantity: 20,
-    createdAt: addDays(new Date(), -20).toISOString(),
-    updatedAt: addDays(new Date(), -20).toISOString()
-  }
-];
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { safeArray } from '@/utils/supabaseUtils';
+import { mapDbProductBatchToModel } from '@/models/productBatch';
 
 const ExpirationManagement: React.FC = () => {
   const { products } = useProducts();
   const [searchTerm, setSearchTerm] = useState('');
-  const [batches, setBatches] = useState<ProductBatch[]>(mockBatches);
+  const [batches, setBatches] = useState<ProductBatch[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [hideExpired, setHideExpired] = useState(false);
+  
+  useEffect(() => {
+    const loadBatches = async () => {
+      setIsLoading(true);
+      try {
+        const { data: tableExists, error: tableCheckError } = await supabase
+          .rpc('check_table_exists', {
+            table_name: 'product_batches'
+          });
+        
+        if (tableCheckError) {
+          console.error('Error checking if table exists:', tableCheckError);
+          setIsLoading(false);
+          return;
+        }
+        
+        if (!tableExists) {
+          console.log('product_batches table does not exist yet');
+          setIsLoading(false);
+          setBatches([]);
+          return;
+        }
+        
+        const { data: batchesData, error } = await supabase
+          .rpc('get_all_product_batches', {});
+        
+        if (error) {
+          throw error;
+        }
+        
+        const fetchedBatches = safeArray(batchesData, mapDbProductBatchToModel);
+        setBatches(fetchedBatches);
+      } catch (error) {
+        console.error('Error loading batches:', error);
+        toast.error('Failed to load product batches');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadBatches();
+  }, []);
   
   // Get all products with batches
   const productsWithBatches = products.filter(product => 
@@ -89,7 +96,7 @@ const ExpirationManagement: React.FC = () => {
   // Filter products by search term and only include those with filtered batches
   const filteredProducts = productsWithBatches.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          product.barcode.toLowerCase().includes(searchTerm.toLowerCase());
+                         (product.barcode && product.barcode.toLowerCase().includes(searchTerm.toLowerCase()));
     
     // Check if the product has any batches that match our filters
     const hasMatchingBatches = filteredBatches.some(batch => batch.productId === product.id);
@@ -97,20 +104,48 @@ const ExpirationManagement: React.FC = () => {
     return matchesSearch && hasMatchingBatches;
   });
 
-  const addBatch = (newBatch: Omit<ProductBatch, "id">) => {
-    const batchWithId: ProductBatch = {
-      ...newBatch,
-      id: `batch-${Date.now()}`,
-      updatedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString()
-    };
-    
-    setBatches(prev => [...prev, batchWithId]);
-    setSelectedProduct(null); // Reset selected product after adding
+  const addBatch = async (newBatch: Omit<ProductBatch, "id">) => {
+    try {
+      const { data, error } = await supabase
+        .rpc('insert_product_batch', {
+          batch: {
+            product_id: newBatch.productId,
+            batch_number: newBatch.batchNumber,
+            quantity: newBatch.quantity,
+            expiry_date: newBatch.expiryDate
+          }
+        });
+      
+      if (error) throw error;
+      
+      if (data) {
+        const addedBatch = mapDbProductBatchToModel(data);
+        setBatches(prev => [...prev, addedBatch]);
+        toast.success('Batch added successfully');
+      }
+      
+      setSelectedProduct(null); // Reset selected product after adding
+    } catch (error) {
+      console.error('Error adding batch:', error);
+      toast.error('Failed to add batch');
+    }
   };
 
-  const deleteBatch = (batchId: string) => {
-    setBatches(prev => prev.filter(batch => batch.id !== batchId));
+  const deleteBatch = async (batchId: string) => {
+    try {
+      const { error } = await supabase
+        .rpc('delete_product_batch', {
+          batch_id: batchId
+        });
+      
+      if (error) throw error;
+      
+      setBatches(prev => prev.filter(batch => batch.id !== batchId));
+      toast.success('Batch deleted successfully');
+    } catch (error) {
+      console.error('Error deleting batch:', error);
+      toast.error('Failed to delete batch');
+    }
   };
 
   return (
