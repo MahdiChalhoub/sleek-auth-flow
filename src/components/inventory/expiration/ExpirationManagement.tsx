@@ -19,7 +19,7 @@ import { getBatchStatus } from '@/utils/expirationUtils';
 import useProducts from '@/hooks/useProducts';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { safeArray } from '@/utils/supabaseUtils';
+import { safeArray, rpcParams } from '@/utils/supabaseUtils';
 import { mapDbProductBatchToModel } from '@/models/productBatch';
 
 const ExpirationManagement: React.FC = () => {
@@ -36,9 +36,9 @@ const ExpirationManagement: React.FC = () => {
       setIsLoading(true);
       try {
         const { data: tableExists, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', {
+          .rpc('check_table_exists', rpcParams({
             table_name: 'product_batches'
-          });
+          }));
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -54,7 +54,7 @@ const ExpirationManagement: React.FC = () => {
         }
         
         const { data: batchesData, error } = await supabase
-          .rpc('get_all_product_batches', {});
+          .rpc('get_all_product_batches', rpcParams({}));
         
         if (error) {
           throw error;
@@ -73,19 +73,15 @@ const ExpirationManagement: React.FC = () => {
     loadBatches();
   }, []);
   
-  // Get all products with batches
   const productsWithBatches = products.filter(product => 
     batches.some(batch => batch.productId === product.id)
   );
   
-  // Filter batches by status
   const filteredBatches = batches.filter(batch => {
-    // First, check if we should hide expired items
     if (hideExpired && getBatchStatus(batch.expiryDate) === 'expired') {
       return false;
     }
     
-    // Then apply the status filter if not 'all'
     if (filterStatus !== 'all') {
       return getBatchStatus(batch.expiryDate) === filterStatus;
     }
@@ -93,28 +89,26 @@ const ExpirationManagement: React.FC = () => {
     return true;
   });
 
-  // Filter products by search term and only include those with filtered batches
   const filteredProducts = productsWithBatches.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          (product.barcode && product.barcode.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Check if the product has any batches that match our filters
     const hasMatchingBatches = filteredBatches.some(batch => batch.productId === product.id);
     
     return matchesSearch && hasMatchingBatches;
   });
 
-  const addBatch = async (newBatch: Omit<ProductBatch, "id" | "createdAt" | "updatedAt">) => {
+  const addBatch = async (newBatch: Omit<ProductBatch, "id">) => {
     try {
       const { data, error } = await supabase
-        .rpc('insert_product_batch', {
+        .rpc('insert_product_batch', rpcParams({
           batch: {
             product_id: newBatch.productId,
             batch_number: newBatch.batchNumber,
             quantity: newBatch.quantity,
             expiry_date: newBatch.expiryDate
           }
-        });
+        }));
       
       if (error) throw error;
       
@@ -134,9 +128,9 @@ const ExpirationManagement: React.FC = () => {
   const deleteBatch = async (batchId: string) => {
     try {
       const { error } = await supabase
-        .rpc('delete_product_batch', {
+        .rpc('delete_product_batch', rpcParams({
           batch_id: batchId
-        });
+        }));
       
       if (error) throw error;
       
@@ -238,7 +232,6 @@ const ExpirationManagement: React.FC = () => {
               ) : (
                 <div className="space-y-6">
                   {filteredProducts.map(product => {
-                    // Get batches for this product
                     const productBatches = filteredBatches.filter(batch => batch.productId === product.id);
                     
                     return (
@@ -294,7 +287,14 @@ const ExpirationManagement: React.FC = () => {
                 <BatchForm 
                   batch={null}
                   onSave={async (batch) => {
-                    await addBatch(batch);
+                    await addBatch({
+                      productId: batch.productId,
+                      batchNumber: batch.batchNumber,
+                      quantity: batch.quantity,
+                      expiryDate: batch.expiryDate,
+                      createdAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString()
+                    });
                   }}
                   onCancel={() => setSelectedProduct(null)}
                   productId={selectedProduct.id}

@@ -19,7 +19,7 @@ import { getBatchStatus } from '@/utils/expirationUtils';
 import useProducts from '@/hooks/useProducts';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { safeArray } from '@/utils/supabaseUtils';
+import { safeArray, rpcParams } from '@/utils/supabaseUtils';
 import { mapDbProductBatchToModel } from '@/models/productBatch';
 
 const ExpirationManagement: React.FC = () => {
@@ -36,9 +36,9 @@ const ExpirationManagement: React.FC = () => {
       setIsLoading(true);
       try {
         const { data: tableExists, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', {
+          .rpc('check_table_exists', rpcParams({
             table_name: 'product_batches'
-          });
+          }));
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -54,7 +54,7 @@ const ExpirationManagement: React.FC = () => {
         }
         
         const { data: batchesData, error } = await supabase
-          .rpc('get_all_product_batches', {});
+          .rpc('get_all_product_batches', rpcParams({}));
         
         if (error) {
           throw error;
@@ -73,19 +73,15 @@ const ExpirationManagement: React.FC = () => {
     loadBatches();
   }, []);
   
-  // Get all products with batches
   const productsWithBatches = products.filter(product => 
     batches.some(batch => batch.productId === product.id)
   );
   
-  // Filter batches by status
   const filteredBatches = batches.filter(batch => {
-    // First, check if we should hide expired items
     if (hideExpired && getBatchStatus(batch.expiryDate) === 'expired') {
       return false;
     }
     
-    // Then apply the status filter if not 'all'
     if (filterStatus !== 'all') {
       return getBatchStatus(batch.expiryDate) === filterStatus;
     }
@@ -93,12 +89,10 @@ const ExpirationManagement: React.FC = () => {
     return true;
   });
 
-  // Filter products by search term and only include those with filtered batches
   const filteredProducts = productsWithBatches.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          (product.barcode && product.barcode.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Check if the product has any batches that match our filters
     const hasMatchingBatches = filteredBatches.some(batch => batch.productId === product.id);
     
     return matchesSearch && hasMatchingBatches;
@@ -107,14 +101,14 @@ const ExpirationManagement: React.FC = () => {
   const addBatch = async (newBatch: Omit<ProductBatch, "id">) => {
     try {
       const { data, error } = await supabase
-        .rpc('insert_product_batch', {
+        .rpc('insert_product_batch', rpcParams({
           batch: {
             product_id: newBatch.productId,
             batch_number: newBatch.batchNumber,
             quantity: newBatch.quantity,
             expiry_date: newBatch.expiryDate
           }
-        });
+        }));
       
       if (error) throw error;
       
@@ -134,9 +128,9 @@ const ExpirationManagement: React.FC = () => {
   const deleteBatch = async (batchId: string) => {
     try {
       const { error } = await supabase
-        .rpc('delete_product_batch', {
+        .rpc('delete_product_batch', rpcParams({
           batch_id: batchId
-        });
+        }));
       
       if (error) throw error;
       
@@ -190,7 +184,10 @@ const ExpirationManagement: React.FC = () => {
                       <div className="space-y-4">
                         <div className="space-y-2">
                           <h4 className="font-medium">Statut d'expiration</h4>
-                          <Select value={filterStatus} onValueChange={setFilterStatus}>
+                          <Select 
+                            value={filterStatus} 
+                            onValueChange={(value) => setFilterStatus(value)}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Tous les statuts" />
                             </SelectTrigger>
@@ -219,7 +216,12 @@ const ExpirationManagement: React.FC = () => {
             </CardHeader>
             
             <CardContent>
-              {filteredProducts.length === 0 ? (
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <Clock className="animate-spin mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Chargement des produits...</p>
+                </div>
+              ) : filteredProducts.length === 0 ? (
                 <div className="text-center py-8">
                   <AlertTriangle className="mx-auto h-12 w-12 text-amber-500 mb-4" />
                   <h3 className="text-lg font-medium">Aucun produit trouvé</h3>
@@ -230,7 +232,6 @@ const ExpirationManagement: React.FC = () => {
               ) : (
                 <div className="space-y-6">
                   {filteredProducts.map(product => {
-                    // Get batches for this product
                     const productBatches = filteredBatches.filter(batch => batch.productId === product.id);
                     
                     return (
@@ -286,8 +287,14 @@ const ExpirationManagement: React.FC = () => {
                 <BatchForm 
                   batch={null}
                   onSave={async (batch) => {
-                    addBatch(batch);
-                    return Promise.resolve();
+                    await addBatch({
+                      productId: batch.productId,
+                      batchNumber: batch.batchNumber,
+                      quantity: batch.quantity,
+                      expiryDate: batch.expiryDate,
+                      createdAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString()
+                    });
                   }}
                   onCancel={() => setSelectedProduct(null)}
                   productId={selectedProduct.id}

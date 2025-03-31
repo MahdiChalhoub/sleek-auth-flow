@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { ProductBatch, mapDbProductBatchToModel } from '@/models/productBatch';
-import { safeArray } from '@/utils/supabaseUtils';
+import { safeArray, rpcParams } from '@/utils/supabaseUtils';
 import { toast } from 'sonner';
 import BatchTable from '@/components/inventory/expiration/BatchTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,9 +21,9 @@ const ProductBatchDashboard: React.FC = () => {
       try {
         // Check if the table exists
         const { data: tableExists, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', {
+          .rpc('check_table_exists', rpcParams({
             table_name: 'product_batches'
-          });
+          }));
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -41,7 +41,7 @@ const ProductBatchDashboard: React.FC = () => {
         
         // Fetch batches
         const { data: batchesData, error: batchesError } = await supabase
-          .rpc('get_all_product_batches', {});
+          .rpc('get_all_product_batches', rpcParams({}));
         
         if (batchesError) {
           throw batchesError;
@@ -77,9 +77,9 @@ const ProductBatchDashboard: React.FC = () => {
   const handleDeleteBatch = async (batchId: string) => {
     try {
       const { error } = await supabase
-        .rpc('delete_product_batch', {
+        .rpc('delete_product_batch', rpcParams({
           batch_id: batchId
-        });
+        }));
       
       if (error) throw error;
       
@@ -110,6 +110,7 @@ const ProductBatchDashboard: React.FC = () => {
               batches={batches} 
               isLoading={isLoading}
               onDelete={handleDeleteBatch}
+              product={undefined}
             />
           ) : (
             <div className="text-center py-8">

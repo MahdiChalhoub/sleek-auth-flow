@@ -104,5 +104,12 @@ export const useClientProfile = (clientId?: string) => {
     fetchTransactions();
   }, [clientId]);
 
-  return { client, isLoading, error, transactions, areTransactionsLoading, refetch };
+  return { 
+    client, 
+    isLoading, 
+    error, 
+    transactions, 
+    areTransactionsLoading,
+    refetch 
+  };
 };

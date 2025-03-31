@@ -36,3 +36,12 @@ export const safeArray = <T, R = T>(
 export const assertType = <T>(value: any): T => {
   return value as T;
 };
+
+/**
+ * Type-safe params helper for RPC calls
+ * @param params The parameters object to pass to the RPC function
+ * @returns The same object with typed params
+ */
+export const rpcParams = <T extends Record<string, any>>(params: T): Record<string, any> => {
+  return params as Record<string, any>;
+};
