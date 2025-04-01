@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
@@ -61,6 +62,7 @@ export function subscribeToBroadcast(
   const channel = supabase
     .channel(channelName)
     .on('broadcast', { event }, (payload) => {
+      // Convert broadcast payload to avoid type errors
       handler(payload.payload);
     })
     .subscribe();

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,10 +35,12 @@ const TransactionsPage: React.FC = () => {
     switch (status) {
       case 'pending':
         return <Badge variant="outline">Pending</Badge>;
-      case 'completed':
-        return <Badge variant="success">Completed</Badge>;
-      case 'cancelled':
-        return <Badge variant="destructive">Cancelled</Badge>;
+      case 'open':
+      case 'verified':
+      case 'secure':
+      case 'locked':
+      case 'unverified':
+        return <Badge variant="success">{status.charAt(0).toUpperCase() + status.slice(1)}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -52,7 +55,7 @@ const TransactionsPage: React.FC = () => {
     {
       accessorKey: 'date',
       header: 'Date',
-      cell: ({ row }) => format(new Date(row.original.date), 'PPP'),
+      cell: ({ row }) => row.original.date ? format(new Date(row.original.date), 'PPP') : format(new Date(row.original.createdAt), 'PPP'),
     },
     {
       accessorKey: 'description',

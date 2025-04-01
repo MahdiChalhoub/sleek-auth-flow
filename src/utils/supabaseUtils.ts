@@ -43,13 +43,13 @@ export function assertArray<T>(value: any): T[] {
  * ```
  */
 export function rpcParams<T extends Record<string, any>>(params: T): T {
-  return params;
+  return params as T;
 }
 
 /**
  * Format Supabase error messages in a user-friendly way
  */
-export function formatSupabaseError(error: PostgrestError | null): string {
+export function formatSupabaseError(error: any): string {
   if (!error) return "Unknown error";
   
   if (error.message) {

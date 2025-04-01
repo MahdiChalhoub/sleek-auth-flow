@@ -7,12 +7,12 @@ import { assertType } from '@/utils/typeUtils';
 export const productBatchService = {
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
-      const { data: checkError } = await supabase
+      const { data: tableExists, error: checkError } = await supabase
         .rpc('check_table_exists', {
           table_name: 'product_batches' 
         });
       
-      if (!checkError) {
+      if (!tableExists) {
         console.log('product_batches table not found in database');
         return [];
       }

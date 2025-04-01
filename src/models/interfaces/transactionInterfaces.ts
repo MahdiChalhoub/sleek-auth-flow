@@ -1,65 +1,68 @@
 
-import { TransactionStatus, PaymentMethod, AccountType, TransactionType, DiscrepancyResolution } from '../types/transactionTypes';
-
-export interface LedgerEntry {
-  id: string;
-  transactionId: string;
-  accountType: AccountType;
-  amount: number;
-  isDebit: boolean;
-  description: string;
-  createdAt: string;
-  createdBy: string;
-  reference?: string;
-  metadata?: Record<string, any>;
-  financialYearId?: string; // Add reference to financial year
-}
-
-export interface JournalTransaction {
-  id: string;
-  date: string;
-  transactionType: TransactionType;
-  description: string;
-  entries: LedgerEntry[];
-  createdBy: string;
-  verified: boolean;
-  verifiedBy?: string;
-  verifiedAt?: string;
-  notes?: string;
-  reference?: string;
-  financialYearId?: string; // Add reference to financial year
-}
+import { TransactionStatus, TransactionType, PaymentMethod, AccountType } from '../types/transactionTypes';
 
 export interface Transaction {
   id: string;
   amount: number;
-  status: TransactionStatus;
+  description: string;
+  type?: string; 
+  date?: string;
   createdAt: string;
   updatedAt: string;
   createdBy: string;
-  description: string;
-  paymentMethod: PaymentMethod;
-  items?: TransactionItem[];
-  verifiedBy?: string;
-  verifiedAt?: string;
-  lockedBy?: string;
-  lockedAt?: string;
-  journalEntries?: LedgerEntry[];
+  updatedBy?: string;
+  status: TransactionStatus;
+  notes?: string;
   branchId?: string;
+  locationId?: string;
   clientId?: string;
-  pointsEarned?: number;
-  pointsRedeemed?: number;
-  // Add these properties to support database fields
+  financialYearId?: string;
+  journalEntries?: JournalEntry[];
   referenceId?: string;
   referenceType?: string;
-  notes?: string;
-  type?: string;
-  financialYearId?: string; // Add reference to financial year
+  paymentMethod?: PaymentMethod;
+}
+
+export interface JournalEntry {
+  id: string;
+  transactionId: string;
+  amount: number;
+  type: 'debit' | 'credit';
+  account: AccountType;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TransactionSummary {
+  totalIncome: number;
+  totalExpense: number;
+  netBalance: number;
+  pendingCount: number;
+  recentTransactions: Transaction[];
 }
 
 export interface TransactionItem {
   id: string;
-  name: string;
+  transactionId: string;
+  productId: string;
+  productName: string;
   quantity: number;
-  price: number;
+  unitPrice: number;
+  totalPrice: number;
+  discount?: number;
+  notes?: string;
+}
+
+export interface LedgerEntry {
+  id: string;
+  date: string;
+  description: string;
+  debit: number;
+  credit: number;
+  balance: number;
+  reference?: string;
+  accountId: string;
+  accountName: string;
+  type: TransactionType;
 }
