@@ -1,104 +1,146 @@
 
-import { supabase } from '@/lib/supabase';
-import { tableSource } from '@/utils/supabaseUtils';
+import { supabase } from '@/integrations/supabase/client';
+import { tableSource } from './supabaseUtils';
+import { assertType } from './typeUtils';
 
 /**
- * Utility for batch operations with Supabase
- * Efficiently handles larger datasets by breaking them into chunks
+ * Batch delete multiple records from a table
+ * @param table - The table name
+ * @param ids - Array of IDs to delete
+ * @returns Whether the operation was successful
  */
+export async function batchDelete(
+  table: keyof ReturnType<typeof tableSource>,
+  ids: string[]
+): Promise<boolean> {
+  if (!ids.length) return true;
 
-interface BatchOptions {
-  chunkSize?: number;
-  onProgress?: (processed: number, total: number) => void;
+  try {
+    const { error } = await supabase
+      .from(tableSource(table))
+      .delete()
+      .in('id', ids);
+
+    if (error) {
+      console.error(`Error during batch delete from ${table}:`, error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error(`Exception during batch delete from ${table}:`, error);
+    return false;
+  }
 }
 
 /**
- * Perform batch inserts with chunking for better performance
- * @param table Supabase table name
- * @param rows Array of row data to insert
- * @param options Batch operation options
- * @returns Result of the operation
+ * Batch insert multiple records to a table
+ * @param table - The table name
+ * @param records - Array of records to insert
+ * @returns Whether the operation was successful
  */
 export async function batchInsert<T extends Record<string, any>>(
-  table: string, 
-  rows: T[], 
-  options: BatchOptions = {}
-) {
-  const { chunkSize = 100, onProgress } = options;
-  const results: any[] = [];
-  const errors: any[] = [];
-  
-  if (!rows.length) return { results: [], errors: [] };
-  
-  for (let i = 0; i < rows.length; i += chunkSize) {
-    const chunk = rows.slice(i, i + chunkSize);
-    
-    try {
-      const { data, error } = await supabase
-        .from(tableSource(table))
-        .insert(chunk)
-        .select();
-      
-      if (error) {
-        errors.push(error);
-      } else if (data) {
-        results.push(...data);
-      }
-      
-      if (onProgress) {
-        onProgress(Math.min(i + chunkSize, rows.length), rows.length);
-      }
-    } catch (err) {
-      errors.push(err);
+  table: keyof ReturnType<typeof tableSource>,
+  records: T[]
+): Promise<boolean> {
+  if (!records.length) return true;
+
+  try {
+    const { error } = await supabase
+      .from(tableSource(table))
+      .insert(records);
+
+    if (error) {
+      console.error(`Error during batch insert to ${table}:`, error);
+      return false;
     }
+
+    return true;
+  } catch (error) {
+    console.error(`Exception during batch insert to ${table}:`, error);
+    return false;
   }
-  
-  return { results, errors };
 }
 
 /**
- * Perform batch updates with chunking for better performance
- * @param table Supabase table name
- * @param updates Array of updates with id and data
- * @param options Batch operation options
- * @returns Result of the operation
+ * Batch update multiple records in a table
+ * @param table - The table name
+ * @param records - Array of records with IDs to update
+ * @returns Whether the operation was successful
  */
-export async function batchUpdate<T extends Record<string, any>>(
-  table: string, 
-  updates: { id: string; data: Partial<T> }[], 
-  options: BatchOptions = {}
-) {
-  const { chunkSize = 100, onProgress } = options;
-  const results: any[] = [];
-  const errors: any[] = [];
-  
-  if (!updates.length) return { results: [], errors: [] };
-  
-  for (let i = 0; i < updates.length; i += chunkSize) {
-    const chunk = updates.slice(i, i + chunkSize);
-    
-    for (const { id, data } of chunk) {
-      try {
-        const { data: result, error } = await supabase
-          .from(tableSource(table))
-          .update(data)
-          .eq('id', id)
-          .select();
-        
-        if (error) {
-          errors.push({ id, error });
-        } else if (result) {
-          results.push(...result);
-        }
-      } catch (err) {
-        errors.push({ id, error: err });
+export async function batchUpdate<T extends { id: string }>(
+  table: keyof ReturnType<typeof tableSource>,
+  records: T[]
+): Promise<boolean> {
+  if (!records.length) return true;
+
+  try {
+    // Supabase doesn't have a batch update, so we'll use a transaction
+    // For now, we'll simulate it with multiple updates
+    for (const record of records) {
+      const { id, ...updates } = record;
+      const { error } = await supabase
+        .from(tableSource(table))
+        .update(updates)
+        .eq('id', id);
+
+      if (error) {
+        console.error(`Error updating record ${id} in ${table}:`, error);
+        return false;
       }
     }
-    
-    if (onProgress) {
-      onProgress(Math.min(i + chunkSize, updates.length), updates.length);
-    }
+
+    return true;
+  } catch (error) {
+    console.error(`Exception during batch update to ${table}:`, error);
+    return false;
   }
-  
-  return { results, errors };
+}
+
+/**
+ * Export table data to CSV
+ * @param table - The table name
+ * @returns CSV string
+ */
+export async function exportTableToCSV(
+  table: keyof ReturnType<typeof tableSource>
+): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from(tableSource(table))
+      .select('*');
+
+    if (error) {
+      console.error(`Error exporting ${table} to CSV:`, error);
+      throw error;
+    }
+
+    if (!data || !data.length) {
+      return 'No data to export';
+    }
+
+    // Get headers
+    const headers = Object.keys(data[0]);
+    
+    // Create CSV content
+    let csv = headers.join(',') + '\n';
+    
+    // Add rows
+    data.forEach(row => {
+      const values = headers.map(header => {
+        const value = assertType<any>(row)[header];
+        // Handle values with commas or quotes
+        if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value === null || value === undefined ? '' : value;
+      });
+      csv += values.join(',') + '\n';
+    });
+
+    return csv;
+  } catch (error) {
+    console.error(`Exception exporting ${table} to CSV:`, error);
+    throw error;
+  }
 }

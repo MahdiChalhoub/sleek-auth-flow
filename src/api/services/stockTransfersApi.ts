@@ -3,6 +3,26 @@ import { supabase } from '@/integrations/supabase/client';
 import { StockTransfer } from '@/models/stockTransfer';
 import { tableSource } from '@/utils/supabaseUtils';
 import { mapDatabaseStatus, mapToDbStatus } from '../mappers/statusMappers';
+import { assertType } from '@/utils/typeUtils';
+
+type DbStockTransfer = {
+  id: string;
+  source_location_id: string;
+  destination_location_id: string;
+  notes: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
+
+type DbStockTransferItem = {
+  id: string;
+  stock_transfer_id: string;
+  product_id: string;
+  quantity: number;
+  created_at: string;
+  updated_at: string;
+};
 
 // Stock Transfers API
 export const stockTransfersApi = {
@@ -16,23 +36,27 @@ export const stockTransfersApi = {
       throw error;
     }
     
-    return (data || []).map(item => ({
-      id: item.id,
-      date: item.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
-      source: 'Location', // Default placeholder
-      sourceLocationId: item.source_location_id,
-      destination: 'Location', // Default placeholder
-      destinationLocationId: item.destination_location_id,
-      reason: item.notes || 'Stock Transfer',
-      status: mapDatabaseStatus(item.status),
-      notes: item.notes,
-      createdBy: 'System', // Default value
-      items: (item.stock_transfer_items || []).map(transferItem => ({
-        productId: transferItem.product_id,
-        productName: 'Product', // Default placeholder
-        quantity: transferItem.quantity
-      }))
-    }));
+    return (data || []).map(item => {
+      const transfer = assertType<DbStockTransfer & { stock_transfer_items?: DbStockTransferItem[] }>(item);
+      
+      return {
+        id: transfer.id,
+        date: transfer.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
+        source: 'Location', // Default placeholder
+        sourceLocationId: transfer.source_location_id,
+        destination: 'Location', // Default placeholder
+        destinationLocationId: transfer.destination_location_id,
+        reason: transfer.notes || 'Stock Transfer',
+        status: mapDatabaseStatus(transfer.status),
+        notes: transfer.notes,
+        createdBy: 'System', // Default value
+        items: (transfer.stock_transfer_items || []).map(transferItem => ({
+          productId: transferItem.product_id,
+          productName: 'Product', // Default placeholder
+          quantity: transferItem.quantity
+        }))
+      };
+    });
   },
   
   getById: async (id: string): Promise<StockTransfer | null> => {
@@ -47,18 +71,20 @@ export const stockTransfersApi = {
       throw error;
     }
     
+    const transfer = assertType<DbStockTransfer & { stock_transfer_items?: DbStockTransferItem[] }>(data);
+    
     return {
-      id: data.id,
-      date: data.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
+      id: transfer.id,
+      date: transfer.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
       source: 'Location', // Default placeholder
-      sourceLocationId: data.source_location_id,
+      sourceLocationId: transfer.source_location_id,
       destination: 'Location', // Default placeholder
-      destinationLocationId: data.destination_location_id,
-      reason: data.notes || 'Stock Transfer',
-      status: mapDatabaseStatus(data.status),
-      notes: data.notes,
+      destinationLocationId: transfer.destination_location_id,
+      reason: transfer.notes || 'Stock Transfer',
+      status: mapDatabaseStatus(transfer.status),
+      notes: transfer.notes,
       createdBy: 'System', // Default value
-      items: (data.stock_transfer_items || []).map(transferItem => ({
+      items: (transfer.stock_transfer_items || []).map(transferItem => ({
         productId: transferItem.product_id,
         productName: 'Product', // Default placeholder
         quantity: transferItem.quantity
@@ -83,9 +109,11 @@ export const stockTransfersApi = {
       throw error;
     }
     
+    const newTransfer = assertType<DbStockTransfer>(data);
+    
     if (transfer.items && transfer.items.length > 0) {
       const items = transfer.items.map(item => ({
-        stock_transfer_id: data.id,
+        stock_transfer_id: newTransfer.id,
         product_id: item.productId,
         quantity: item.quantity
       }));
@@ -101,15 +129,15 @@ export const stockTransfersApi = {
     }
     
     return {
-      id: data.id,
-      date: data.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
+      id: newTransfer.id,
+      date: newTransfer.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
       source: 'Location', // Default placeholder
-      sourceLocationId: data.source_location_id,
+      sourceLocationId: newTransfer.source_location_id,
       destination: 'Location', // Default placeholder
-      destinationLocationId: data.destination_location_id,
-      reason: data.notes || 'Stock Transfer',
-      status: mapDatabaseStatus(data.status),
-      notes: data.notes,
+      destinationLocationId: newTransfer.destination_location_id,
+      reason: newTransfer.notes || 'Stock Transfer',
+      status: mapDatabaseStatus(newTransfer.status),
+      notes: newTransfer.notes,
       createdBy: 'System', // Default value
       items: transfer.items || []
     };
@@ -133,16 +161,18 @@ export const stockTransfersApi = {
       throw error;
     }
     
+    const updatedTransfer = assertType<DbStockTransfer>(data);
+    
     return {
-      id: data.id,
-      date: data.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
+      id: updatedTransfer.id,
+      date: updatedTransfer.created_at.split('T')[0], // Convert ISO date to YYYY-MM-DD
       source: 'Location', // Default placeholder
-      sourceLocationId: data.source_location_id,
+      sourceLocationId: updatedTransfer.source_location_id,
       destination: 'Location', // Default placeholder
-      destinationLocationId: data.destination_location_id,
-      reason: data.notes || 'Stock Transfer',
-      status: mapDatabaseStatus(data.status),
-      notes: data.notes,
+      destinationLocationId: updatedTransfer.destination_location_id,
+      reason: updatedTransfer.notes || 'Stock Transfer',
+      status: mapDatabaseStatus(updatedTransfer.status),
+      notes: updatedTransfer.notes,
       createdBy: 'System', // Default value
       items: [] // Default empty array
     };

@@ -2,6 +2,31 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
 import { tableSource } from '@/utils/supabaseUtils';
+import { assertType } from '@/utils/typeUtils';
+
+type DbTransaction = {
+  id: string;
+  amount: number;
+  status: string;
+  type: string;
+  notes: string | null;
+  location_id: string | null;
+  reference_id: string | null;
+  reference_type: string | null;
+  financial_year_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type DbJournalEntry = {
+  id: string;
+  transaction_id: string;
+  account: string;
+  amount: number;
+  type: 'debit' | 'credit';
+  created_at: string;
+  updated_at: string;
+};
 
 // Transactions API
 export const transactionsApi = {
@@ -15,31 +40,36 @@ export const transactionsApi = {
       throw error;
     }
     
-    return data.map(item => ({
-      id: item.id,
-      amount: item.amount,
-      status: item.status as TransactionStatus,
-      createdAt: item.created_at,
-      updatedAt: item.updated_at,
-      createdBy: "System", // Default value
-      description: item.notes || "No description",
-      paymentMethod: "not_specified" as PaymentMethod, // Cast to PaymentMethod
-      branchId: item.location_id,
-      notes: item.notes,
-      referenceId: item.reference_id,
-      referenceType: item.reference_type,
-      type: item.type,
-      journalEntries: (item.journal_entries || []).map(entry => ({
-        id: entry.id,
-        transactionId: entry.transaction_id,
-        accountType: entry.account,
-        amount: entry.amount,
-        isDebit: entry.type === 'debit',
-        description: '',
-        createdAt: entry.created_at,
-        createdBy: "System"
-      })) as LedgerEntry[]
-    })) as Transaction[];
+    return data.map(item => {
+      const transaction = assertType<DbTransaction & { journal_entries?: DbJournalEntry[] }>(item);
+      
+      return {
+        id: transaction.id,
+        amount: transaction.amount,
+        status: transaction.status as TransactionStatus,
+        createdAt: transaction.created_at,
+        updatedAt: transaction.updated_at,
+        createdBy: "System", // Default value
+        description: transaction.notes || "No description",
+        paymentMethod: "not_specified" as PaymentMethod, // Cast to PaymentMethod
+        branchId: transaction.location_id,
+        notes: transaction.notes,
+        referenceId: transaction.reference_id,
+        referenceType: transaction.reference_type,
+        type: transaction.type,
+        financialYearId: transaction.financial_year_id,
+        journalEntries: (transaction.journal_entries || []).map(entry => ({
+          id: entry.id,
+          transactionId: entry.transaction_id,
+          accountType: entry.account,
+          amount: entry.amount,
+          isDebit: entry.type === 'debit',
+          description: '',
+          createdAt: entry.created_at,
+          createdBy: "System"
+        })) as LedgerEntry[]
+      } as Transaction;
+    });
   },
   
   getById: async (id: string): Promise<Transaction | null> => {
@@ -54,21 +84,24 @@ export const transactionsApi = {
       throw error;
     }
     
+    const transaction = assertType<DbTransaction & { journal_entries?: DbJournalEntry[] }>(data);
+    
     return {
-      id: data.id,
-      amount: data.amount,
-      status: data.status as TransactionStatus,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      id: transaction.id,
+      amount: transaction.amount,
+      status: transaction.status as TransactionStatus,
+      createdAt: transaction.created_at,
+      updatedAt: transaction.updated_at,
       createdBy: "System", // Default value
-      description: data.notes || "No description",
+      description: transaction.notes || "No description",
       paymentMethod: "not_specified" as PaymentMethod, // Cast to PaymentMethod
-      branchId: data.location_id,
-      notes: data.notes,
-      referenceId: data.reference_id,
-      referenceType: data.reference_type,
-      type: data.type,
-      journalEntries: (data.journal_entries || []).map(entry => ({
+      branchId: transaction.location_id,
+      notes: transaction.notes,
+      referenceId: transaction.reference_id,
+      referenceType: transaction.reference_type,
+      type: transaction.type,
+      financialYearId: transaction.financial_year_id,
+      journalEntries: (transaction.journal_entries || []).map(entry => ({
         id: entry.id,
         transactionId: entry.transaction_id,
         accountType: entry.account,
@@ -91,7 +124,8 @@ export const transactionsApi = {
         notes: transaction.description,
         location_id: transaction.branchId,
         reference_id: transaction.referenceId,
-        reference_type: transaction.referenceType
+        reference_type: transaction.referenceType,
+        financial_year_id: transaction.financialYearId
       }])
       .select()
       .single();
@@ -101,9 +135,11 @@ export const transactionsApi = {
       throw error;
     }
     
+    const newTransaction = assertType<DbTransaction>(data);
+    
     if (transaction.journalEntries && transaction.journalEntries.length > 0) {
       const entries = transaction.journalEntries.map(entry => ({
-        transaction_id: data.id,
+        transaction_id: newTransaction.id,
         account: entry.accountType,
         amount: entry.amount,
         type: entry.isDebit ? 'debit' : 'credit',
@@ -122,19 +158,20 @@ export const transactionsApi = {
     }
     
     return {
-      id: data.id,
-      amount: data.amount,
-      status: data.status as TransactionStatus,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      id: newTransaction.id,
+      amount: newTransaction.amount,
+      status: newTransaction.status as TransactionStatus,
+      createdAt: newTransaction.created_at,
+      updatedAt: newTransaction.updated_at,
       createdBy: "System", // Default value
-      description: data.notes || "No description",
+      description: newTransaction.notes || "No description",
       paymentMethod: "not_specified" as PaymentMethod, // Cast to PaymentMethod
-      branchId: data.location_id,
-      notes: data.notes,
-      referenceId: data.reference_id,
-      referenceType: data.reference_type,
-      type: data.type,
+      branchId: newTransaction.location_id,
+      notes: newTransaction.notes,
+      referenceId: newTransaction.reference_id,
+      referenceType: newTransaction.reference_type,
+      type: newTransaction.type,
+      financialYearId: newTransaction.financial_year_id,
       journalEntries: transaction.journalEntries || []
     } as Transaction;
   },
@@ -155,20 +192,23 @@ export const transactionsApi = {
       throw error;
     }
     
+    const updatedTransaction = assertType<DbTransaction>(data);
+    
     return {
-      id: data.id,
-      amount: data.amount,
-      status: data.status as TransactionStatus,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
+      id: updatedTransaction.id,
+      amount: updatedTransaction.amount,
+      status: updatedTransaction.status as TransactionStatus,
+      createdAt: updatedTransaction.created_at,
+      updatedAt: updatedTransaction.updated_at,
       createdBy: "System", // Default value
-      description: data.notes || "No description",
+      description: updatedTransaction.notes || "No description",
       paymentMethod: "not_specified" as PaymentMethod, // Cast to PaymentMethod
-      branchId: data.location_id,
-      notes: data.notes,
-      referenceId: data.reference_id,
-      referenceType: data.reference_type,
-      type: data.type,
+      branchId: updatedTransaction.location_id,
+      notes: updatedTransaction.notes,
+      referenceId: updatedTransaction.reference_id,
+      referenceType: updatedTransaction.reference_type,
+      type: updatedTransaction.type,
+      financialYearId: updatedTransaction.financial_year_id, 
       journalEntries: []
     } as Transaction;
   },

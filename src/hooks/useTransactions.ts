@@ -3,12 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
 import { toast } from 'sonner';
 import { useFinancialYears } from './useFinancialYears';
-import { 
-  fetchTransactions, 
-  createTransactionAPI, 
-  updateTransactionStatusAPI, 
-  deleteTransactionAPI 
-} from './transactionAPI';
+import { transactionsApi } from '@/api/database';
 
 export const useTransactions = () => {
   const queryClient = useQueryClient();
@@ -17,7 +12,7 @@ export const useTransactions = () => {
   // Fetch all transactions
   const { data: transactions = [], isLoading, error } = useQuery({
     queryKey: ['transactions'],
-    queryFn: fetchTransactions
+    queryFn: () => transactionsApi.getAll()
   });
   
   // Create transaction mutation
@@ -30,7 +25,7 @@ export const useTransactions = () => {
         throw new Error('No active financial year. Cannot create transaction without a financial year.');
       }
       
-      return createTransactionAPI({
+      return transactionsApi.create({
         ...transactionData,
         financialYearId
       });
@@ -46,7 +41,8 @@ export const useTransactions = () => {
 
   // Change transaction status mutation
   const changeStatus = useMutation({
-    mutationFn: updateTransactionStatusAPI,
+    mutationFn: (params: { id: string, status: TransactionStatus }) => 
+      transactionsApi.updateStatus(params.id, params.status),
     onSuccess: () => {
       toast.success('Transaction status updated successfully');
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
@@ -58,7 +54,7 @@ export const useTransactions = () => {
   
   // Delete transaction mutation
   const deleteTransaction = useMutation({
-    mutationFn: deleteTransactionAPI,
+    mutationFn: (id: string) => transactionsApi.delete(id),
     onSuccess: () => {
       toast.success('Transaction deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
@@ -78,7 +74,7 @@ export const useTransactions = () => {
     isLoading,
     error,
     createTransaction: createTransaction.mutate,
-    changeStatus: changeStatus.mutate,
+    changeStatus: (id: string, status: TransactionStatus) => changeStatus.mutate({ id, status }),
     deleteTransaction: deleteTransaction.mutate,
     getTransactionsByFinancialYear
   };

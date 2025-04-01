@@ -1,107 +1,105 @@
 
-/**
- * Utility functions for working with Supabase
- */
-import { PostgrestError } from '@supabase/supabase-js';
+import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 import { Database } from '@/integrations/supabase/types';
 
-type TableNames = keyof Database['public']['Tables'];
+// This function gets the correct table name based on the environment
+export function tableSource(tableName: keyof Database['public']['Tables']) {
+  // This handles the case where we're in a different environment or want to add a prefix/suffix
+  return tableName;
+}
 
 /**
- * Type assertion helper for Supabase RPC calls
- * Used to solve TypeScript errors with parameters
- * @param params The parameters object to pass
- * @returns The same object with proper type assertion
+ * A safe way to handle arrays returned from Supabase
+ * This ensures we always return an array, even if the data is null or undefined
  */
-export const asParams = <T>(params: T): T => {
+export function safeArray<T, U>(data: T[] | null | undefined, mapFunction?: (item: T) => U): U[] {
+  if (!data) return [];
+  if (!mapFunction) return data as unknown as U[];
+  return data.map(mapFunction);
+}
+
+/**
+ * Asserts that a value is an array of the given type
+ */
+export function assertArray<T>(value: any): T[] {
+  if (!Array.isArray(value)) return [];
+  return value as T[];
+}
+
+/**
+ * Type-safe RPC parameters for PostgreSQL functions
+ * This solves a common issue with TypeScript and Supabase RPC calls
+ * 
+ * Use it like this:
+ * ```
+ * const { data, error } = await supabase.rpc(
+ *   'my_function',
+ *   rpcParams({ param1: 'value1', param2: 'value2' })
+ * );
+ * ```
+ */
+export function rpcParams<T extends Record<string, any>>(params: T): T {
   return params;
-};
+}
 
 /**
- * Helper to safely handle potentially undefined array responses from Supabase
- * @param data Data returned from Supabase query
- * @param mapper Optional function to map each item
- * @returns Safe array that can be used with array methods
+ * Similar to Promise.all but doesn't fail if one promise fails
+ * Returns a tuple of [results, errors]
  */
-export const safeArray = <T, R = T>(
-  data: T[] | null | undefined,
-  mapper?: (item: T) => R
-): R[] => {
-  if (!data || !Array.isArray(data)) {
-    return [];
-  }
+export async function settleAll<T>(promises: Promise<T>[]): Promise<[T[], Error[]]> {
+  const results: T[] = [];
+  const errors: Error[] = [];
+
+  const settlements = await Promise.allSettled(promises);
   
-  return mapper ? data.map(mapper) : data as unknown as R[];
-};
+  settlements.forEach(settlement => {
+    if (settlement.status === 'fulfilled') {
+      results.push(settlement.value);
+    } else {
+      errors.push(settlement.reason);
+    }
+  });
+
+  return [results, errors];
+}
 
 /**
- * Helper for type assertions to resolve "string is not assignable to parameter of type never" errors
- * @param value Any value that needs type assertion
- * @returns The same value with proper type assertion
+ * Helper function to safely execute a Supabase query with proper error handling
  */
-export const assertType = <T>(value: any): T => {
-  return value as T;
-};
-
-/**
- * Type-safe params helper for RPC calls to fix "string is not assignable to parameter of type never" errors
- * @param params The parameters object to pass to the RPC function
- * @returns The same object with proper type assertion
- */
-export const rpcParams = <T extends Record<string, any>>(params: T): Record<string, any> => {
-  return params as Record<string, any>;
-};
-
-/**
- * Helper to handle Supabase errors consistently
- * @param error Error object from Supabase
- * @param defaultMessage Default message to display if error has no message
- * @returns Formatted error message
- */
-export const formatSupabaseError = (error: PostgrestError | any, defaultMessage = "An error occurred"): string => {
-  if (!error) return defaultMessage;
-  
-  // Handle different error formats from Supabase
-  if (typeof error === 'string') return error;
-  if (error.message) return error.message;
-  if (error.error_description) return error.error_description;
-  if (error.details) return error.details;
-  
-  return defaultMessage;
-};
-
-/**
- * Type-safe helper for table names to fix "string is not assignable to parameter of type never" errors
- * @param tableName Name of the table
- * @returns The table name with proper type assertion for Supabase
- */
-export const tableSource = (tableName: string): TableNames => {
-  return tableName as TableNames;
-};
-
-/**
- * Check if a Supabase table exists
- * @param tableName Name of the table to check
- * @returns Promise that resolves to boolean indicating if table exists
- */
-export const checkTableExists = async (tableName: string): Promise<boolean> => {
+export async function safeQuery<T, U = T>(
+  query: Promise<{ data: T | null; error: any }>,
+  errorMessage: string,
+  mapFn?: (data: T) => U
+): Promise<U | null> {
   try {
-    const { data: tableExists, error } = await supabase
-      .rpc('check_table_exists', rpcParams({
-        table_name: tableName
-      }));
+    const { data, error } = await query;
     
     if (error) {
-      console.error(`Error checking if table ${tableName} exists:`, error);
-      return false;
+      console.error(`${errorMessage}:`, error);
+      throw error;
     }
     
-    return !!tableExists;
-  } catch (error) {
-    console.error(`Error checking if table ${tableName} exists:`, error);
-    return false;
+    if (!data) return null;
+    
+    return mapFn ? mapFn(data) : (data as unknown as U);
+  } catch (err) {
+    console.error(`${errorMessage}:`, err);
+    return null;
   }
-};
+}
 
-// Import the supabase client to make the checkTableExists function work
-import { supabase } from '@/lib/supabase';
+/**
+ * Safely execute a database transaction with multiple write operations
+ */
+export async function safeTransaction<T>(
+  operations: () => Promise<T>,
+  errorMessage: string
+): Promise<T | null> {
+  try {
+    const result = await operations();
+    return result;
+  } catch (err) {
+    console.error(`${errorMessage}:`, err);
+    return null;
+  }
+}

@@ -2,6 +2,18 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Client, createClient } from '@/models/client';
 import { tableSource } from '@/utils/supabaseUtils';
+import { assertType } from '@/utils/typeUtils';
+
+type DbClient = {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  loyalty_points: number;
+  created_at: string;
+  updated_at: string;
+};
 
 // Clients API
 export const clientsApi = {
@@ -15,17 +27,24 @@ export const clientsApi = {
       throw error;
     }
     
-    return (data || []).map(item => createClient({
-      id: item.id,
-      name: item.name,
-      email: item.email,
-      phone: item.phone,
-      address: item.address,
-      type: 'regular', // Default type
-      status: 'active', // Default status
-      createdAt: item.created_at,
-      updatedAt: item.updated_at
-    }));
+    return (data || []).map(item => {
+      const dbClient = assertType<DbClient>(item);
+      return createClient({
+        id: dbClient.id,
+        name: dbClient.name,
+        email: dbClient.email || '',
+        phone: dbClient.phone || '',
+        address: dbClient.address || '',
+        type: 'regular', // Default type
+        status: 'active', // Default status
+        createdAt: dbClient.created_at,
+        updatedAt: dbClient.updated_at,
+        financialAccount: {
+          availableCredit: dbClient.loyalty_points || 0,
+          totalDue: 0 // Default value
+        }
+      });
+    });
   },
   
   getById: async (id: string): Promise<Client | null> => {
@@ -42,16 +61,21 @@ export const clientsApi = {
     
     if (!data) return null;
     
+    const dbClient = assertType<DbClient>(data);
     return createClient({
-      id: data.id,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      address: data.address,
+      id: dbClient.id,
+      name: dbClient.name,
+      email: dbClient.email || '',
+      phone: dbClient.phone || '',
+      address: dbClient.address || '',
       type: 'regular', // Default type
       status: 'active', // Default status
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
+      createdAt: dbClient.created_at,
+      updatedAt: dbClient.updated_at,
+      financialAccount: {
+        availableCredit: dbClient.loyalty_points || 0,
+        totalDue: 0 // Default value
+      }
     });
   },
   
@@ -73,16 +97,21 @@ export const clientsApi = {
       throw error;
     }
     
+    const dbClient = assertType<DbClient>(data);
     return createClient({
-      id: data.id,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      address: data.address,
+      id: dbClient.id,
+      name: dbClient.name,
+      email: dbClient.email || '',
+      phone: dbClient.phone || '',
+      address: dbClient.address || '',
       type: 'regular', // Default type
       status: 'active', // Default status
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
+      createdAt: dbClient.created_at,
+      updatedAt: dbClient.updated_at,
+      financialAccount: {
+        availableCredit: dbClient.loyalty_points || 0,
+        totalDue: 0 // Default value
+      }
     });
   },
   
@@ -108,16 +137,21 @@ export const clientsApi = {
       throw error;
     }
     
+    const dbClient = assertType<DbClient>(data);
     return createClient({
-      id: data.id,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      address: data.address,
+      id: dbClient.id,
+      name: dbClient.name,
+      email: dbClient.email || '',
+      phone: dbClient.phone || '',
+      address: dbClient.address || '',
       type: 'regular', // Default type
       status: 'active', // Default status
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
+      createdAt: dbClient.created_at,
+      updatedAt: dbClient.updated_at,
+      financialAccount: {
+        availableCredit: dbClient.loyalty_points || 0,
+        totalDue: 0 // Default value
+      }
     });
   },
   

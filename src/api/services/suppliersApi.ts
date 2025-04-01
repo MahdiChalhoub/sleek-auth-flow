@@ -2,6 +2,19 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Supplier } from '@/models/supplier';
 import { tableSource } from '@/utils/supabaseUtils';
+import { assertType } from '@/utils/typeUtils';
+
+type DbSupplier = {
+  id: string;
+  name: string;
+  contact_person: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
 
 // Suppliers API
 export const suppliersApi = {
@@ -15,16 +28,19 @@ export const suppliersApi = {
       throw error;
     }
     
-    return (data || []).map(item => ({
-      id: item.id,
-      name: item.name,
-      contactPerson: item.contact_person || '',
-      email: item.email || '',
-      phone: item.phone || '',
-      address: item.address || '',
-      notes: item.notes,
-      products: [] // Default empty array for products
-    }));
+    return (data || []).map(item => {
+      const dbSupplier = assertType<DbSupplier>(item);
+      return {
+        id: dbSupplier.id,
+        name: dbSupplier.name,
+        contactPerson: dbSupplier.contact_person || '',
+        email: dbSupplier.email || '',
+        phone: dbSupplier.phone || '',
+        address: dbSupplier.address || '',
+        notes: dbSupplier.notes,
+        products: [] // Default empty array for products
+      };
+    });
   },
   
   getById: async (id: string): Promise<Supplier | null> => {
@@ -39,14 +55,15 @@ export const suppliersApi = {
       throw error;
     }
     
+    const dbSupplier = assertType<DbSupplier>(data);
     return {
-      id: data.id,
-      name: data.name,
-      contactPerson: data.contact_person || '',
-      email: data.email || '',
-      phone: data.phone || '',
-      address: data.address || '',
-      notes: data.notes,
+      id: dbSupplier.id,
+      name: dbSupplier.name,
+      contactPerson: dbSupplier.contact_person || '',
+      email: dbSupplier.email || '',
+      phone: dbSupplier.phone || '',
+      address: dbSupplier.address || '',
+      notes: dbSupplier.notes,
       products: [] // Default empty array for products
     };
   },
@@ -70,14 +87,15 @@ export const suppliersApi = {
       throw error;
     }
     
+    const dbSupplier = assertType<DbSupplier>(data);
     return {
-      id: data.id,
-      name: data.name,
-      contactPerson: data.contact_person || '',
-      email: data.email || '',
-      phone: data.phone || '',
-      address: data.address || '',
-      notes: data.notes,
+      id: dbSupplier.id,
+      name: dbSupplier.name,
+      contactPerson: dbSupplier.contact_person || '',
+      email: dbSupplier.email || '',
+      phone: dbSupplier.phone || '',
+      address: dbSupplier.address || '',
+      notes: dbSupplier.notes,
       products: [] // Default empty array for products
     };
   },
@@ -103,14 +121,15 @@ export const suppliersApi = {
       throw error;
     }
     
+    const dbSupplier = assertType<DbSupplier>(data);
     return {
-      id: data.id,
-      name: data.name,
-      contactPerson: data.contact_person || '',
-      email: data.email || '',
-      phone: data.phone || '',
-      address: data.address || '',
-      notes: data.notes,
+      id: dbSupplier.id,
+      name: dbSupplier.name,
+      contactPerson: dbSupplier.contact_person || '',
+      email: dbSupplier.email || '',
+      phone: dbSupplier.phone || '',
+      address: dbSupplier.address || '',
+      notes: dbSupplier.notes,
       products: [] // Default empty array for products
     };
   },

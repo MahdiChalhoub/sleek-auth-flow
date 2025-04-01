@@ -1,15 +1,16 @@
 
 import { supabase } from '@/lib/supabase';
 import { ProductBatch, mapDbProductBatchToModel } from '../productBatch';
-import { safeArray, rpcParams } from '@/utils/supabaseUtils';
+import { safeArray } from '@/utils/supabaseUtils';
+import { rpcParams } from '@/utils/supabaseUtils';
 
 export const productBatchService = {
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
       const { data: checkError } = await supabase
-        .rpc('check_table_exists', rpcParams({
+        .rpc('check_table_exists', {
           table_name: 'product_batches' 
-        }));
+        });
       
       if (!checkError) {
         console.log('product_batches table not found in database');
@@ -17,9 +18,9 @@ export const productBatchService = {
       }
       
       const { data: batchesData, error } = await supabase
-        .rpc('get_product_batches', rpcParams({ 
+        .rpc('get_product_batches', { 
           product_id_param: productId 
-        }));
+        });
       
       if (error) {
         console.error(`Error calling get_product_batches RPC:`, error);
