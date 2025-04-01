@@ -1,44 +1,14 @@
+
 import { v4 as uuidv4 } from 'uuid';
+import { ComboComponent } from './productTypes/comboComponent';
+import { ProductCost } from './productTypes/productCost';
+import { ProductPrice } from './productTypes/productPrice';
+import { ProductLocationStock } from './productTypes/productLocationStock';
 import { ProductBatch, mapDbProductBatchToModel } from './productBatch';
 import { supabase } from '@/lib/supabase';
-import { asParams, safeArray, rpcParams } from '@/utils/supabaseUtils';
-
-export interface ComboComponent {
-  id: string;
-  comboProductId: string;
-  componentProductId: string;
-  quantity: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProductCost {
-  id: string;
-  productId: string;
-  cost: number;
-  effectiveDate: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProductPrice {
-  id: string;
-  productId: string;
-  price: number;
-  effectiveDate: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProductLocationStock {
-  id: string;
-  productId: string;
-  locationId: string;
-  stock: number;
-  minStockLevel?: number;
-  updatedAt: string;
-  createdAt: string;
-}
+import { safeArray, rpcParams, tableSource } from '@/utils/supabaseUtils';
+import { productBatchService } from './services/productBatchService';
+import { productLocationService } from './services/productLocationService';
 
 export interface Product {
   id: string;
@@ -97,7 +67,7 @@ export const productsService = {
   async getAll(): Promise<Product[]> {
     try {
       const { data, error } = await supabase
-        .from('products')
+        .from(tableSource('products'))
         .select('*, categories(name)');
       
       if (error) throw error;
@@ -118,19 +88,25 @@ export const productsService = {
   async getById(id: string): Promise<Product | null> {
     try {
       const { data, error } = await supabase
-        .from('products')
+        .from(tableSource('products'))
         .select('*, categories(name)')
         .eq('id', id)
         .single();
       
       if (error) throw error;
       
+      // Get related data
+      const batches = await productBatchService.getProductBatches(id);
+      const locationStock = await productLocationService.getProductStockByLocation(id);
+      
       return createProduct({
         ...data,
         categoryId: data.category_id,
         category: data.categories?.name,
         imageUrl: data.image_url,
-        image: data.image_url
+        image: data.image_url,
+        batches,
+        locationStock
       });
     } catch (error) {
       console.error(`Error fetching product ${id}:`, error);
@@ -139,61 +115,11 @@ export const productsService = {
   },
   
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
-    try {
-      const { data, error: checkError } = await supabase
-        .rpc('check_table_exists', rpcParams({
-          table_name: 'product_batches' 
-        }));
-      
-      if (checkError) {
-        console.error("Error checking if table exists:", checkError);
-        return [];
-      }
-      
-      if (!data) {
-        console.log('product_batches table not found in database');
-        return [];
-      }
-      
-      const { data: batchesData, error } = await supabase
-        .rpc('get_product_batches', rpcParams({ 
-          product_id_param: productId 
-        }));
-      
-      if (error) {
-        console.error(`Error calling get_product_batches RPC:`, error);
-        throw error;
-      }
-      
-      return safeArray(batchesData, mapDbProductBatchToModel);
-    } catch (error) {
-      console.error(`Error fetching batches for product ${productId}:`, error);
-      return [];
-    }
+    return productBatchService.getProductBatches(productId);
   },
   
   async getProductStockByLocation(productId: string): Promise<ProductLocationStock[]> {
-    try {
-      const { data, error } = await supabase
-        .from('product_location_stock')
-        .select('*')
-        .eq('product_id', productId);
-      
-      if (error) throw error;
-      
-      return data.map((stock: any) => ({
-        id: stock.id,
-        productId: stock.product_id,
-        locationId: stock.location_id,
-        stock: stock.stock,
-        minStockLevel: stock.min_stock_level,
-        createdAt: stock.created_at,
-        updatedAt: stock.updated_at
-      }));
-    } catch (error) {
-      console.error(`Error fetching location stock for product ${productId}:`, error);
-      return [];
-    }
+    return productLocationService.getProductStockByLocation(productId);
   }
 };
 

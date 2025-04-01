@@ -7,7 +7,7 @@ import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { mapDbProductBatchToModel, ProductBatch } from '@/models/productBatch';
-import { safeArray, rpcParams } from '@/utils/supabaseUtils';
+import { safeArray, rpcParams, tableSource } from '@/utils/supabaseUtils';
 import { getBatchStatus, formatDaysUntilExpiry } from '@/utils/expirationUtils';
 import { productsService } from '@/models/product';
 import { Spinner } from '@/components/ui/spinner';

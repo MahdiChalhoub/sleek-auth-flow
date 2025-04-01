@@ -1,7 +1,8 @@
 
 import { supabase } from '@/lib/supabase';
+import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
-type EventCallback = (payload: any) => void;
+type EventCallback = (payload: RealtimePostgresChangesPayload<any>) => void;
 type EventHandler = { id: string; callback: EventCallback };
 
 /**
@@ -33,15 +34,19 @@ class SupabaseEventEmitter {
     if (!this.channels[table]) {
       const channel = supabase
         .channel(`table-changes-${table}`)
-        .on('postgres_changes', {
-          event: event === '*' ? undefined : event,
-          schema: 'public',
-          table
-        }, (payload) => {
-          const eventType = payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE';
-          this.emit(`${table}:${eventType}`, payload);
-          this.emit(`${table}:*`, payload);
-        })
+        .on(
+          'postgres_changes' as any,
+          {
+            event: event === '*' ? undefined : event,
+            schema: 'public',
+            table
+          }, 
+          (payload) => {
+            const eventType = payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE';
+            this.emit(`${table}:${eventType}`, payload);
+            this.emit(`${table}:*`, payload);
+          }
+        )
         .subscribe();
       
       this.channels[table] = channel;

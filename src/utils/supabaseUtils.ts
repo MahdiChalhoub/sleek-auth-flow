@@ -2,6 +2,10 @@
 /**
  * Utility functions for working with Supabase
  */
+import { PostgrestError } from '@supabase/supabase-js';
+import { Database } from '@/integrations/supabase/types';
+
+type TableNames = keyof Database['public']['Tables'];
 
 /**
  * Type assertion helper for Supabase RPC calls
@@ -54,7 +58,7 @@ export const rpcParams = <T extends Record<string, any>>(params: T): Record<stri
  * @param defaultMessage Default message to display if error has no message
  * @returns Formatted error message
  */
-export const formatSupabaseError = (error: any, defaultMessage = "An error occurred"): string => {
+export const formatSupabaseError = (error: PostgrestError | any, defaultMessage = "An error occurred"): string => {
   if (!error) return defaultMessage;
   
   // Handle different error formats from Supabase
@@ -64,6 +68,15 @@ export const formatSupabaseError = (error: any, defaultMessage = "An error occur
   if (error.details) return error.details;
   
   return defaultMessage;
+};
+
+/**
+ * Type-safe helper for table names to fix "string is not assignable to parameter of type never" errors
+ * @param tableName Name of the table
+ * @returns The table name with proper type assertion for Supabase
+ */
+export const tableSource = (tableName: string): TableNames => {
+  return tableName as TableNames;
 };
 
 /**

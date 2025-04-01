@@ -1,5 +1,6 @@
 
 import { supabase } from '@/lib/supabase';
+import { tableSource } from '@/utils/supabaseUtils';
 
 /**
  * Utility for batch operations with Supabase
@@ -34,7 +35,7 @@ export async function batchInsert<T extends Record<string, any>>(
     
     try {
       const { data, error } = await supabase
-        .from(table)
+        .from(tableSource(table))
         .insert(chunk)
         .select();
       
@@ -79,7 +80,7 @@ export async function batchUpdate<T extends Record<string, any>>(
     for (const { id, data } of chunk) {
       try {
         const { data: result, error } = await supabase
-          .from(table)
+          .from(tableSource(table))
           .update(data)
           .eq('id', id)
           .select();
