@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { tableSource } from './supabaseUtils';
-import { assertType } from './typeUtils';
+import { tableSource, TableName, assertType } from './supabaseUtils';
 
 /**
  * Batch delete multiple records from a table
@@ -10,7 +9,7 @@ import { assertType } from './typeUtils';
  * @returns Whether the operation was successful
  */
 export async function batchDelete(
-  table: keyof ReturnType<typeof tableSource>,
+  table: TableName,
   ids: string[]
 ): Promise<boolean> {
   if (!ids.length) return true;
@@ -22,13 +21,13 @@ export async function batchDelete(
       .in('id', ids);
 
     if (error) {
-      console.error(`Error during batch delete from ${table}:`, error);
+      console.error(`Error during batch delete from ${String(table)}:`, error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error(`Exception during batch delete from ${table}:`, error);
+    console.error(`Exception during batch delete from ${String(table)}:`, error);
     return false;
   }
 }
@@ -40,7 +39,7 @@ export async function batchDelete(
  * @returns Whether the operation was successful
  */
 export async function batchInsert<T extends Record<string, any>>(
-  table: keyof ReturnType<typeof tableSource>,
+  table: TableName,
   records: T[]
 ): Promise<boolean> {
   if (!records.length) return true;
@@ -51,13 +50,13 @@ export async function batchInsert<T extends Record<string, any>>(
       .insert(records);
 
     if (error) {
-      console.error(`Error during batch insert to ${table}:`, error);
+      console.error(`Error during batch insert to ${String(table)}:`, error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error(`Exception during batch insert to ${table}:`, error);
+    console.error(`Exception during batch insert to ${String(table)}:`, error);
     return false;
   }
 }
@@ -69,7 +68,7 @@ export async function batchInsert<T extends Record<string, any>>(
  * @returns Whether the operation was successful
  */
 export async function batchUpdate<T extends { id: string }>(
-  table: keyof ReturnType<typeof tableSource>,
+  table: TableName,
   records: T[]
 ): Promise<boolean> {
   if (!records.length) return true;
@@ -85,14 +84,14 @@ export async function batchUpdate<T extends { id: string }>(
         .eq('id', id);
 
       if (error) {
-        console.error(`Error updating record ${id} in ${table}:`, error);
+        console.error(`Error updating record ${id} in ${String(table)}:`, error);
         return false;
       }
     }
 
     return true;
   } catch (error) {
-    console.error(`Exception during batch update to ${table}:`, error);
+    console.error(`Exception during batch update to ${String(table)}:`, error);
     return false;
   }
 }
@@ -103,7 +102,7 @@ export async function batchUpdate<T extends { id: string }>(
  * @returns CSV string
  */
 export async function exportTableToCSV(
-  table: keyof ReturnType<typeof tableSource>
+  table: TableName
 ): Promise<string> {
   try {
     const { data, error } = await supabase
@@ -111,7 +110,7 @@ export async function exportTableToCSV(
       .select('*');
 
     if (error) {
-      console.error(`Error exporting ${table} to CSV:`, error);
+      console.error(`Error exporting ${String(table)} to CSV:`, error);
       throw error;
     }
 
@@ -140,7 +139,7 @@ export async function exportTableToCSV(
 
     return csv;
   } catch (error) {
-    console.error(`Exception exporting ${table} to CSV:`, error);
+    console.error(`Exception exporting ${String(table)} to CSV:`, error);
     throw error;
   }
 }

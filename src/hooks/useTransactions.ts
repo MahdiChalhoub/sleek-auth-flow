@@ -25,9 +25,14 @@ export const useTransactions = () => {
         throw new Error('No active financial year. Cannot create transaction without a financial year.');
       }
       
+      // Add default timestamps for createTransaction
+      const now = new Date().toISOString();
+      
       return transactionsApi.create({
         ...transactionData,
-        financialYearId
+        financialYearId,
+        createdAt: now,
+        updatedAt: now
       });
     },
     onSuccess: () => {

@@ -2,7 +2,7 @@
 import { supabase } from '@/lib/supabase';
 import { ProductBatch, mapDbProductBatchToModel } from '../productBatch';
 import { safeArray } from '@/utils/supabaseUtils';
-import { rpcParams } from '@/utils/supabaseUtils';
+import { assertType } from '@/utils/typeUtils';
 
 export const productBatchService = {
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
@@ -27,7 +27,9 @@ export const productBatchService = {
         throw error;
       }
       
-      return safeArray(batchesData, mapDbProductBatchToModel);
+      // Ensure we're handling the data properly
+      const typedBatchesData = assertType<any[]>(batchesData || []);
+      return safeArray(typedBatchesData, mapDbProductBatchToModel);
     } catch (error) {
       console.error(`Error fetching batches for product ${productId}:`, error);
       return [];

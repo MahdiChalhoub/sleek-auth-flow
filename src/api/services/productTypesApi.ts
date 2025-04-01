@@ -4,15 +4,52 @@ import { ProductCost } from '@/models/productTypes/productCost';
 import { ProductPrice } from '@/models/productTypes/productPrice';
 import { ComboComponent } from '@/models/productTypes/comboComponent';
 import { ProductLocationStock } from '@/models/productTypes/productLocationStock';
-import { tableSource } from '@/utils/supabaseUtils';
-import { assertType } from '@/utils/typeUtils';
+import { TableName, assertType } from '@/utils/typeUtils';
+
+// Define the raw database types to enable proper type casting
+interface RawProductCost {
+  id: string;
+  product_id: string;
+  cost: number;
+  effective_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface RawProductPrice {
+  id: string;
+  product_id: string;
+  price: number;
+  effective_date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface RawComboComponent {
+  id: string;
+  combo_product_id: string;
+  component_product_id: string;
+  quantity: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface RawProductLocationStock {
+  id: string;
+  product_id: string;
+  location_id: string;
+  stock: number;
+  min_stock_level: number;
+  created_at: string;
+  updated_at: string;
+}
 
 // Product Types API - manages secondary product data like costs, prices, component relationships
 export const productTypesApi = {
   // Product Costs
   getProductCosts: async (productId: string): Promise<ProductCost[]> => {
     const { data, error } = await supabase
-      .from(tableSource('product_costs'))
+      .from('product_costs')
       .select('*')
       .eq('product_id', productId)
       .order('effective_date', { ascending: false });
@@ -22,7 +59,7 @@ export const productTypesApi = {
       throw error;
     }
     
-    return (data || []).map(item => ({
+    return (data || []).map((item: any) => ({
       id: item.id,
       productId: item.product_id,
       cost: item.cost,
@@ -34,7 +71,7 @@ export const productTypesApi = {
   
   addProductCost: async (cost: Omit<ProductCost, 'id' | 'createdAt' | 'updatedAt'>): Promise<ProductCost> => {
     const { data, error } = await supabase
-      .from(tableSource('product_costs'))
+      .from('product_costs')
       .insert([{
         product_id: cost.productId,
         cost: cost.cost,
@@ -48,20 +85,22 @@ export const productTypesApi = {
       throw error;
     }
     
+    const rawCost = assertType<RawProductCost>(data);
+    
     return {
-      id: data.id,
-      productId: data.product_id,
-      cost: data.cost,
-      effectiveDate: data.effective_date,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
+      id: rawCost.id,
+      productId: rawCost.product_id,
+      cost: rawCost.cost,
+      effectiveDate: rawCost.effective_date,
+      createdAt: rawCost.created_at,
+      updatedAt: rawCost.updated_at
     };
   },
   
   // Product Prices
   getProductPrices: async (productId: string): Promise<ProductPrice[]> => {
     const { data, error } = await supabase
-      .from(tableSource('product_prices'))
+      .from('product_prices')
       .select('*')
       .eq('product_id', productId)
       .order('effective_date', { ascending: false });
@@ -71,7 +110,7 @@ export const productTypesApi = {
       throw error;
     }
     
-    return (data || []).map(item => ({
+    return (data || []).map((item: any) => ({
       id: item.id,
       productId: item.product_id,
       price: item.price,
@@ -83,7 +122,7 @@ export const productTypesApi = {
   
   addProductPrice: async (price: Omit<ProductPrice, 'id' | 'createdAt' | 'updatedAt'>): Promise<ProductPrice> => {
     const { data, error } = await supabase
-      .from(tableSource('product_prices'))
+      .from('product_prices')
       .insert([{
         product_id: price.productId,
         price: price.price,
@@ -97,20 +136,22 @@ export const productTypesApi = {
       throw error;
     }
     
+    const rawPrice = assertType<RawProductPrice>(data);
+    
     return {
-      id: data.id,
-      productId: data.product_id,
-      price: data.price,
-      effectiveDate: data.effective_date,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
+      id: rawPrice.id,
+      productId: rawPrice.product_id,
+      price: rawPrice.price,
+      effectiveDate: rawPrice.effective_date,
+      createdAt: rawPrice.created_at,
+      updatedAt: rawPrice.updated_at
     };
   },
   
   // Combo Components
   getComboComponents: async (comboProductId: string): Promise<ComboComponent[]> => {
     const { data, error } = await supabase
-      .from(tableSource('combo_components'))
+      .from('combo_components')
       .select('*')
       .eq('combo_product_id', comboProductId);
     
@@ -119,7 +160,7 @@ export const productTypesApi = {
       throw error;
     }
     
-    return (data || []).map(item => ({
+    return (data || []).map((item: any) => ({
       id: item.id,
       comboProductId: item.combo_product_id,
       componentProductId: item.component_product_id,
@@ -131,7 +172,7 @@ export const productTypesApi = {
   
   addComboComponent: async (component: Omit<ComboComponent, 'id' | 'createdAt' | 'updatedAt'>): Promise<ComboComponent> => {
     const { data, error } = await supabase
-      .from(tableSource('combo_components'))
+      .from('combo_components')
       .insert([{
         combo_product_id: component.comboProductId,
         component_product_id: component.componentProductId,
@@ -145,20 +186,22 @@ export const productTypesApi = {
       throw error;
     }
     
+    const rawComponent = assertType<RawComboComponent>(data);
+    
     return {
-      id: data.id,
-      comboProductId: data.combo_product_id,
-      componentProductId: data.component_product_id,
-      quantity: data.quantity,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
+      id: rawComponent.id,
+      comboProductId: rawComponent.combo_product_id,
+      componentProductId: rawComponent.component_product_id,
+      quantity: rawComponent.quantity,
+      createdAt: rawComponent.created_at,
+      updatedAt: rawComponent.updated_at
     };
   },
   
   // Product Location Stock
   getProductLocationStock: async (productId: string, locationId: string): Promise<ProductLocationStock | null> => {
     const { data, error } = await supabase
-      .from(tableSource('product_location_stock'))
+      .from('product_location_stock')
       .select('*')
       .eq('product_id', productId)
       .eq('location_id', locationId)
@@ -173,14 +216,16 @@ export const productTypesApi = {
       throw error;
     }
     
+    const rawStock = assertType<RawProductLocationStock>(data);
+    
     return {
-      id: data.id,
-      productId: data.product_id,
-      locationId: data.location_id,
-      stock: data.stock,
-      minStockLevel: data.min_stock_level,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at
+      id: rawStock.id,
+      productId: rawStock.product_id,
+      locationId: rawStock.location_id,
+      stock: rawStock.stock,
+      minStockLevel: rawStock.min_stock_level,
+      createdAt: rawStock.created_at,
+      updatedAt: rawStock.updated_at
     };
   },
   
@@ -197,7 +242,7 @@ export const productTypesApi = {
       if (stockData.minStockLevel !== undefined) updateData.min_stock_level = stockData.minStockLevel;
       
       const { data, error } = await supabase
-        .from(tableSource('product_location_stock'))
+        .from('product_location_stock')
         .update(updateData)
         .eq('id', existing.id)
         .select()
@@ -208,19 +253,21 @@ export const productTypesApi = {
         throw error;
       }
       
+      const rawStock = assertType<RawProductLocationStock>(data);
+      
       return {
-        id: data.id,
-        productId: data.product_id,
-        locationId: data.location_id,
-        stock: data.stock,
-        minStockLevel: data.min_stock_level,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
+        id: rawStock.id,
+        productId: rawStock.product_id,
+        locationId: rawStock.location_id,
+        stock: rawStock.stock,
+        minStockLevel: rawStock.min_stock_level,
+        createdAt: rawStock.created_at,
+        updatedAt: rawStock.updated_at
       };
     } else {
       // Create new record
       const { data, error } = await supabase
-        .from(tableSource('product_location_stock'))
+        .from('product_location_stock')
         .insert([{
           product_id: stockData.productId,
           location_id: stockData.locationId,
@@ -235,14 +282,16 @@ export const productTypesApi = {
         throw error;
       }
       
+      const rawStock = assertType<RawProductLocationStock>(data);
+      
       return {
-        id: data.id,
-        productId: data.product_id,
-        locationId: data.location_id,
-        stock: data.stock,
-        minStockLevel: data.min_stock_level,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at
+        id: rawStock.id,
+        productId: rawStock.product_id,
+        locationId: rawStock.location_id,
+        stock: rawStock.stock,
+        minStockLevel: rawStock.min_stock_level,
+        createdAt: rawStock.created_at,
+        updatedAt: rawStock.updated_at
       };
     }
   }

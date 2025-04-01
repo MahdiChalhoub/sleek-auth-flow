@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { PostgrestError } from '@supabase/supabase-js';
-import { formatSupabaseError } from '@/utils/supabaseUtils';
 
 interface SupabaseQueryOptions<T> {
   queryFn: () => Promise<{ data: T | null; error: PostgrestError | null }>;
@@ -11,6 +10,36 @@ interface SupabaseQueryOptions<T> {
   showToastOnError?: boolean;
   errorMessage?: string;
   dependencies?: any[];
+}
+
+/**
+ * Format Supabase error messages in a user-friendly way
+ */
+function formatSupabaseError(error: PostgrestError | null): string {
+  if (!error) return "Unknown error";
+  
+  if (error.message) {
+    return error.message;
+  }
+  
+  if (error.code) {
+    switch (error.code) {
+      case "23505":
+        return "A record with this information already exists";
+      case "23503":
+        return "This operation would violate referential integrity";
+      case "23514":
+        return "Check constraint violated";
+      case "42P01":
+        return "Table does not exist";
+      case "42703":
+        return "Column does not exist";
+      default:
+        return `Database error: ${error.code}`;
+    }
+  }
+  
+  return "An unexpected database error occurred";
 }
 
 /**

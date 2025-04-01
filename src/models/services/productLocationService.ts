@@ -1,11 +1,10 @@
 
 import { supabase } from '@/lib/supabase';
-import { tableSource } from '@/utils/supabaseUtils';
-import { ProductLocationStock } from '@/models/productTypes/productLocationStock';
+import { ProductLocationStock } from '../productTypes/productLocationStock';
 import { assertType } from '@/utils/typeUtils';
 
-// DB Types
-interface DbProductLocationStock {
+// Raw data as it comes from the database
+interface RawProductLocationStock {
   id: string;
   product_id: string;
   location_id: string;
@@ -15,153 +14,148 @@ interface DbProductLocationStock {
   updated_at: string;
 }
 
-// Map DB type to model type
-function mapDbToModel(data: DbProductLocationStock): ProductLocationStock {
-  return {
-    id: data.id,
-    productId: data.product_id,
-    locationId: data.location_id,
-    stock: data.stock,
-    minStockLevel: data.min_stock_level,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at
-  };
-}
-
-// Map model type to DB type
-function mapModelToDb(data: Partial<ProductLocationStock> & { productId: string; locationId: string }): Partial<DbProductLocationStock> {
-  const result: Partial<DbProductLocationStock> = {
-    product_id: data.productId,
-    location_id: data.locationId
-  };
-  
-  if (data.stock !== undefined) result.stock = data.stock;
-  if (data.minStockLevel !== undefined) result.min_stock_level = data.minStockLevel;
-  
-  return result;
-}
-
 export const productLocationService = {
-  // Get stock of a product at a specific location
-  async getStock(productId: string, locationId: string): Promise<ProductLocationStock | null> {
-    const { data, error } = await supabase
-      .from(tableSource('product_location_stock'))
-      .select('*')
-      .eq('product_id', productId)
-      .eq('location_id', locationId)
-      .single();
-    
-    if (error) {
-      if (error.code === 'PGRST116') return null; // No rows match the query
-      console.error('Error fetching product location stock:', error);
+  async getStock(productId: string, locationId?: string): Promise<ProductLocationStock[]> {
+    try {
+      let query = supabase
+        .from('product_location_stock')
+        .select('*')
+        .eq('product_id', productId);
+        
+      if (locationId) {
+        query = query.eq('location_id', locationId);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error(`Error fetching stock for product ${productId}:`, error);
+        throw error;
+      }
+      
+      const typedData = assertType<RawProductLocationStock[]>(data || []);
+      
+      return typedData.map(item => ({
+        id: item.id,
+        productId: item.product_id,
+        locationId: item.location_id,
+        stock: item.stock,
+        minStockLevel: item.min_stock_level,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at
+      }));
+    } catch (error) {
+      console.error(`Error in getStock for product ${productId}:`, error);
+      return [];
+    }
+  },
+  
+  async updateStock(productId: string, locationId: string, newStock: number): Promise<ProductLocationStock> {
+    try {
+      // First check if the record exists
+      const { data: existingData, error: existingError } = await supabase
+        .from('product_location_stock')
+        .select('*')
+        .eq('product_id', productId)
+        .eq('location_id', locationId)
+        .maybeSingle();
+      
+      if (existingError) {
+        console.error(`Error checking stock for product ${productId}:`, existingError);
+        throw existingError;
+      }
+      
+      if (existingData) {
+        // Update existing record
+        const { data, error } = await supabase
+          .from('product_location_stock')
+          .update({ stock: newStock })
+          .eq('id', existingData.id)
+          .select()
+          .single();
+        
+        if (error) {
+          console.error(`Error updating stock for product ${productId}:`, error);
+          throw error;
+        }
+        
+        const typedData = assertType<RawProductLocationStock>(data);
+        
+        return {
+          id: typedData.id,
+          productId: typedData.product_id,
+          locationId: typedData.location_id,
+          stock: typedData.stock,
+          minStockLevel: typedData.min_stock_level,
+          createdAt: typedData.created_at,
+          updatedAt: typedData.updated_at
+        };
+      } else {
+        // Create new record
+        const { data, error } = await supabase
+          .from('product_location_stock')
+          .insert([{
+            product_id: productId,
+            location_id: locationId,
+            stock: newStock,
+            min_stock_level: 0
+          }])
+          .select()
+          .single();
+        
+        if (error) {
+          console.error(`Error creating stock for product ${productId}:`, error);
+          throw error;
+        }
+        
+        const typedData = assertType<RawProductLocationStock>(data);
+        
+        return {
+          id: typedData.id,
+          productId: typedData.product_id,
+          locationId: typedData.location_id,
+          stock: typedData.stock,
+          minStockLevel: typedData.min_stock_level,
+          createdAt: typedData.created_at,
+          updatedAt: typedData.updated_at
+        };
+      }
+    } catch (error) {
+      console.error(`Error in updateStock for product ${productId}:`, error);
       throw error;
     }
-    
-    return data ? mapDbToModel(assertType<DbProductLocationStock>(data)) : null;
   },
   
-  // Update stock level
-  async updateStock(
-    productId: string, 
-    locationId: string, 
-    newStock: number
-  ): Promise<ProductLocationStock> {
-    // First check if a record exists
-    const existingStock = await this.getStock(productId, locationId);
-    
-    if (existingStock) {
-      // Update existing record
-      const { data, error } = await supabase
-        .from(tableSource('product_location_stock'))
-        .update({ stock: newStock })
-        .eq('id', existingStock.id)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error updating product location stock:', error);
-        throw error;
-      }
-      
-      return mapDbToModel(assertType<DbProductLocationStock>(data));
-    } else {
-      // Create new record
-      const { data, error } = await supabase
-        .from(tableSource('product_location_stock'))
-        .insert([{
-          product_id: productId,
-          location_id: locationId,
-          stock: newStock,
-          min_stock_level: 0 // Default min level
-        }])
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error creating product location stock:', error);
-        throw error;
-      }
-      
-      return mapDbToModel(assertType<DbProductLocationStock>(data));
-    }
+  async upsertStock(data: Partial<ProductLocationStock> & { productId: string; locationId: string }): Promise<ProductLocationStock> {
+    return this.updateStock(data.productId, data.locationId, data.stock || 0);
   },
   
-  // Update or create stock record with complete data
-  async upsertStock(
-    data: Partial<ProductLocationStock> & { productId: string; locationId: string }
-  ): Promise<ProductLocationStock> {
-    const existingStock = await this.getStock(data.productId, data.locationId);
-    
-    if (existingStock) {
-      // Update existing record
-      const { data: updatedData, error } = await supabase
-        .from(tableSource('product_location_stock'))
-        .update(mapModelToDb(data))
-        .eq('id', existingStock.id)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error updating product location stock:', error);
-        throw error;
-      }
-      
-      return mapDbToModel(assertType<DbProductLocationStock>(updatedData));
-    } else {
-      // Create new record
-      const dbData = mapModelToDb(data);
-      if (dbData.stock === undefined) dbData.stock = 0;
-      if (dbData.min_stock_level === undefined) dbData.min_stock_level = 0;
-      
-      const { data: newData, error } = await supabase
-        .from(tableSource('product_location_stock'))
-        .insert([dbData])
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error creating product location stock:', error);
-        throw error;
-      }
-      
-      return mapDbToModel(assertType<DbProductLocationStock>(newData));
-    }
-  },
-  
-  // Get all products for a location
   async getProductsAtLocation(locationId: string): Promise<ProductLocationStock[]> {
-    const { data, error } = await supabase
-      .from(tableSource('product_location_stock'))
-      .select('*')
-      .eq('location_id', locationId);
-    
-    if (error) {
-      console.error('Error fetching products at location:', error);
-      throw error;
+    try {
+      const { data, error } = await supabase
+        .from('product_location_stock')
+        .select('*')
+        .eq('location_id', locationId);
+      
+      if (error) {
+        console.error(`Error fetching products at location ${locationId}:`, error);
+        throw error;
+      }
+      
+      const typedData = assertType<RawProductLocationStock[]>(data || []);
+      
+      return typedData.map(item => ({
+        id: item.id,
+        productId: item.product_id,
+        locationId: item.location_id,
+        stock: item.stock,
+        minStockLevel: item.min_stock_level,
+        createdAt: item.created_at,
+        updatedAt: item.updated_at
+      }));
+    } catch (error) {
+      console.error(`Error in getProductsAtLocation for location ${locationId}:`, error);
+      return [];
     }
-    
-    return (data || []).map(item => 
-      mapDbToModel(assertType<DbProductLocationStock>(item))
-    );
   }
 };

@@ -23,16 +23,21 @@ export function subscribeToChanges<T = any>(
   handler: ChangeHandler<T>
 ): () => void {
   const { table, schema = 'public', event = '*', filter } = config;
+  
+  // Type assertion to handle Supabase typing issues with postgres_changes
+  type ChannelConfig = Parameters<RealtimeChannel['on']>[1];
+  const channelConfig: ChannelConfig = {
+    event,
+    schema,
+    table,
+    filter
+  };
+  
   const channel = supabase
     .channel(`table-db-changes-${table}`)
     .on(
-      'postgres_changes',
-      {
-        event,
-        schema,
-        table,
-        filter
-      },
+      'postgres_changes' as any,
+      channelConfig,
       (payload) => handler(payload as RealtimePostgresChangesPayload<T>)
     )
     .subscribe();

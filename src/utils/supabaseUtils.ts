@@ -1,9 +1,13 @@
 
 import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 import { Database } from '@/integrations/supabase/types';
+import { PostgrestError } from '@supabase/supabase-js';
+
+// Type helper to properly define database tables
+export type TableName = keyof Database['public']['Tables'];
 
 // This function gets the correct table name based on the environment
-export function tableSource(tableName: keyof Database['public']['Tables']) {
+export function tableSource(tableName: TableName): TableName {
   // This handles the case where we're in a different environment or want to add a prefix/suffix
   return tableName;
 }
@@ -43,6 +47,36 @@ export function rpcParams<T extends Record<string, any>>(params: T): T {
 }
 
 /**
+ * Format Supabase error messages in a user-friendly way
+ */
+export function formatSupabaseError(error: PostgrestError | null): string {
+  if (!error) return "Unknown error";
+  
+  if (error.message) {
+    return error.message;
+  }
+  
+  if (error.code) {
+    switch (error.code) {
+      case "23505":
+        return "A record with this information already exists";
+      case "23503":
+        return "This operation would violate referential integrity";
+      case "23514":
+        return "Check constraint violated";
+      case "42P01":
+        return "Table does not exist";
+      case "42703":
+        return "Column does not exist";
+      default:
+        return `Database error: ${error.code}`;
+    }
+  }
+  
+  return "An unexpected database error occurred";
+}
+
+/**
  * Similar to Promise.all but doesn't fail if one promise fails
  * Returns a tuple of [results, errors]
  */
@@ -61,6 +95,13 @@ export async function settleAll<T>(promises: Promise<T>[]): Promise<[T[], Error[
   });
 
   return [results, errors];
+}
+
+/**
+ * Safely cast a value to a specific type
+ */
+export function assertType<T>(value: any): T {
+  return value as T;
 }
 
 /**

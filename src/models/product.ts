@@ -6,7 +6,8 @@ import { ProductPrice } from './productTypes/productPrice';
 import { ProductLocationStock } from './productTypes/productLocationStock';
 import { ProductBatch, mapDbProductBatchToModel } from './productBatch';
 import { supabase } from '@/lib/supabase';
-import { safeArray, rpcParams, tableSource } from '@/utils/supabaseUtils';
+import { safeArray, rpcParams } from '@/utils/supabaseUtils';
+import { assertType } from '@/utils/typeUtils';
 import { productBatchService } from './services/productBatchService';
 import { productLocationService } from './services/productLocationService';
 
@@ -34,6 +35,9 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
 }
+
+// Re-export ComboComponent for use in other modules
+export { ComboComponent };
 
 export const createProduct = (data: Partial<Product>): Product => {
   const now = new Date().toISOString();
@@ -67,12 +71,12 @@ export const productsService = {
   async getAll(): Promise<Product[]> {
     try {
       const { data, error } = await supabase
-        .from(tableSource('products'))
+        .from('products')
         .select('*, categories(name)');
       
       if (error) throw error;
       
-      return data.map((product: any) => createProduct({
+      return (data || []).map((product: any) => createProduct({
         ...product,
         categoryId: product.category_id,
         category: product.categories?.name,
@@ -88,7 +92,7 @@ export const productsService = {
   async getById(id: string): Promise<Product | null> {
     try {
       const { data, error } = await supabase
-        .from(tableSource('products'))
+        .from('products')
         .select('*, categories(name)')
         .eq('id', id)
         .single();
@@ -97,14 +101,16 @@ export const productsService = {
       
       // Get related data
       const batches = await productBatchService.getProductBatches(id);
-      const locationStock = await productLocationService.getProductStockByLocation(id);
+      const locationStock = await productLocationService.getStock(id);
+      
+      const typedData = assertType<any>(data);
       
       return createProduct({
-        ...data,
-        categoryId: data.category_id,
-        category: data.categories?.name,
-        imageUrl: data.image_url,
-        image: data.image_url,
+        ...typedData,
+        categoryId: typedData.category_id,
+        category: typedData.categories?.name,
+        imageUrl: typedData.image_url,
+        image: typedData.image_url,
         batches,
         locationStock
       });
@@ -119,7 +125,7 @@ export const productsService = {
   },
   
   async getProductStockByLocation(productId: string): Promise<ProductLocationStock[]> {
-    return productLocationService.getProductStockByLocation(productId);
+    return productLocationService.getStock(productId);
   }
 };
 

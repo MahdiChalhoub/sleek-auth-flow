@@ -7,10 +7,11 @@ import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { mapDbProductBatchToModel, ProductBatch } from '@/models/productBatch';
-import { safeArray, rpcParams, tableSource } from '@/utils/supabaseUtils';
+import { safeArray } from '@/utils/supabaseUtils';
 import { getBatchStatus, formatDaysUntilExpiry } from '@/utils/expirationUtils';
 import { productsService } from '@/models/product';
 import { Spinner } from '@/components/ui/spinner';
+import { assertType } from '@/utils/typeUtils';
 
 interface ExpiryDashboardProps {
   // Define any props here
@@ -25,9 +26,9 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
       setIsLoading(true);
       try {
         const { data: tableExists, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', rpcParams({
+          .rpc('check_table_exists', {
             table_name: 'product_batches'
-          }));
+          });
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -42,14 +43,15 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
         }
         
         const { data: batchesData, error } = await supabase
-          .rpc('get_all_product_batches', rpcParams({}));
+          .rpc('get_all_product_batches', {});
         
         if (error) {
           throw error;
         }
         
         // Add explicit check for array before mapping
-        const fetchedBatches = safeArray(batchesData, mapDbProductBatchToModel);
+        const typedBatchesData = assertType<any[]>(batchesData || []);
+        const fetchedBatches = safeArray(typedBatchesData, mapDbProductBatchToModel);
         
         // Fetch product names for each batch
         const batchesWithProductNames = await Promise.all(
@@ -78,13 +80,14 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
   const fetchBatches = async (): Promise<ProductBatch[]> => {
     try {
       const { data, error } = await supabase
-        .rpc('get_all_product_batches', rpcParams({}));
+        .rpc('get_all_product_batches', {});
       
       if (error) {
         throw error;
       }
       
-      return safeArray(data, mapDbProductBatchToModel);
+      const typedData = assertType<any[]>(data || []);
+      return safeArray(typedData, mapDbProductBatchToModel);
     } catch (error) {
       console.error('Error fetching product batches:', error);
       toast.error('Failed to load product batches');

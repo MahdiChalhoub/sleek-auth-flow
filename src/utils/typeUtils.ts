@@ -3,6 +3,12 @@
  * Type utility functions to help with type casting and narrowing
  */
 
+// Import database type for TableName
+import { Database } from '@/integrations/supabase/types';
+
+// Export TableName type for use throughout the app
+export type TableName = keyof Database['public']['Tables'];
+
 /**
  * Safely cast a value to a specific type
  * Use with caution - only when you're sure the value is of the specified type
