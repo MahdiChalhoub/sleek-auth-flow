@@ -17,7 +17,7 @@ export const useTransactions = () => {
   
   // Create transaction mutation
   const createTransaction = useMutation({
-    mutationFn: async (transactionData: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {
+    mutationFn: async (transactionData: Omit<Transaction, 'id'>) => {
       // If financial year is not provided, use the current financial year
       const financialYearId = transactionData.financialYearId || currentFinancialYear?.id;
       
@@ -25,15 +25,16 @@ export const useTransactions = () => {
         throw new Error('No active financial year. Cannot create transaction without a financial year.');
       }
       
-      // Add default timestamps for createTransaction
+      // Ensure we have createdAt and updatedAt
       const now = new Date().toISOString();
-      
-      return transactionsApi.create({
+      const completeData = {
         ...transactionData,
         financialYearId,
-        createdAt: now,
-        updatedAt: now
-      });
+        createdAt: transactionData.createdAt || now,
+        updatedAt: transactionData.updatedAt || now
+      };
+      
+      return transactionsApi.create(completeData);
     },
     onSuccess: () => {
       toast.success('Transaction created successfully');

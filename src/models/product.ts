@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { ComboComponent } from './productTypes/comboComponent';
 import { ProductCost } from './productTypes/productCost';
@@ -37,7 +36,7 @@ export interface Product {
 }
 
 // Re-export ComboComponent for use in other modules
-export { ComboComponent };
+export type { ComboComponent };
 
 export const createProduct = (data: Partial<Product>): Product => {
   const now = new Date().toISOString();

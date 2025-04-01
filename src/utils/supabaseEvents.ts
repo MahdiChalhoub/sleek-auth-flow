@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
@@ -24,9 +23,8 @@ export function subscribeToChanges<T = any>(
 ): () => void {
   const { table, schema = 'public', event = '*', filter } = config;
   
-  // Type assertion to handle Supabase typing issues with postgres_changes
-  type ChannelConfig = Parameters<RealtimeChannel['on']>[1];
-  const channelConfig: ChannelConfig = {
+  // Create safe channel config for postgres_changes
+  const channelConfig = {
     event,
     schema,
     table,
