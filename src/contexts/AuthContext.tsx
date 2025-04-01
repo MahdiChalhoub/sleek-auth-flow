@@ -17,8 +17,7 @@ export const useAuth = () => {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   
-  // Add permission checking helper - this is already defined in usePermissions.ts
-  // but we're adding it here for backward compatibility and convenience
+  // Add permission checking helper
   const hasPermission = (permissionName: string): boolean => {
     if (!context.user) return false;
     

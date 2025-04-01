@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Home, Search } from 'lucide-react';
 
 const NotFound: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -22,6 +23,11 @@ const NotFound: React.FC = () => {
           <div className="flex items-center justify-center p-6">
             <Search className="h-24 w-24 text-muted-foreground/30" />
           </div>
+          <div className="bg-muted/40 p-3 rounded text-left">
+            <p className="text-sm font-mono break-all">
+              Chemin actuel: {location.pathname}
+            </p>
+          </div>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <Button className="w-full" onClick={() => navigate('/')} variant="default">
@@ -32,6 +38,11 @@ const NotFound: React.FC = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour à la page précédente
           </Button>
+          <Link to="/role-management" className="w-full">
+            <Button className="w-full" variant="outline">
+              Accéder à la gestion des rôles
+            </Button>
+          </Link>
         </CardFooter>
       </Card>
     </div>

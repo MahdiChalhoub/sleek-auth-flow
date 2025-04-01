@@ -7,6 +7,7 @@ export interface UserPermission {
   id: string;
   name: string;
   enabled: boolean;
+  category?: string;
 }
 
 export interface User {
@@ -16,7 +17,7 @@ export interface User {
   role: UserRole;
   avatarUrl?: string;
   isGlobalAdmin?: boolean;
-  isAdmin?: boolean; // This was missing
+  isAdmin?: boolean;
   permissions?: UserPermission[];
 }
 

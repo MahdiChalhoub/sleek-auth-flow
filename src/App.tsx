@@ -71,6 +71,7 @@ function App() {
               <Route path={ROUTES.LOGIN} element={<Login />} />
               <Route path={ROUTES.SIGNUP} element={<Signup />} />
               <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ForgotPassword />} />
               
               {/* Main layout with protected routes */}
               <Route path="/" element={
@@ -104,6 +105,7 @@ function App() {
                 <Route path={ROUTES.AUDIT_TRAIL} element={<AuditTrail />} />
                 <Route path={ROUTES.USER_ACTIVITY} element={<UserActivity />} />
                 <Route path={ROUTES.ROLES} element={<RoleManagement />} />
+                <Route path="/role-management" element={<RoleManagement />} />
                 <Route path={ROUTES.USERS} element={<Users />} />
                 <Route path={ROUTES.REGISTER_SESSIONS} element={<RegisterSessions />} />
                 <Route path={ROUTES.LOYALTY} element={<Loyalty />} />

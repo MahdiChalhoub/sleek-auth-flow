@@ -35,7 +35,7 @@ export function subscribeToChanges<T = any>(
   const channel = supabase
     .channel(`table-db-changes-${table}`)
     .on(
-      'postgres_changes' as any,
+      'postgres_changes',
       channelConfig,
       (payload) => handler(payload as RealtimePostgresChangesPayload<T>)
     )

@@ -3,18 +3,15 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { User } from "@/types/auth";
+import { User, UserRole } from "@/types/auth";
 import { useBusinessSelection } from "@/hooks/useBusinessSelection";
 import { getMockPermissions, getRoleDefaultPage } from "@/hooks/usePermissions";
-import { 
-  generateMockUser, 
-  checkBusinessAccess, 
-  setAuthStorage, 
-  clearAuthStorage 
-} from "@/utils/authUtils";
+import { supabase } from "@/lib/supabase";
+import { Session } from "@supabase/supabase-js";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,36 +23,91 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     switchBusiness
   } = useBusinessSelection(user);
 
-  // Check if user session exists
+  // Set up Supabase auth state listener
   useEffect(() => {
-    const checkSession = async () => {
-      // Get the storage type (localStorage or sessionStorage) based on remember me setting
-      const storageType = localStorage.getItem("auth_storage_type") || "local";
-      const storage = storageType === "local" ? localStorage : sessionStorage;
-      
-      const savedUser = storage.getItem("pos_user");
-      const savedBusinessId = storage.getItem("pos_current_business");
-      
-      if (savedUser) {
-        try {
-          const parsedUser = JSON.parse(savedUser);
-          setUser(parsedUser);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, newSession) => {
+        setSession(newSession);
+        
+        if (newSession?.user) {
+          // Transform Supabase user to our app User type
+          const userRole: UserRole = getUserRole(newSession.user);
           
-          // Initialize business selection if user exists
-          if (parsedUser) {
-            initializeBusinessSelection(parsedUser, savedBusinessId);
+          const appUser: User = {
+            id: newSession.user.id,
+            name: newSession.user.user_metadata?.name || newSession.user.email?.split('@')[0] || 'User',
+            email: newSession.user.email || '',
+            role: userRole,
+            avatarUrl: newSession.user.user_metadata?.avatar_url || `https://avatar.vercel.sh/${newSession.user.email}`,
+            isGlobalAdmin: userRole === 'admin',
+          };
+          
+          // Add permissions to the user
+          const permissions = getMockPermissions(userRole);
+          const userWithPermissions = {
+            ...appUser,
+            permissions
+          };
+          
+          setUser(userWithPermissions);
+          
+          // Store the selected business ID
+          const businessId = localStorage.getItem("pos_current_business");
+          if (businessId) {
+            // Initialize business selection
+            setTimeout(() => {
+              initializeBusinessSelection(userWithPermissions, businessId);
+            }, 0);
           }
-        } catch (e) {
-          console.error("Failed to parse user data", e);
-          storage.removeItem("pos_user");
-          storage.removeItem("pos_current_business");
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+      setSession(existingSession);
+      
+      if (existingSession?.user) {
+        // Transform Supabase user to our app User type
+        const userRole: UserRole = getUserRole(existingSession.user);
+        
+        const appUser: User = {
+          id: existingSession.user.id,
+          name: existingSession.user.user_metadata?.name || existingSession.user.email?.split('@')[0] || 'User',
+          email: existingSession.user.email || '',
+          role: userRole,
+          avatarUrl: existingSession.user.user_metadata?.avatar_url || `https://avatar.vercel.sh/${existingSession.user.email}`,
+          isGlobalAdmin: userRole === 'admin',
+        };
+        
+        // Add permissions to the user
+        const permissions = getMockPermissions(userRole);
+        const userWithPermissions = {
+          ...appUser,
+          permissions
+        };
+        
+        setUser(userWithPermissions);
+        
+        // Store the selected business ID
+        const businessId = localStorage.getItem("pos_current_business");
+        if (businessId) {
+          // Initialize business selection
+          setTimeout(() => {
+            initializeBusinessSelection(userWithPermissions, businessId);
+          }, 0);
         }
       }
       
       setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
     };
-    
-    checkSession();
   }, [initializeBusinessSelection]);
 
   // Only redirect on initial login, not on every render
@@ -69,6 +121,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user, isLoading, navigate, location.pathname]);
 
+  // Determine user role based on Supabase user
+  const getUserRole = (supabaseUser: any): UserRole => {
+    // Check email for role determination (temporary approach)
+    // In a real app, you would look up roles in a database table
+    const email = supabaseUser.email || '';
+    
+    if (email.includes('admin')) {
+      return 'admin';
+    } else if (email.includes('manager')) {
+      return 'manager';
+    }
+    
+    return 'cashier'; // Default role
+  };
+
   const login = async (email: string, password: string, businessId: string, rememberMe: boolean = true): Promise<void> => {
     setIsLoading(true);
     
@@ -77,51 +144,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Please select a business to continue");
       }
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Authenticate with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      // Mock user data based on email
-      let role: User["role"] = "cashier";
-      let isGlobalAdmin = false;
-      
-      if (email.includes("admin")) {
-        role = "admin";
-        isGlobalAdmin = true;
-      } else if (email.includes("manager")) {
-        role = "manager";
+      if (error) {
+        throw new Error(error.message);
       }
       
-      // Generate mock user
-      const mockUser = generateMockUser(email, role, isGlobalAdmin);
-      
-      // Generate mock permissions based on role
-      const permissions = getMockPermissions(role);
-      
-      // Add permissions to the user
-      const userWithPermissions = {
-        ...mockUser,
-        permissions
-      };
-      
-      // Check if user has access to the selected business
-      if (!checkBusinessAccess(mockUser.id, businessId)) {
-        throw new Error("Access denied: You do not have permission to access the selected business");
+      if (!data.user) {
+        throw new Error("Login failed. No user data found.");
       }
       
-      setUser(userWithPermissions);
+      // Store business selection in localStorage
+      localStorage.setItem("pos_current_business", businessId);
       
-      // Store auth data in appropriate storage
-      setAuthStorage(userWithPermissions, businessId, rememberMe);
-      
-      // Initialize business selection after user is set
-      initializeBusinessSelection(userWithPermissions, businessId);
-      
-      // Navigate to the appropriate page based on role
-      const redirectPath = localStorage.getItem("intended_redirect") || getRoleDefaultPage(userWithPermissions.role);
-      localStorage.removeItem("intended_redirect");
-      navigate(redirectPath);
-      
-      toast.success(`Welcome, ${userWithPermissions.name}`, {
+      toast.success(`Welcome back!`, {
         description: "You have successfully logged in"
       });
     } catch (error) {
@@ -136,10 +176,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
-    clearAuthStorage();
-    setUser(null);
-    navigate("/login");
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem("pos_current_business");
+      navigate("/login");
+      toast.info("You have been logged out");
+    } catch (error) {
+      console.error("Logout failed", error);
+      toast.error("Logout failed", {
+        description: "There was an issue with logging out. Please try again."
+      });
+    }
   };
 
   return (

@@ -4,11 +4,19 @@ import { ProductBatch, mapDbProductBatchToModel } from '../productBatch';
 import { safeArray } from '@/utils/supabaseUtils';
 import { assertType } from '@/utils/typeUtils';
 
+interface CheckTableExistsArgs {
+  table_name: string;
+}
+
+interface GetProductBatchesArgs {
+  product_id_param: string;
+}
+
 export const productBatchService = {
   async getProductBatches(productId: string): Promise<ProductBatch[]> {
     try {
       const { data: tableExists, error: checkError } = await supabase
-        .rpc('check_table_exists', {
+        .rpc<boolean, CheckTableExistsArgs>('check_table_exists', {
           table_name: 'product_batches' 
         });
       
@@ -18,7 +26,7 @@ export const productBatchService = {
       }
       
       const { data: batchesData, error } = await supabase
-        .rpc('get_product_batches', { 
+        .rpc<any[], GetProductBatchesArgs>('get_product_batches', { 
           product_id_param: productId 
         });
       

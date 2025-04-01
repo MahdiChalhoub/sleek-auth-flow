@@ -1,109 +1,139 @@
 
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Mail, ArrowLeft, Check } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import AuthCard from "@/components/AuthCard";
-import AuthInput from "@/components/AuthInput";
-import AuthButton from "@/components/AuthButton";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
-const ForgotPassword = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+const formSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" })
+});
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  };
+type FormValues = z.infer<typeof formSchema>;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Simulating API call
+const ForgotPassword: React.FC = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
+  
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: ""
+    }
+  });
+  
+  const handleSubmit = async (data: FormValues) => {
+    setIsSubmitting(true);
+    
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setSubmitted(true);
-      
-      toast.success("Reset link sent", {
-        description: "Please check your email for the password reset link.",
+      // Send password reset email
+      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+        redirectTo: window.location.origin + '/reset-password',
       });
-    } catch (error) {
+      
+      if (error) {
+        throw error;
+      }
+      
+      setSuccess(true);
+      toast.success("Reset link sent", {
+        description: "Check your email for a password reset link."
+      });
+      
+    } catch (error: any) {
       toast.error("Failed to send reset link", {
-        description: "Please try again later.",
+        description: error.message || "Please check your email and try again."
       });
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
-
+  
   return (
-    <AuthCard 
-      title={submitted ? "Check Your Email" : "Forgot Password"} 
-      subtitle={submitted 
-        ? "We've sent a password reset link to your email" 
-        : "Enter your email and we'll send you a link to reset your password"
-      }
-    >
-      {!submitted ? (
-        <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in">
-          <AuthInput
-            label="Email"
-            type="email"
-            name="email"
-            placeholder="your@email.com"
-            value={email}
-            onChange={handleChange}
-            icon={<Mail size={18} />}
-            required
-            autoFocus
-          />
-
-          <AuthButton type="submit" isLoading={isLoading} className="mt-6">
-            Send Reset Link
-          </AuthButton>
-
-          <div className="text-center mt-6">
-            <Link 
-              to="/login" 
-              className="inline-flex items-center text-sm text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary/90 transition-colors"
-            >
-              <ArrowLeft size={16} className="mr-1" />
-              Back to Login
-            </Link>
-          </div>
-        </form>
-      ) : (
-        <div className="animate-scale-in">
-          <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mb-6">
-            <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
-          </div>
-          
-          <p className="text-sm text-center text-gray-600 dark:text-gray-300 mb-6">
-            We've sent a password reset link to <span className="font-medium">{email}</span>.
-            Please check your inbox and follow the instructions to reset your password.
-          </p>
-          
-          <AuthButton 
-            onClick={() => setSubmitted(false)} 
-            variant="outline" 
-            className="mb-4"
-          >
-            Try another email
-          </AuthButton>
-          
-          <div className="text-center mt-2">
-            <Link 
-              to="/login" 
-              className="inline-flex items-center text-sm text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary/90 transition-colors"
-            >
-              <ArrowLeft size={16} className="mr-1" />
-              Back to Login
-            </Link>
-          </div>
-        </div>
-      )}
-    </AuthCard>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-muted/50 p-4">
+      <div className="w-full max-w-md">
+        <Card className="border-border/40 bg-background/80 backdrop-blur">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold">Reset Your Password</CardTitle>
+            <CardDescription>
+              {!success 
+                ? "Enter your email address and we'll send you a reset link"
+                : "Check your email for a password reset link"
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!success ? (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="your.email@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <Button 
+                    type="submit" 
+                    className="w-full mt-2" 
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      "Send Reset Link"
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            ) : (
+              <div className="text-center py-4">
+                <p className="mb-4">
+                  We've sent a password reset link to your email. Please check your inbox (and spam folder) for the reset instructions.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="mt-2"
+                  onClick={() => navigate("/login")}
+                >
+                  Back to Login
+                </Button>
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            {!success && (
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/login")}
+                className="flex items-center"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Login
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
   );
 };
 
