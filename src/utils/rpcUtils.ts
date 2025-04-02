@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 type RpcParams<T extends Record<string, any>> = T;
 
 /**
- * Type-safe call to RPC functions with proper return typing
+ * Type-safe generic RPC function call
  * @param functionName The name of the RPC function to call
  * @param params The parameters to pass to the function
  * @returns The result of the RPC call with proper typing

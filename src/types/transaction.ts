@@ -1,3 +1,4 @@
+
 export interface TransactionPermission {
   id: string;
   name: string;
@@ -12,4 +13,11 @@ export interface TransactionPermission {
   canReject: boolean;
   canView: boolean;
   canReport: boolean;
+}
+
+export interface TransactionFormData {
+  description?: string;
+  amount?: number;
+  paymentMethod?: 'cash' | 'card' | 'bank' | 'wave' | 'mobile' | 'not_specified';
+  branchId?: string;
 }

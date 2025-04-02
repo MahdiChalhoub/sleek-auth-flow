@@ -5,17 +5,17 @@ import { Transaction } from '@/models/transaction';
 
 export interface TransactionLedgerDialogProps {
   isOpen: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
   transaction: Transaction;
 }
 
 const TransactionLedgerDialog: React.FC<TransactionLedgerDialogProps> = ({ 
   isOpen, 
-  onClose,
+  onOpenChange,
   transaction 
 }) => {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Transaction Ledger</DialogTitle>

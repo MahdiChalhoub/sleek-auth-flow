@@ -1,285 +1,195 @@
 
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Plus, Info } from "lucide-react";
-import { toast } from "sonner";
-import { mockRoles } from "@/models/role";
-import { mockTransactionPermissions } from "@/models/mockData/transactionMockData";
-import { TransactionPermission } from "@/models/interfaces/permissionInterfaces";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Switch } from "@/components/ui/switch";
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Save, Settings, ShieldAlert } from 'lucide-react';
+import { TransactionPermission } from '@/types/transaction';
+import { mockRoles } from '@/models/role';
+import { toast } from 'sonner';
 
-const TransactionPermissions = () => {
-  const [roles] = useState(mockRoles);
-  const [permissions, setPermissions] = useState<TransactionPermission[]>(mockTransactionPermissions);
-
-  const handleTogglePermission = (roleId: string, permissionKey: keyof Omit<TransactionPermission, 'roleId'>) => {
-    setPermissions(permissions.map(permission => {
-      if (permission.roleId === roleId) {
-        return {
-          ...permission,
-          [permissionKey]: !permission[permissionKey]
-        };
+const TransactionPermissions: React.FC = () => {
+  // Create permissions with all required fields
+  const [permissions, setPermissions] = useState<TransactionPermission[]>(
+    [
+      { 
+        id: 'create_transaction', 
+        name: 'Create Transactions', 
+        description: 'Create new transactions',
+        defaultRoles: ['admin', 'manager'],
+        roleId: '',
+        canCreate: true,
+        canEdit: false,
+        canLock: false,
+        canDelete: false,
+        canApprove: false,
+        canReject: false,
+        canView: true,
+        canReport: false
+      },
+      { 
+        id: 'edit_transaction', 
+        name: 'Edit Transactions', 
+        description: 'Edit existing transactions',
+        defaultRoles: ['admin', 'manager'],
+        roleId: '',
+        canCreate: false,
+        canEdit: true,
+        canLock: false,
+        canDelete: false,
+        canApprove: false,
+        canReject: false,
+        canView: true,
+        canReport: false
+      },
+      { 
+        id: 'lock_transaction', 
+        name: 'Lock Transactions', 
+        description: 'Lock transactions to prevent edits',
+        defaultRoles: ['admin'],
+        roleId: '',
+        canCreate: false,
+        canEdit: false,
+        canLock: true,
+        canDelete: false,
+        canApprove: false,
+        canReject: false,
+        canView: true,
+        canReport: false
+      },
+      { 
+        id: 'delete_transaction', 
+        name: 'Delete Transactions', 
+        description: 'Delete existing transactions',
+        defaultRoles: ['admin'],
+        roleId: '',
+        canCreate: false,
+        canEdit: false,
+        canLock: false,
+        canDelete: true,
+        canApprove: false,
+        canReject: false,
+        canView: true,
+        canReport: false
       }
-      return permission;
-    }));
-    
-    const role = roles.find(r => r.id === roleId);
-    const currentPermission = permissions.find(p => p.roleId === roleId);
-    
-    toast.success(`Permission updated`, {
-      description: `${role?.name} role ${currentPermission?.[permissionKey] ? 'can no longer' : 'can now'} ${String(permissionKey).replace('can', '').toLowerCase()} transactions`,
-    });
+    ]
+  );
+
+  const handlePermissionToggle = (permissionId: string, field: keyof TransactionPermission, value: boolean) => {
+    setPermissions(prev =>
+      prev.map(p =>
+        p.id === permissionId ? { ...p, [field]: value } : p
+      )
+    );
+  };
+
+  const handleSavePermissions = () => {
+    // This would save to the backend in a real implementation
+    console.log('Saving permissions:', permissions);
+    toast.success('Permissions saved successfully');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
-      <div className="max-w-6xl mx-auto glass-card rounded-2xl p-6 animate-fade-in">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" asChild>
-              <Link to="/home">
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            </Button>
-            <h1 className="text-2xl font-semibold">Transaction Permissions</h1>
-          </div>
+    <div className="container mx-auto py-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Transaction Permissions</h1>
+          <p className="text-muted-foreground">
+            Configure transaction permissions for different roles
+          </p>
         </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Transaction Lifecycle Permissions</CardTitle>
-            <CardDescription>
-              Manage which roles can perform different actions in the transaction lifecycle
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="table" className="w-full">
-              <TabsList className="mb-6">
-                <TabsTrigger value="table">Table View</TabsTrigger>
-                <TabsTrigger value="lifecycle">Lifecycle View</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="table">
-                <div className="rounded-md border overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Create</TableHead>
-                        <TableHead>Edit</TableHead>
-                        <TableHead>Lock</TableHead>
-                        <TableHead>Unlock</TableHead>
-                        <TableHead>Verify</TableHead>
-                        <TableHead>Delete</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {permissions.map((permission) => {
-                        const role = roles.find(r => r.id === permission.roleId);
-                        if (!role) return null;
-                        
-                        return (
-                          <TableRow key={permission.roleId}>
-                            <TableCell className="font-medium">{role.name}</TableCell>
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Switch
-                                  checked={permission.canCreate}
-                                  onCheckedChange={() => handleTogglePermission(permission.roleId, 'canCreate')}
-                                />
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Switch
-                                  checked={permission.canEdit}
-                                  onCheckedChange={() => handleTogglePermission(permission.roleId, 'canEdit')}
-                                />
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Switch
-                                  checked={permission.canLock}
-                                  onCheckedChange={() => handleTogglePermission(permission.roleId, 'canLock')}
-                                />
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Switch
-                                  checked={permission.canUnlock}
-                                  onCheckedChange={() => handleTogglePermission(permission.roleId, 'canUnlock')}
-                                />
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Switch
-                                  checked={permission.canVerify}
-                                  onCheckedChange={() => handleTogglePermission(permission.roleId, 'canVerify')}
-                                />
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Switch
-                                  checked={permission.canDelete}
-                                  onCheckedChange={() => handleTogglePermission(permission.roleId, 'canDelete')}
-                                />
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="lifecycle">
-                <div className="space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <LifecycleCard
-                      title="Create"
-                      description="Create new transactions"
-                      colorClass="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                      roles={roles}
-                      permissions={permissions}
-                      permissionKey="canCreate"
-                      onToggle={handleTogglePermission}
-                    />
-                    
-                    <LifecycleCard
-                      title="Edit"
-                      description="Edit open transactions"
-                      colorClass="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
-                      roles={roles}
-                      permissions={permissions}
-                      permissionKey="canEdit"
-                      onToggle={handleTogglePermission}
-                    />
-                    
-                    <LifecycleCard
-                      title="Lock/Unlock"
-                      description="Lock & unlock transactions"
-                      colorClass="bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800"
-                      roles={roles}
-                      permissions={permissions}
-                      permissionKey="canLock"
-                      secondaryKey="canUnlock"
-                      onToggle={handleTogglePermission}
-                    />
-                    
-                    <LifecycleCard
-                      title="Verify"
-                      description="Mark transactions as verified"
-                      colorClass="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
-                      roles={roles}
-                      permissions={permissions}
-                      permissionKey="canVerify"
-                      onToggle={handleTogglePermission}
-                    />
-                  </div>
-                  
-                  <div className="mt-8">
-                    <h3 className="text-lg font-medium mb-4">Danger Zone</h3>
-                    <LifecycleCard
-                      title="Delete"
-                      description="Permanently delete transactions"
-                      colorClass="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800"
-                      roles={roles}
-                      permissions={permissions}
-                      permissionKey="canDelete"
-                      onToggle={handleTogglePermission}
-                      danger
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+        <Button onClick={handleSavePermissions}>
+          <Save className="mr-2 h-4 w-4" />
+          Save Changes
+        </Button>
       </div>
-    </div>
-  );
-};
 
-interface LifecycleCardProps {
-  title: string;
-  description: string;
-  colorClass: string;
-  roles: any[];
-  permissions: TransactionPermission[];
-  permissionKey: keyof Omit<TransactionPermission, 'roleId'>;
-  secondaryKey?: keyof Omit<TransactionPermission, 'roleId'>;
-  onToggle: (roleId: string, key: keyof Omit<TransactionPermission, 'roleId'>) => void;
-  danger?: boolean;
-}
-
-const LifecycleCard = ({
-  title,
-  description,
-  colorClass,
-  roles,
-  permissions,
-  permissionKey,
-  secondaryKey,
-  onToggle,
-  danger = false
-}: LifecycleCardProps) => {
-  return (
-    <Card className={`${colorClass} border`}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center justify-between">
-          {title}
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <Info className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>{description}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {roles.map(role => {
-            const permission = permissions.find(p => p.roleId === role.id);
-            if (!permission) return null;
-            
-            return (
-              <div key={role.id} className="flex items-center justify-between">
-                <span className="text-sm font-medium">{role.name}</span>
-                <div className="space-x-2">
-                  <Switch
-                    checked={permission[permissionKey]}
-                    onCheckedChange={() => onToggle(role.id, permissionKey)}
-                    className={danger ? "data-[state=checked]:bg-destructive" : ""}
-                  />
-                  {secondaryKey && (
-                    <Switch
-                      checked={permission[secondaryKey]}
-                      onCheckedChange={() => onToggle(role.id, secondaryKey)}
-                    />
-                  )}
+      <Tabs defaultValue="permissions">
+        <TabsList className="mb-4">
+          <TabsTrigger value="permissions">Permissions</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="permissions">
+          <div className="grid gap-6 md:grid-cols-2">
+            {mockRoles.map(role => (
+              <Card key={role.id}>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <ShieldAlert className="mr-2 h-5 w-5 text-primary" />
+                    {role.name}
+                  </CardTitle>
+                  <CardDescription>{role.description}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {permissions.map(permission => (
+                      <div key={permission.id} className="flex justify-between items-center">
+                        <div>
+                          <Label className="text-base font-medium">{permission.name}</Label>
+                          <p className="text-sm text-muted-foreground">{permission.description}</p>
+                        </div>
+                        <Switch
+                          checked={permission.defaultRoles.includes(role.id)}
+                          onCheckedChange={(checked) => {
+                            // This would update the permission's role assignments
+                            console.log(`${checked ? 'Adding' : 'Removing'} ${permission.name} from ${role.name}`);
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Transaction Settings</CardTitle>
+              <CardDescription>Configure global transaction settings</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <Label className="text-base font-medium">Require approval for transactions over $1000</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Transactions over this amount will require manager approval
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <div>
+                    <Label className="text-base font-medium">Auto-lock transactions after 24 hours</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Transactions will be automatically locked after this period
+                    </p>
+                  </div>
+                  <Switch />
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <div>
+                    <Label className="text-base font-medium">Allow backdated transactions</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Users can create transactions with dates in the past
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
                 </div>
               </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
