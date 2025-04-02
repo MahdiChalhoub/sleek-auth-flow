@@ -90,6 +90,7 @@ export function useTransactionOperations(initialTransactions: Transaction[] = []
         description: data.description,
         paymentMethod: data.paymentMethod,
         branchId: data.branchId,
+        type: data.type || 'expense',
         journalEntries: []
       };
       

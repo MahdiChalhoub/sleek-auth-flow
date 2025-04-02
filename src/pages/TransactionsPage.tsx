@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { TransactionStatusBadge } from '@/components/TransactionStatusBadge';
+import TransactionStatusBadge from '@/components/TransactionStatusBadge';
 import { ArrowLeft, Filter, Plus, Search, X } from 'lucide-react';
 import { useTransactions } from '@/hooks/useTransactions';
 import { useTransactionFilters } from '@/hooks/useTransactionFilters';
@@ -20,7 +20,13 @@ import { getFormattedDate, getFormattedDateTime } from '@/utils/formatters';
 const TransactionsPage = () => {
   const navigate = useNavigate();
   const { transactions, isLoading, error, changeStatus, deleteTransaction } = useTransactions();
-  const { filters, setFilter, clearFilter, filteredTransactions } = useTransactionFilters(transactions);
+  const { 
+    searchQuery, 
+    setSearchQuery, 
+    statusFilter, 
+    setStatusFilter, 
+    filteredTransactions 
+  } = useTransactionFilters(transactions);
   
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -103,8 +109,8 @@ const TransactionsPage = () => {
                 type="search"
                 placeholder="Search transactions..."
                 className="pl-8"
-                value={filters.search || ''}
-                onChange={(e) => setFilter('search', e.target.value)}
+                value={searchQuery || ''}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             
@@ -114,33 +120,26 @@ const TransactionsPage = () => {
                 <select 
                   id="status-filter"
                   className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  value={filters.status || ''}
-                  onChange={(e) => setFilter('status', e.target.value)}
+                  value={statusFilter || 'all'}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
                 >
-                  <option value="">All Statuses</option>
+                  <option value="all">All Statuses</option>
                   <option value="open">Open</option>
                   <option value="locked">Locked</option>
                   <option value="verified">Verified</option>
                   <option value="pending">Pending</option>
                 </select>
               </div>
-              <div>
-                <Label htmlFor="type-filter" className="sr-only">Type</Label>
-                <select 
-                  id="type-filter"
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  value={filters.type || ''}
-                  onChange={(e) => setFilter('type', e.target.value)}
+              {(searchQuery || statusFilter !== "all") && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("all");
+                  }} 
+                  className="h-10 w-10"
                 >
-                  <option value="">All Types</option>
-                  <option value="income">Income</option>
-                  <option value="expense">Expense</option>
-                  <option value="transfer">Transfer</option>
-                  <option value="adjustment">Adjustment</option>
-                </select>
-              </div>
-              {(filters.search || filters.status || filters.type) && (
-                <Button variant="ghost" size="icon" onClick={() => clearFilter()} className="h-10 w-10">
                   <X className="h-4 w-4" />
                 </Button>
               )}

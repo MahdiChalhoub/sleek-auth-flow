@@ -1,5 +1,7 @@
 
-import { PaymentMethod, DiscrepancyResolution } from './transaction';
+import { PaymentMethod } from './transaction';
+
+export type DiscrepancyResolution = "approved" | "rejected" | "pending" | "deduct_salary" | "ecart_caisse";
 
 export interface Register {
   id: string;

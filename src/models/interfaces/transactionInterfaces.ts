@@ -5,7 +5,7 @@ export interface Transaction {
   id: string;
   amount: number;
   description: string;
-  type?: string; 
+  type: TransactionType; 
   date?: string;
   createdAt: string;
   updatedAt: string;
@@ -20,7 +20,7 @@ export interface Transaction {
   journalEntries?: JournalEntry[];
   referenceId?: string;
   referenceType?: string;
-  paymentMethod?: PaymentMethod;
+  paymentMethod: PaymentMethod;
 }
 
 export interface JournalEntry {
@@ -65,4 +65,11 @@ export interface LedgerEntry {
   accountId: string;
   accountName: string;
   type: TransactionType;
+}
+
+export interface Business {
+  id: string;
+  name: string;
+  active: boolean;
+  createdAt: string;
 }

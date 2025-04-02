@@ -16,7 +16,7 @@ export function useTransactionFilters(allTransactions: Transaction[]) {
           transaction.id.toLowerCase().includes(searchLower) ||
           transaction.description.toLowerCase().includes(searchLower) ||
           transaction.createdBy.toLowerCase().includes(searchLower) ||
-          transaction.paymentMethod.toLowerCase().includes(searchLower)
+          (transaction.paymentMethod && transaction.paymentMethod.toLowerCase().includes(searchLower))
         );
       })
       .filter(transaction => {

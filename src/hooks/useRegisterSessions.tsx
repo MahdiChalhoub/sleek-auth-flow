@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { fetchRegisters, getRegisterById } from './register/registerService';
 import { Register } from '@/models/register';
 import { mockRegisters } from '@/models/register';
+import { openRegister, closeRegister, resolveDiscrepancy } from './register/registerOperations';
 
 export const useRegisterSessions = () => {
   const [registers, setRegisters] = useState<Register[]>(mockRegisters);
@@ -48,6 +49,9 @@ export const useRegisterSessions = () => {
     getRegisterById: getRegisterByIdWithFallback,
     refresh: loadRegisters,
     isLoading,
-    error
+    error,
+    openRegister,
+    closeRegister,
+    resolveDiscrepancy
   };
 };
