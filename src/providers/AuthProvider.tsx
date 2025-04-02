@@ -7,21 +7,17 @@ import { User, UserRole, UserStatus } from "@/types/auth";
 import { useBusinessSelection } from "@/hooks/useBusinessSelection";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
+import { Business } from "@/models/interfaces/businessInterfaces";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userBusinesses, setUserBusinesses] = useState<Business[]>([]);
+  const [currentBusiness, setCurrentBusiness] = useState<Business | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   
-  const {
-    currentBusiness,
-    userBusinesses,
-    initializeBusinessSelection,
-    switchBusiness
-  } = useBusinessSelection(user);
-
   // Set up Supabase auth state listener
   useEffect(() => {
     // Set up auth state listener
@@ -117,14 +113,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             
             setUser(appUser);
             
-            // Store the selected business ID
-            const businessId = localStorage.getItem("pos_current_business");
-            if (businessId) {
-              // Initialize business selection
-              setTimeout(() => {
-                initializeBusinessSelection(appUser, businessId);
-              }, 0);
-            }
+            // Fetch user's businesses
+            fetchUserBusinesses(appUser.id);
+            
           } catch (error) {
             console.error("Error fetching user details:", error);
             
@@ -139,6 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         } else {
           setUser(null);
+          setUserBusinesses([]);
+          setCurrentBusiness(null);
         }
       }
     );
@@ -153,7 +146,88 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, [initializeBusinessSelection]);
+  }, []);
+
+  const fetchUserBusinesses = async (userId: string) => {
+    try {
+      // Fetch businesses where user is the owner
+      const { data: ownedBusinesses, error: ownedError } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('owner_id', userId);
+      
+      if (ownedError) throw ownedError;
+      
+      // Fetch businesses where user is a member
+      const { data: memberBusinesses, error: memberError } = await supabase
+        .from('business_users')
+        .select('business:businesses(*)')
+        .eq('user_id', userId)
+        .eq('is_active', true);
+      
+      if (memberError) throw memberError;
+      
+      // Combine and deduplicate businesses
+      const memberBusinessesData = memberBusinesses
+        .map(item => item.business)
+        .filter(Boolean);
+      
+      const allBusinesses = [...ownedBusinesses, ...memberBusinessesData];
+      
+      // Remove duplicates based on business ID
+      const uniqueBusinesses = allBusinesses.reduce((acc, current) => {
+        const x = acc.find(item => item.id === current.id);
+        if (!x) {
+          return acc.concat([current]);
+        } else {
+          return acc;
+        }
+      }, [] as any[]);
+      
+      // Map to our Business interface
+      const mappedBusinesses: Business[] = uniqueBusinesses.map(business => ({
+        id: business.id,
+        name: business.name,
+        address: business.address,
+        phone: business.phone,
+        email: business.email,
+        status: business.status,
+        ownerId: business.owner_id,
+        createdAt: business.created_at,
+        updatedAt: business.updated_at,
+        logoUrl: business.logo_url,
+        description: business.description,
+        type: business.type,
+        country: business.country,
+        currency: business.currency,
+        active: business.active,
+        timezone: business.timezone
+      }));
+      
+      setUserBusinesses(mappedBusinesses);
+      
+      // Check if there's a saved business ID in localStorage
+      const businessId = localStorage.getItem("pos_current_business");
+      if (businessId) {
+        const savedBusiness = mappedBusinesses.find(b => b.id === businessId);
+        if (savedBusiness) {
+          setCurrentBusiness(savedBusiness);
+        } else if (mappedBusinesses.length > 0) {
+          // If saved business not found, use the first available
+          setCurrentBusiness(mappedBusinesses[0]);
+          localStorage.setItem("pos_current_business", mappedBusinesses[0].id);
+        }
+      } else if (mappedBusinesses.length > 0) {
+        // If no saved business, use the first available
+        setCurrentBusiness(mappedBusinesses[0]);
+        localStorage.setItem("pos_current_business", mappedBusinesses[0].id);
+      }
+      
+    } catch (error) {
+      console.error("Error fetching user businesses:", error);
+      toast.error("Failed to load businesses");
+    }
+  };
 
   // Only redirect on initial login, not on every render
   useEffect(() => {
@@ -161,6 +235,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If user is pending, redirect to waiting page
       if (user.status === 'pending') {
         navigate('/waiting-approval');
+        return;
+      }
+      
+      // If no businesses found, redirect to business selection
+      if (userBusinesses.length === 0 && !location.pathname.includes('/business-selection') && !location.pathname.includes('/login')) {
+        navigate('/business-selection');
         return;
       }
       
@@ -174,7 +254,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         navigate(redirectPath);
       }
     }
-  }, [user, isLoading, navigate, location.pathname]);
+  }, [user, isLoading, navigate, location.pathname, userBusinesses.length]);
 
   const login = async (email: string, password: string, businessId: string, rememberMe: boolean = true): Promise<void> => {
     setIsLoading(true);
@@ -246,12 +326,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await supabase.auth.signOut();
       localStorage.removeItem("pos_current_business");
+      localStorage.removeItem("pos_current_location");
       navigate("/login");
       toast.info("You have been logged out");
     } catch (error) {
       console.error("Logout failed", error);
       toast.error("Logout failed", {
         description: "There was an issue with logging out. Please try again."
+      });
+    }
+  };
+
+  const switchBusiness = (businessId: string) => {
+    const business = userBusinesses.find(b => b.id === businessId);
+    if (business) {
+      setCurrentBusiness(business);
+      localStorage.setItem("pos_current_business", business.id);
+      // Clear current location when switching business
+      localStorage.removeItem("pos_current_location");
+      toast.success(`Switched to ${business.name}`, {
+        description: "All data will now reflect this business."
+      });
+    } else {
+      toast.error("Business not found", {
+        description: "The selected business is not available."
       });
     }
   };
