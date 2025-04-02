@@ -2,9 +2,11 @@
 // Create or update the transaction.ts file to export PaymentMethod
 export type PaymentMethod = 'cash' | 'card' | 'bank' | 'wave' | 'mobile' | 'not_specified';
 
-export type TransactionStatus = 'open' | 'locked' | 'verified' | 'secure';
+export type TransactionStatus = 'open' | 'locked' | 'verified' | 'secure' | 'pending' | 'unverified';
 
-export type TransactionType = 'sale' | 'expense' | 'transfer' | 'adjustment' | 'income';
+export type TransactionType = 'sale' | 'expense' | 'transfer' | 'adjustment' | 'income' | 'purchase' | 'return_sale' | 'return_purchase' | 'payment_received' | 'payment_made' | 'salary' | 'cash_in' | 'cash_out';
+
+export type DiscrepancyResolution = 'pending' | 'deduct_salary' | 'ecart_caisse' | 'approved' | 'rejected' | 'adjusted';
 
 export interface Transaction {
   id: string;
@@ -33,6 +35,9 @@ export interface JournalEntry {
   description?: string;
   createdAt: string;
   updatedAt: string;
+  reference?: string;
+  accountType?: string;
+  isDebit?: boolean;
 }
 
 // Add this interface to support the LedgerEntry type used in some components
@@ -46,6 +51,7 @@ export interface LedgerEntry {
   reference?: string;
   createdAt: string;
   createdBy: string;
+  date?: string;
 }
 
 // Define the DB types for mapping
@@ -74,4 +80,15 @@ export interface DBJournalEntry {
   created_at: string;
   updated_at: string;
   createdBy: string;
+}
+
+// Adding Business interface that was missing
+export interface Business {
+  id: string;
+  name: string;
+  active: boolean;
+  createdAt: string;
+  address?: string;
+  logo?: string;
+  status?: string;
 }

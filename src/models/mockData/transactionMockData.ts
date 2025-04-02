@@ -1,103 +1,176 @@
 
-import { Transaction, TransactionStatus, PaymentMethod, TransactionType, LedgerEntry } from '../transaction';
-import { mockLedgerEntries } from './ledgerEntryData';
+import { Transaction, TransactionStatus, TransactionType, JournalEntry, LedgerEntry } from '@/models/transaction';
 
-// Use the mockLedgerEntries instead of recreating ledger entries here
-export const transactionsMock: Transaction[] = [
+// Mock transaction data
+export const mockTransactions: Transaction[] = [
   {
-    id: 'tx1',
-    amount: 1250.75,
+    id: 'tr1',
+    amount: 100,
     status: 'open' as TransactionStatus,
     type: 'sale' as TransactionType,
-    description: 'Monthly sales revenue',
-    createdAt: '2023-01-15T09:30:00.000Z',
-    updatedAt: '2023-01-15T09:30:00.000Z',
-    createdBy: 'John Doe',
-    paymentMethod: 'cash' as PaymentMethod,
+    description: 'Sale of products',
+    createdAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+    updatedAt: new Date(Date.now() - 3600000).toISOString(),
+    createdBy: 'user1',
+    paymentMethod: 'cash',
     branchId: 'branch-1',
-    notes: 'January sales',
-    journalEntries: mockLedgerEntries.filter(entry => entry.transactionId === 'tx1')
+    journalEntries: [] as JournalEntry[]
   },
   {
-    id: 'tx2',
-    amount: 450.00,
-    status: 'verified' as TransactionStatus,
+    id: 'tr2',
+    amount: 50,
+    status: 'locked' as TransactionStatus,
     type: 'expense' as TransactionType,
     description: 'Office supplies',
-    createdAt: '2023-01-17T14:20:00.000Z',
-    updatedAt: '2023-01-17T14:20:00.000Z',
-    createdBy: 'Jane Smith',
-    paymentMethod: 'bank' as PaymentMethod,
-    branchId: 'branch-2',
-    notes: 'Monthly supplies for office',
-    journalEntries: mockLedgerEntries.filter(entry => entry.transactionId === 'tx2')
-  },
-  {
-    id: 'tx3',
-    amount: 2000.00,
-    status: 'locked' as TransactionStatus,
-    type: 'transfer' as TransactionType,
-    description: 'Transfer between branches',
-    createdAt: '2023-01-20T11:15:00.000Z',
-    updatedAt: '2023-01-20T11:15:00.000Z',
-    createdBy: 'Admin User',
-    paymentMethod: 'bank' as PaymentMethod,
+    createdAt: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
+    updatedAt: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
+    createdBy: 'user2',
+    paymentMethod: 'card',
     branchId: 'branch-1',
-    notes: 'Fund allocation',
-    journalEntries: []
+    journalEntries: [] as JournalEntry[]
   },
   {
-    id: 'tx4',
-    amount: 3500.00,
-    status: 'open' as TransactionStatus,
+    id: 'tr3',
+    amount: 200,
+    status: 'verified' as TransactionStatus,
     type: 'income' as TransactionType,
     description: 'Consulting services',
-    createdAt: '2023-01-25T09:45:00.000Z',
-    updatedAt: '2023-01-25T09:45:00.000Z',
-    createdBy: 'John Doe',
-    paymentMethod: 'card' as PaymentMethod,
-    branchId: 'branch-3',
-    notes: 'Project completion payment',
-    journalEntries: []
+    createdAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    updatedAt: new Date(Date.now() - 43200000).toISOString(), // 12 hours ago
+    createdBy: 'user1',
+    paymentMethod: 'bank',
+    branchId: 'branch-2',
+    journalEntries: [] as JournalEntry[]
   },
   {
-    id: 'tx5',
-    amount: 750.25,
-    status: 'verified' as TransactionStatus,
-    type: 'expense' as TransactionType,
-    description: 'Equipment maintenance',
-    createdAt: '2023-01-28T13:50:00.000Z',
-    updatedAt: '2023-01-28T13:50:00.000Z',
-    createdBy: 'Jane Smith',
-    paymentMethod: 'cash' as PaymentMethod,
-    branchId: 'branch-2',
-    notes: 'Repair of office printer',
-    journalEntries: []
+    id: 'tr4',
+    amount: 150,
+    status: 'secure' as TransactionStatus,
+    type: 'transfer' as TransactionType,
+    description: 'Transfer between accounts',
+    createdAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+    updatedAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    createdBy: 'user3',
+    paymentMethod: 'bank',
+    branchId: 'branch-3',
+    journalEntries: [] as JournalEntry[]
   }
 ];
 
-export const getTransactionById = (id: string): Transaction | undefined => {
-  return transactionsMock.find(transaction => transaction.id === id);
-};
+// Mock ledger entries
+export const mockLedgerEntries: LedgerEntry[] = [
+  {
+    id: "le1",
+    transactionId: "tx1",
+    accountType: "Cash",
+    amount: 100,
+    isDebit: true,
+    description: "Cash payment",
+    createdAt: new Date().toISOString(),
+    createdBy: "System",
+    date: new Date().toISOString()
+  },
+  {
+    id: "le2",
+    transactionId: "tx1",
+    accountType: "Sales Revenue",
+    amount: 100,
+    isDebit: false,
+    description: "Sales revenue",
+    createdAt: new Date().toISOString(),
+    createdBy: "System",
+    date: new Date().toISOString()
+  },
+  {
+    id: "le3",
+    transactionId: "tx2",
+    accountType: "Cash",
+    amount: 200,
+    isDebit: false,
+    description: "Purchase payment",
+    createdAt: new Date().toISOString(),
+    createdBy: "System",
+    date: new Date().toISOString()
+  },
+  {
+    id: "le4",
+    transactionId: "tx2",
+    accountType: "Expenses",
+    amount: 200,
+    isDebit: true,
+    description: "Office supplies",
+    createdAt: new Date().toISOString(),
+    createdBy: "System",
+    date: new Date().toISOString()
+  }
+];
 
-export const getTransactionsByBranch = (branchId: string): Transaction[] => {
-  return transactionsMock.filter(transaction => transaction.branchId === branchId);
-};
-
-export const getTransactionsByType = (type: TransactionType): Transaction[] => {
-  return transactionsMock.filter(transaction => transaction.type === type);
-};
-
-export const getTransactionsByStatus = (status: TransactionStatus): Transaction[] => {
-  return transactionsMock.filter(transaction => transaction.status === status);
-};
-
-export const getTransactionsByDateRange = (startDate: string, endDate: string): Transaction[] => {
-  const start = new Date(startDate).getTime();
-  const end = new Date(endDate).getTime();
-  
-  return transactionsMock.filter(transaction => {
-    const txDate = new Date(transaction.createdAt).getTime();
-    return txDate >= start && txDate <= end;
-  });
-};
+// Mock transaction permissions for the TransactionPermissions page
+export const mockTransactionPermissions = [
+  {
+    id: "can_view_transactions",
+    name: "View Transactions",
+    description: "Can view transaction details and history",
+    defaultRoles: ["admin", "manager", "accountant", "cashier"]
+  },
+  {
+    id: "can_create_transactions",
+    name: "Create Transactions",
+    description: "Can create new transactions",
+    defaultRoles: ["admin", "manager", "accountant", "cashier"]
+  },
+  {
+    id: "can_edit_transactions",
+    name: "Edit Transactions",
+    description: "Can edit existing open transactions",
+    defaultRoles: ["admin", "manager", "accountant"]
+  },
+  {
+    id: "can_delete_transactions",
+    name: "Delete Transactions",
+    description: "Can delete transactions (except secure ones)",
+    defaultRoles: ["admin"]
+  },
+  {
+    id: "can_lock_transactions",
+    name: "Lock Transactions",
+    description: "Can lock transactions to prevent edits",
+    defaultRoles: ["admin", "manager", "accountant"]
+  },
+  {
+    id: "can_unlock_transactions",
+    name: "Unlock Transactions",
+    description: "Can unlock previously locked transactions",
+    defaultRoles: ["admin", "manager"]
+  },
+  {
+    id: "can_verify_transactions",
+    name: "Verify Transactions",
+    description: "Can mark transactions as verified",
+    defaultRoles: ["admin", "manager"]
+  },
+  {
+    id: "can_unverify_transactions",
+    name: "Unverify Transactions",
+    description: "Can mark verified transactions as unverified",
+    defaultRoles: ["admin"]
+  },
+  {
+    id: "can_secure_transactions",
+    name: "Secure Transactions",
+    description: "Can mark transactions as secure (permanent)",
+    defaultRoles: ["admin"]
+  },
+  {
+    id: "can_export_transactions",
+    name: "Export Transactions",
+    description: "Can export transaction data",
+    defaultRoles: ["admin", "manager", "accountant"]
+  },
+  {
+    id: "can_generate_reports",
+    name: "Generate Reports",
+    description: "Can generate transaction reports",
+    defaultRoles: ["admin", "manager", "accountant"]
+  }
+];

@@ -1,180 +1,168 @@
 
 import React from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
-import { Business } from "@/models/transaction";
+import { Transaction, PaymentMethod, Business } from "@/models/transaction";
+import { toast } from "sonner";
 
-// Improved form schema with data transformation
-export const transactionFormSchema = z.object({
-  description: z.string().min(3, "Description must be at least 3 characters"),
-  amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
-  paymentMethod: z.enum(["cash", "card", "bank", "wave", "mobile", "not_specified"], {
-    required_error: "Please select a payment method",
-  }),
-  branchId: z.string().uuid({ message: "Please select a branch" }),
-});
+interface TransactionFormData {
+  description?: string;
+  amount?: number;
+  paymentMethod?: PaymentMethod;
+  branchId?: string;
+}
 
-export type TransactionFormValues = z.infer<typeof transactionFormSchema>;
-
-interface TransactionFormDialogProps {
+export interface TransactionFormDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: TransactionFormValues) => void;
-  isSubmitting: boolean;
-  branches: Business[];
+  onSubmit: (data: TransactionFormData) => Promise<void>;
+  businesses: Business[];
+  transaction?: Transaction;
 }
 
 const TransactionFormDialog: React.FC<TransactionFormDialogProps> = ({
   isOpen,
   onOpenChange,
   onSubmit,
-  isSubmitting,
-  branches
+  businesses,
+  transaction
 }) => {
-  const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionFormSchema),
-    defaultValues: {
-      description: "",
-      amount: 0,
-      paymentMethod: "cash",
-      branchId: branches.length > 0 ? branches[0].id : ""
-    }
-  });
+  // Form state
+  const [description, setDescription] = React.useState(transaction?.description || "");
+  const [amount, setAmount] = React.useState(transaction?.amount.toString() || "");
+  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>(transaction?.paymentMethod || "cash");
+  const [branchId, setBranchId] = React.useState(transaction?.branchId || "");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const handleSubmit = (data: TransactionFormValues) => {
-    onSubmit(data);
+  // Form validation
+  const isValid = description.trim() !== "" && amount !== "" && parseFloat(amount) > 0;
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!isValid) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      await onSubmit({
+        description,
+        amount: parseFloat(amount),
+        paymentMethod,
+        branchId: branchId || undefined
+      });
+      
+      // Reset form
+      setDescription("");
+      setAmount("");
+      setPaymentMethod("cash");
+      setBranchId("");
+      
+      // Close dialog
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error submitting transaction:", error);
+      toast.error("Failed to save transaction");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>New Transaction</DialogTitle>
-          <DialogDescription>
-            Create a new financial transaction
-          </DialogDescription>
+          <DialogTitle>
+            {transaction ? "Edit Transaction" : "New Transaction"}
+          </DialogTitle>
         </DialogHeader>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Transaction description" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Input
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter transaction description"
+              required
             />
-            
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <span className="absolute left-3 top-2.5">$</span>
-                      <Input 
-                        placeholder="0.00" 
-                        className="pl-7" 
-                        type="number" 
-                        step="0.01" 
-                        min="0"
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber);
-                        }}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormDescription>Enter the transaction amount</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="amount">Amount</Label>
+            <Input
+              id="amount"
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.00"
+              required
             />
-            
-            <FormField
-              control={form.control}
-              name="paymentMethod"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Payment Method</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select payment method" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="card">Card</SelectItem>
-                      <SelectItem value="bank">Bank Transfer</SelectItem>
-                      <SelectItem value="wave">Wave</SelectItem>
-                      <SelectItem value="mobile">Mobile Money</SelectItem>
-                      <SelectItem value="not_specified">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="branchId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Branch</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select branch" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {branches.map(branch => (
-                        <SelectItem key={branch.id} value={branch.id}>
-                          {branch.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  "Create Transaction"
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="paymentMethod">Payment Method</Label>
+            <Select
+              value={paymentMethod}
+              onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}
+            >
+              <SelectTrigger id="paymentMethod">
+                <SelectValue placeholder="Select payment method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cash">Cash</SelectItem>
+                <SelectItem value="card">Card</SelectItem>
+                <SelectItem value="bank">Bank Transfer</SelectItem>
+                <SelectItem value="wave">Wave</SelectItem>
+                <SelectItem value="mobile">Mobile Money</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="branchId">Branch</Label>
+            <Select
+              value={branchId}
+              onValueChange={(value) => setBranchId(value)}
+            >
+              <SelectTrigger id="branchId">
+                <SelectValue placeholder="Select branch" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">No specific branch</SelectItem>
+                {businesses.map((business) => (
+                  <SelectItem key={business.id} value={business.id}>
+                    {business.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!isValid || isSubmitting}>
+              {isSubmitting ? "Saving..." : transaction ? "Update" : "Create"}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

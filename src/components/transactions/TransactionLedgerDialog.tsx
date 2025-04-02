@@ -9,25 +9,26 @@ import { getFormattedDate, formatCurrency } from "@/utils/formatters";
 export interface TransactionLedgerDialogProps {
   transaction: Transaction;
   onClose: () => void;
+  isOpen: boolean;
 }
 
-const TransactionLedgerDialog: React.FC<TransactionLedgerDialogProps> = ({ transaction, onClose }) => {
+const TransactionLedgerDialog: React.FC<TransactionLedgerDialogProps> = ({ transaction, onClose, isOpen }) => {
   const mockLedgerEntries: LedgerEntry[] = [
     {
       id: "entry1",
-      date: transaction.createdAt,
+      transactionId: transaction.id,
+      accountType: transaction.type === 'income' ? "Revenue" : "Expenses",
+      amount: transaction.amount,
+      isDebit: transaction.type === 'expense',
       description: `${transaction.type === 'income' ? 'Revenue' : 'Expense'} - ${transaction.description}`,
-      debit: transaction.type === 'expense' ? transaction.amount : 0,
-      credit: transaction.type === 'income' ? transaction.amount : 0,
-      balance: transaction.type === 'income' ? transaction.amount : -transaction.amount,
-      account: transaction.type === 'income' ? "Revenue" : "Expenses",
-      accountName: transaction.type === 'income' ? "Revenue" : "Expenses",
-      type: transaction.type
+      createdAt: transaction.createdAt,
+      createdBy: "System",
+      date: transaction.createdAt
     }
   ];
 
   return (
-    <Dialog open={true} onOpenChange={() => onClose()}>
+    <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Transaction Details</DialogTitle>
@@ -113,8 +114,8 @@ const TransactionLedgerDialog: React.FC<TransactionLedgerDialogProps> = ({ trans
                   type: transaction.type
                 })) : mockLedgerEntries).map((entry) => (
                   <TableRow key={entry.id}>
-                    <TableCell>{getFormattedDate(entry.date)}</TableCell>
-                    <TableCell>{entry.accountName}</TableCell>
+                    <TableCell>{getFormattedDate(entry.date || entry.createdAt)}</TableCell>
+                    <TableCell>{entry.accountName || entry.accountType}</TableCell>
                     <TableCell>{entry.description}</TableCell>
                     <TableCell className="text-right">{entry.debit > 0 ? formatCurrency(entry.debit) : '-'}</TableCell>
                     <TableCell className="text-right">{entry.credit > 0 ? formatCurrency(entry.credit) : '-'}</TableCell>

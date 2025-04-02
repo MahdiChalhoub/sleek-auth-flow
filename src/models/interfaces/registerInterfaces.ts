@@ -2,7 +2,7 @@
 import { PaymentMethod } from "../transaction";
 
 // Re-export PaymentMethod for use in register-related files
-export { PaymentMethod } from "../transaction";
+export type { PaymentMethod } from "../transaction";
 
 export type DiscrepancyResolution = 'pending' | 'deduct_salary' | 'ecart_caisse' | 'approved' | 'rejected' | 'adjusted';
 
@@ -22,6 +22,10 @@ export interface Register {
   openingBalance: Record<PaymentMethod, number>;
   currentBalance: Record<PaymentMethod, number>;
   expectedBalance: Record<PaymentMethod, number>;
+}
+
+export interface RegisterSession extends Register {
+  // Add any additional properties specific to RegisterSession
 }
 
 export interface RegisterOptions {

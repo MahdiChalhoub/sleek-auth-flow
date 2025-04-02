@@ -1,7 +1,9 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { Transaction, JournalEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
+import { Transaction, JournalEntry, PaymentMethod, TransactionStatus, TransactionType } from '@/models/transaction';
 import { tableSource } from '@/utils/supabaseUtils';
 import { assertType } from '@/utils/typeUtils';
+import { typeCast, rpcParams } from '@/utils/supabaseTypes';
 
 type DbTransaction = {
   id: string;
@@ -25,6 +27,8 @@ type DbJournalEntry = {
   type: 'debit' | 'credit';
   created_at: string;
   updated_at: string;
+  description?: string;
+  reference?: string;
 };
 
 // Transactions API
@@ -48,7 +52,8 @@ export const transactionsApi = {
         account: entry.account,
         amount: entry.amount,
         type: entry.type,
-        description: '',
+        description: entry.description || '',
+        reference: entry.reference,
         createdAt: entry.created_at,
         updatedAt: entry.updated_at
       }));
@@ -66,7 +71,7 @@ export const transactionsApi = {
         notes: transaction.notes,
         referenceId: transaction.reference_id,
         referenceType: transaction.reference_type,
-        type: transaction.type as any,
+        type: transaction.type as TransactionType,
         financialYearId: transaction.financial_year_id,
         journalEntries
       } as Transaction;
@@ -93,7 +98,8 @@ export const transactionsApi = {
       account: entry.account,
       amount: entry.amount,
       type: entry.type,
-      description: '',
+      description: entry.description || '',
+      reference: entry.reference,
       createdAt: entry.created_at,
       updatedAt: entry.updated_at
     }));
@@ -111,7 +117,7 @@ export const transactionsApi = {
       notes: transaction.notes,
       referenceId: transaction.reference_id,
       referenceType: transaction.reference_type,
-      type: transaction.type as any,
+      type: transaction.type as TransactionType,
       financialYearId: transaction.financial_year_id,
       journalEntries
     } as Transaction;
@@ -143,9 +149,9 @@ export const transactionsApi = {
     if (transaction.journalEntries && transaction.journalEntries.length > 0) {
       const entries = transaction.journalEntries.map(entry => ({
         transaction_id: newTransaction.id,
-        account: entry.accountType,
+        account: entry.account,
         amount: entry.amount,
-        type: entry.isDebit ? 'debit' : 'credit',
+        type: entry.type,
         description: entry.description,
         reference: entry.reference
       }));
@@ -173,7 +179,7 @@ export const transactionsApi = {
       notes: newTransaction.notes,
       referenceId: newTransaction.reference_id,
       referenceType: newTransaction.reference_type,
-      type: newTransaction.type,
+      type: newTransaction.type as TransactionType,
       financialYearId: newTransaction.financial_year_id,
       journalEntries: transaction.journalEntries || []
     } as Transaction;
@@ -210,7 +216,7 @@ export const transactionsApi = {
       notes: updatedTransaction.notes,
       referenceId: updatedTransaction.reference_id,
       referenceType: updatedTransaction.reference_type,
-      type: updatedTransaction.type,
+      type: updatedTransaction.type as TransactionType,
       financialYearId: updatedTransaction.financial_year_id, 
       journalEntries: []
     } as Transaction;

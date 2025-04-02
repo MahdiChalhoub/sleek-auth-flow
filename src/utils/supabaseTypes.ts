@@ -13,8 +13,8 @@ export type RPCParam = string | number | boolean | object | null;
  * Helper function to cast parameters for RPC calls
  * This works around the TypeScript error: "Argument of type 'string' is not assignable to parameter of type 'never'"
  */
-export function rpcParams<T>(params: T): T {
-  return params;
+export function rpcParams<T>(params: T): any {
+  return params as any;
 }
 
 /**

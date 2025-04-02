@@ -1,57 +1,61 @@
 
 import { useState, useEffect } from 'react';
-import { fetchRegisters, getRegisterById } from './register/registerService';
-import { Register } from '@/models/register';
-import { mockRegisters } from '@/models/register';
-import { openRegister, closeRegister, resolveDiscrepancy } from './register/registerOperations';
+import { Register } from '@/models/interfaces/registerInterfaces';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 export const useRegisterSessions = () => {
-  const [registers, setRegisters] = useState<Register[]>(mockRegisters);
-  const [isLoading, setIsLoading] = useState(false);
+  const [registers, setRegisters] = useState<Register[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const loadRegisters = async () => {
+  useEffect(() => {
+    fetchRegisters();
+  }, []);
+
+  const fetchRegisters = async () => {
     setIsLoading(true);
+    setError(null);
+    
     try {
-      const fetchedRegisters = await fetchRegisters();
-      setRegisters(fetchedRegisters.length > 0 ? fetchedRegisters : mockRegisters);
-      setError(null);
+      const { data, error } = await supabase
+        .from('register_sessions')
+        .select('*');
+      
+      if (error) throw error;
+      
+      const formattedRegisters: Register[] = data.map(register => ({
+        id: register.id,
+        name: register.name,
+        isOpen: register.is_open,
+        openedAt: register.opened_at,
+        closedAt: register.closed_at,
+        openedBy: register.opened_by,
+        closedBy: register.closed_by,
+        discrepancyApprovedAt: register.discrepancy_approved_at,
+        discrepancyApprovedBy: register.discrepancy_approved_by,
+        discrepancyResolution: register.discrepancy_resolution,
+        discrepancyNotes: register.discrepancy_notes,
+        discrepancies: register.discrepancies,
+        openingBalance: register.opening_balance,
+        currentBalance: register.current_balance,
+        expectedBalance: register.expected_balance
+      }));
+      
+      setRegisters(formattedRegisters);
     } catch (err) {
-      console.error('Error loading registers:', err);
-      setError(err instanceof Error ? err : new Error('Failed to load registers'));
-      setRegisters(mockRegisters); // Fallback to mock data
+      console.error('Error fetching registers:', err);
+      setError(err as Error);
+      toast.error('Failed to load registers');
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadRegisters();
-  }, []);
-
-  const getRegisterByIdWithFallback = async (id: string): Promise<Register | null> => {
-    try {
-      const register = await getRegisterById(id);
-      if (!register) {
-        // If not found in database, try to find in mock data
-        return mockRegisters.find(r => r.id === id) || null;
-      }
-      return register;
-    } catch (err) {
-      console.error(`Error fetching register ${id}:`, err);
-      // Fallback to mock data
-      return mockRegisters.find(r => r.id === id) || null;
-    }
-  };
-
   return {
     registers,
-    getRegisterById: getRegisterByIdWithFallback,
-    refresh: loadRegisters,
     isLoading,
     error,
-    openRegister,
-    closeRegister,
-    resolveDiscrepancy
+    refresh: fetchRegisters
   };
 };

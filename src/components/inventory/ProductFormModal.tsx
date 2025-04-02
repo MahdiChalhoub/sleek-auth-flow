@@ -1,459 +1,364 @@
 
-import React, { useState, useEffect, useCallback } from "react";
-import { v4 as uuidv4 } from 'uuid';
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { toast } from "sonner";
-import { Product, ComboComponent } from "@/models/product";
-import { useLocationContext } from "@/contexts/LocationContext";
-import { supabase } from "@/lib/supabase";
-import { Checkbox } from "@/components/ui/checkbox";
-import { UploadButton } from "@/utils/uploadthing";
+// Update component to fix ComboComponent import and property issues
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, X } from 'lucide-react';
+import { toast } from 'sonner';
+import { Product } from '@/models/product';
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Product name must be at least 2 characters.",
-  }),
-  description: z.string().optional(),
-  barcode: z.string().optional(),
-  categoryId: z.string().optional(),
-  price: z.coerce.number(),
-  cost: z.coerce.number().optional(),
-  stock: z.coerce.number(),
-  minStockLevel: z.coerce.number().optional(),
-  maxStockLevel: z.coerce.number().optional(),
-  isCombo: z.boolean().default(false),
-  hasStock: z.boolean().default(true),
-  imageUrl: z.string().optional(),
-});
-
-export type ProductFormValues = z.infer<typeof formSchema>;
-
-interface ProductFormModalProps {
-  product?: Product;
-  onClose?: () => void;
-  currentLocation: any;
+// Define ComboComponent interface
+export interface ComboComponent {
+  id?: string;
+  productId: string;
+  componentId: string;
+  componentName: string;
+  quantity: number;
 }
 
-const ProductFormModal: React.FC<ProductFormModalProps> = ({ product, onClose, currentLocation }) => {
-  const [isCombo, setIsCombo] = useState(product?.isCombo || false);
-  const [comboComponents, setComboComponents] = useState<ComboComponent[]>(product?.comboComponents || []);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [imageUrl, setImageUrl] = useState<string | undefined>(product?.imageUrl);
+interface ProductFormModalProps {
+  product: Product | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (product: Product) => void;
+  categories: { id: string; name: string }[];
+  allProducts: Product[];
+}
 
+const ProductFormModal: React.FC<ProductFormModalProps> = ({
+  product,
+  isOpen,
+  onClose,
+  onSave,
+  categories,
+  allProducts
+}) => {
+  // State for product form
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+  const [cost, setCost] = useState('');
+  const [stock, setStock] = useState('');
+  const [minStock, setMinStock] = useState('');
+  const [maxStock, setMaxStock] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [description, setDescription] = useState('');
+  const [barcode, setBarcode] = useState('');
+  const [isCombo, setIsCombo] = useState(false);
+  const [comboComponents, setComboComponents] = useState<ComboComponent[]>([]);
+  const [selectedComponentId, setSelectedComponentId] = useState('');
+  const [componentQuantity, setComponentQuantity] = useState('1');
+
+  // Effect to populate form when product is provided
   useEffect(() => {
-    const fetchCategories = async () => {
-      const { data, error } = await supabase
-        .from('categories')
-        .select('*');
-      
-      if (error) {
-        console.error("Error fetching categories:", error);
-        toast.error("Failed to load categories");
+    if (product) {
+      setName(product.name || '');
+      setPrice(product.price ? product.price.toString() : '');
+      setCost(product.cost ? product.cost.toString() : '');
+      setStock(product.stock ? product.stock.toString() : '');
+      setMinStock(product.minStockLevel ? product.minStockLevel.toString() : '');
+      setMaxStock(product.maxStockLevel ? product.maxStockLevel.toString() : '');
+      setCategoryId(product.categoryId || '');
+      setDescription(product.description || '');
+      setBarcode(product.barcode || '');
+      setIsCombo(product.isCombo || false);
+      // Set combo components if available
+      if (product.comboComponents) {
+        setComboComponents(product.comboComponents);
       } else {
-        setCategories(data);
+        setComboComponents([]);
       }
-    };
-    
-    fetchCategories();
-  }, []);
+    } else {
+      // Reset form for new product
+      setName('');
+      setPrice('');
+      setCost('');
+      setStock('');
+      setMinStock('');
+      setMaxStock('');
+      setCategoryId('');
+      setDescription('');
+      setBarcode('');
+      setIsCombo(false);
+      setComboComponents([]);
+    }
+  }, [product]);
 
-  const form = useForm<ProductFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: product?.name || "",
-      description: product?.description || "",
-      barcode: product?.barcode || "",
-      categoryId: product?.categoryId || "",
-      price: product?.price || 0,
-      cost: product?.cost || 0,
-      stock: product?.stock || 0,
-      minStockLevel: product?.minStockLevel || 5,
-      maxStockLevel: product?.maxStockLevel || 100,
-      isCombo: product?.isCombo || false,
-      hasStock: product?.hasStock !== undefined ? product.hasStock : true,
-      imageUrl: product?.imageUrl
-    },
-  });
+  const addComponent = () => {
+    if (!selectedComponentId || parseInt(componentQuantity) <= 0) {
+      toast.error('Please select a component and specify a valid quantity');
+      return;
+    }
 
-  const handleAddComboComponent = () => {
-    const now = new Date().toISOString();
+    const selectedProduct = allProducts.find(p => p.id === selectedComponentId);
+    if (!selectedProduct) return;
+
+    // Check if already in the list
+    if (comboComponents.some(c => c.componentId === selectedComponentId)) {
+      toast.error('This component is already in the list');
+      return;
+    }
+
     const newComponent: ComboComponent = {
-      id: uuidv4(),
-      comboProductId: product?.id || '',
-      componentProductId: '',
-      quantity: 1,
-      createdAt: now,
-      updatedAt: now,
+      productId: product?.id || 'new-product', // Will be updated when product is created
+      componentId: selectedProduct.id,
+      componentName: selectedProduct.name,
+      quantity: parseInt(componentQuantity)
     };
-    
+
     setComboComponents([...comboComponents, newComponent]);
+    setSelectedComponentId('');
+    setComponentQuantity('1');
   };
 
-  const handleRemoveComboComponent = (id: string) => {
-    setComboComponents(comboComponents.filter(component => component.id !== id));
+  const removeComponent = (componentId: string) => {
+    setComboComponents(comboComponents.filter(c => c.componentId !== componentId));
   };
 
-  const handleComboComponentChange = (index: number, field: 'componentProductId' | 'quantity', value: string | number) => {
-    const updatedComponents = [...comboComponents];
-    if (field === 'componentProductId') {
-      updatedComponents[index] = {
-        ...updatedComponents[index],
-        componentProductId: value as string
-      };
-    } else if (field === 'quantity') {
-      updatedComponents[index] = {
-        ...updatedComponents[index],
-        quantity: Number(value)
-      };
+  const handleSubmit = () => {
+    // Validate required fields
+    if (!name || !price) {
+      toast.error('Name and price are required');
+      return;
     }
-    setComboComponents(updatedComponents);
-  };
 
-  const onSubmit = async (data: ProductFormValues) => {
-    try {
-      const productData = {
-        name: data.name,
-        price: data.price,
-        is_combo: data.isCombo,
-        has_stock: data.hasStock,
-        category_id: data.categoryId,
-        image_url: imageUrl,
-        description: data.description,
-        barcode: data.barcode,
-        cost: data.cost,
-        stock: data.stock,
-        min_stock_level: data.minStockLevel,
-        max_stock_level: data.maxStockLevel
-      };
+    // Prepare product data
+    const productData: Product = {
+      id: product?.id || '', // Will be generated if new
+      name,
+      price: parseFloat(price),
+      cost: cost ? parseFloat(cost) : undefined,
+      stock: stock ? parseInt(stock) : 0,
+      categoryId: categoryId || undefined,
+      description,
+      barcode,
+      isCombo,
+      // Only include these for type safety, may not be used in the actual product object
+      minStockLevel: minStock ? parseInt(minStock) : undefined,
+      maxStockLevel: maxStock ? parseInt(maxStock) : undefined, 
+      hasStock: true,
+      comboComponents: isCombo ? comboComponents : [],
+      createdAt: product?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
 
-      if (product) {
-        // Update existing product
-        const { error } = await supabase
-          .from('products')
-          .update(productData)
-          .eq('id', product.id);
-
-        if (error) {
-          console.error("Error updating product:", error);
-          toast.error("Failed to update product");
-          return;
-        }
-
-        toast.success("Product updated successfully!");
-      } else {
-        // Create new product
-        const { error } = await supabase
-          .from('products')
-          .insert([productData]);
-
-        if (error) {
-          console.error("Error creating product:", error);
-          toast.error("Failed to create product");
-          return;
-        }
-
-        toast.success("Product created successfully!");
-      }
-
-      onClose?.();
-    } catch (error) {
-      console.error("Error during form submission:", error);
-      toast.error("An unexpected error occurred");
-    }
-  };
-
-  const handleFileChange = (url?: string) => {
-    setImageUrl(url);
+    onSave(productData);
+    onClose();
   };
 
   return (
-    <DialogContent className="sm:max-w-[625px]">
-      <DialogHeader>
-        <DialogTitle>{product ? "Edit Product" : "Create Product"}</DialogTitle>
-        <DialogDescription>
-          {product ? "Edit details of the selected product" : "Enter details for the new product"}
-        </DialogDescription>
-      </DialogHeader>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Product Name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="barcode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Barcode</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Barcode" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{product ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+          <DialogDescription>
+            {product ? 'Update product details below' : 'Fill in the details for your new product'}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Product Name *</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Product name"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="barcode">Barcode</Label>
+              <Input
+                id="barcode"
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+                placeholder="Barcode"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="price">Price *</Label>
+              <Input
+                id="price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="0.00"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="cost">Cost</Label>
+              <Input
+                id="cost"
+                type="number"
+                min="0"
+                step="0.01"
+                value={cost}
+                onChange={(e) => setCost(e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="stock">Stock</Label>
+              <Input
+                id="stock"
+                type="number"
+                min="0"
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="minStock">Min Stock</Label>
+              <Input
+                id="minStock"
+                type="number"
+                min="0"
+                value={minStock}
+                onChange={(e) => setMinStock(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="maxStock">Max Stock</Label>
+              <Input
+                id="maxStock"
+                type="number"
+                min="0"
+                value={maxStock}
+                onChange={(e) => setMaxStock(e.target.value)}
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <select
+              id="category"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              className="w-full p-2 border rounded"
+            >
+              <option value="">No Category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Product description"
+              className="w-full p-2 border rounded min-h-[80px]"
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Product description"
-                    className="resize-none"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map(category => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Price" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="cost"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cost</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Cost" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
-              control={form.control}
-              name="stock"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Stock</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Stock" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="minStockLevel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Min. Stock Level</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Min. Stock Level" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="maxStockLevel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Max. Stock Level</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Max. Stock Level" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <FormField
-              control={form.control}
-              name="hasStock"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Track Stock
-                    </FormLabel>
-                    <FormDescription>
-                      Enable stock tracking for this product
-                    </FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <FormField
-              control={form.control}
-              name="isCombo"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md p-4">
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={(checked) => {
-                        field.onChange(checked);
-                        setIsCombo(checked);
-                      }}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Is Combo
-                    </FormLabel>
-                    <FormDescription>
-                      Enable if this product is a combo
-                    </FormDescription>
-                  </div>
-                </FormItem>
-              )}
-            />
+          <div className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isCombo"
+                checked={isCombo}
+                onCheckedChange={(checked) => setIsCombo(checked as boolean)}
+              />
+              <Label htmlFor="isCombo">This is a combo product</Label>
+            </div>
           </div>
 
           {isCombo && (
-            <div className="space-y-4">
-              <Label>Combo Components</Label>
-              {comboComponents.map((component, index) => (
-                <div key={component.id} className="flex items-center space-x-4">
-                  <div className="w-1/2">
-                    <Label htmlFor={`component-${index}`}>Component {index + 1}</Label>
-                    <Input
-                      type="text"
-                      id={`component-${index}`}
-                      value={component.componentProductId}
-                      onChange={(e) => handleComboComponentChange(index, 'componentProductId', e.target.value)}
-                      placeholder="Component Product ID"
-                    />
-                  </div>
-                  <div className="w-1/4">
-                    <Label htmlFor={`quantity-${index}`}>Quantity</Label>
-                    <Input
-                      type="number"
-                      id={`quantity-${index}`}
-                      value={component.quantity}
-                      onChange={(e) => handleComboComponentChange(index, 'quantity', e.target.value)}
-                      placeholder="Quantity"
-                    />
-                  </div>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveComboComponent(component.id)}>
-                    Remove
-                  </Button>
-                </div>
-              ))}
-              <Button type="button" variant="outline" size="sm" onClick={handleAddComboComponent}>
-                Add Component
-              </Button>
+            <div className="space-y-4 border p-4 rounded">
+              <h4 className="font-medium">Combo Components</h4>
+              
+              <div className="flex space-x-2">
+                <select
+                  value={selectedComponentId}
+                  onChange={(e) => setSelectedComponentId(e.target.value)}
+                  className="flex-1 p-2 border rounded"
+                >
+                  <option value="">Select component</option>
+                  {allProducts
+                    .filter(p => !p.isCombo && (!product || p.id !== product.id))
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                </select>
+                
+                <Input
+                  type="number"
+                  min="1"
+                  value={componentQuantity}
+                  onChange={(e) => setComponentQuantity(e.target.value)}
+                  className="w-24"
+                />
+                
+                <Button type="button" size="sm" onClick={addComponent}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+              
+              <div className="space-y-2">
+                {comboComponents.length === 0 ? (
+                  <p className="text-sm text-gray-500">No components added yet</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {comboComponents.map((component) => (
+                      <li key={component.componentId} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <span>
+                          {component.componentName} x {component.quantity}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeComponent(component.componentId)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
           )}
+        </div>
 
-          <div>
-            <Label>Image</Label>
-            <UploadButton
-              endpoint="imageUpload"
-              onClientUploadComplete={(res) => {
-                console.log("Files: ", res);
-                if (res && res.length > 0) {
-                  form.setValue("imageUrl", res[0].url);
-                  setImageUrl(res[0].url);
-                  toast.success("Image uploaded successfully!");
-                }
-              }}
-              onUploadError={(error: Error) => {
-                toast.error(`Failed to upload image: ${error.message}`);
-              }}
-            />
-            {imageUrl && (
-              <img
-                src={imageUrl}
-                alt="Product Image"
-                className="mt-2 rounded-md object-cover"
-                style={{ maxWidth: '200px', maxHeight: '200px' }}
-              />
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              {product ? "Update Product" : "Create Product"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </Form>
-    </DialogContent>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="button" onClick={handleSubmit}>
+            {product ? 'Update Product' : 'Add Product'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

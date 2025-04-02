@@ -1,101 +1,121 @@
 
 import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
-import { ProductBatch } from '../productBatch';
-import { rpcParams, typeCast } from '@/utils/supabaseTypes';
-
-export interface GetProductBatchesResult {
-  id: string;
-  batch_number: string;
-  product_id: string;
-  quantity: number;
-  expiry_date: string;
-  cost_price: number;
-  created_at: string;
-  updated_at: string;
-}
+import { ProductBatch } from '@/models/product';
+import { typeCast, rpcParams } from '@/utils/supabaseTypes';
 
 export const productBatchService = {
-  getByProductId: async (productId: string): Promise<ProductBatch[]> => {
+  getAllBatches: async (): Promise<ProductBatch[]> => {
     try {
-      const { data, error } = await supabase
-        .rpc('get_product_batches', rpcParams({ product_id: productId }));
+      // Check if the table exists first
+      const { data: tableExists, error: tableCheckError } = await supabase
+        .rpc('check_table_exists', rpcParams({
+          table_name: 'product_batches'
+        }));
       
-      if (error) {
-        throw error;
+      if (tableCheckError) {
+        console.error('Error checking if table exists:', tableCheckError);
+        return [];
       }
+      
+      if (!tableExists) {
+        console.log('product_batches table does not exist yet');
+        return [];
+      }
+      
+      const { data, error } = await supabase
+        .rpc('get_all_product_batches', rpcParams({}));
+      
+      if (error) throw error;
       
       return typeCast<ProductBatch[]>(data || []);
     } catch (error) {
-      console.error(`Error fetching batches for product ${productId}:`, error);
-      toast.error('Failed to load product batches');
+      console.error('Error fetching all product batches:', error);
       return [];
     }
   },
   
-  create: async (batch: Omit<ProductBatch, 'id' | 'createdAt' | 'updatedAt'>): Promise<ProductBatch | null> => {
+  getProductBatches: async (productId: string): Promise<ProductBatch[]> => {
     try {
       const { data, error } = await supabase
-        .rpc('create_product_batch', rpcParams({
-          p_batch_number: batch.batchNumber,
-          p_product_id: batch.productId,
-          p_quantity: batch.quantity,
-          p_expiry_date: batch.expiryDate,
-          p_cost_price: batch.costPrice
+        .rpc('get_product_batches', rpcParams({
+          product_id: productId
         }));
       
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
+      
+      return typeCast<ProductBatch[]>(data || []);
+    } catch (error) {
+      console.error(`Error fetching batches for product ${productId}:`, error);
+      return [];
+    }
+  },
+  
+  addBatch: async (batch: Omit<ProductBatch, "id" | "createdAt" | "updatedAt">): Promise<ProductBatch | null> => {
+    try {
+      const { data, error } = await supabase
+        .rpc('insert_product_batch', rpcParams({
+          batch: {
+            product_id: batch.productId,
+            batch_number: batch.batchNumber,
+            quantity: batch.quantity,
+            expiry_date: batch.expiryDate
+          }
+        }));
+      
+      if (error) throw error;
       
       return typeCast<ProductBatch>(data);
     } catch (error) {
-      console.error('Error creating product batch:', error);
-      toast.error('Failed to create product batch');
+      console.error('Error adding product batch:', error);
       return null;
     }
   },
   
-  update: async (batch: Partial<ProductBatch> & { id: string }): Promise<ProductBatch | null> => {
+  updateBatch: async (batch: Partial<ProductBatch> & { id: string }): Promise<ProductBatch | null> => {
     try {
       const { data, error } = await supabase
         .rpc('update_product_batch', rpcParams({
-          p_id: batch.id,
-          p_batch_number: batch.batchNumber,
-          p_quantity: batch.quantity,
-          p_expiry_date: batch.expiryDate,
-          p_cost_price: batch.costPrice
+          batch_id: batch.id,
+          new_quantity: batch.quantity,
+          new_expiry_date: batch.expiryDate,
+          new_batch_number: batch.batchNumber
         }));
       
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
       return typeCast<ProductBatch>(data);
     } catch (error) {
-      console.error(`Error updating product batch ${batch.id}:`, error);
-      toast.error('Failed to update product batch');
+      console.error(`Error updating batch ${batch.id}:`, error);
       return null;
     }
   },
   
-  delete: async (batchId: string): Promise<boolean> => {
+  deleteBatch: async (batchId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .rpc('delete_product_batch', rpcParams({
-          p_id: batchId
+          batch_id: batchId
         }));
       
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
-      toast.success('Product batch deleted successfully');
       return true;
     } catch (error) {
-      console.error(`Error deleting product batch ${batchId}:`, error);
-      toast.error('Failed to delete product batch');
+      console.error(`Error deleting batch ${batchId}:`, error);
       return false;
     }
   }
+};
+
+export const mapDbProductBatchToModel = (dbBatch: any): ProductBatch => {
+  return {
+    id: dbBatch.id,
+    productId: dbBatch.product_id,
+    batchNumber: dbBatch.batch_number,
+    quantity: dbBatch.quantity,
+    expiryDate: dbBatch.expiry_date,
+    createdAt: dbBatch.created_at,
+    updatedAt: dbBatch.updated_at,
+    productName: dbBatch.product_name
+  };
 };
