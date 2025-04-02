@@ -1,6 +1,8 @@
+
 // Updated product model with all required properties
 import { supabase } from '@/lib/supabase';
-import { typeCast, rpcParams } from '@/utils/supabaseTypes';
+import { callRpc } from '@/utils/rpcUtils';
+import { rpcParams } from '@/utils/supabaseUtils';
 
 export interface Product {
   id: string;
@@ -240,12 +242,14 @@ export const productsService = {
   
   getProductBatches: async (productId: string): Promise<ProductBatch[]> => {
     try {
-      const { data, error } = await supabase
-        .rpc('get_product_batches', typeCast({ product_id: productId }));
+      const { data, error } = await callRpc<ProductBatch[], { product_id: string }>(
+        'get_product_batches', 
+        rpcParams({ product_id: productId })
+      );
       
       if (error) throw error;
       
-      return typeCast<ProductBatch[]>(data || []);
+      return data || [];
     } catch (error) {
       console.error(`Error fetching batches for product ${productId}:`, error);
       return [];

@@ -1,9 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Transaction, JournalEntry, PaymentMethod, TransactionStatus, TransactionType } from '@/models/transaction';
-import { tableSource } from '@/utils/supabaseUtils';
+import { fromTable } from '@/utils/supabaseServiceHelper';
 import { assertType } from '@/utils/typeUtils';
-import { typeCast, rpcParams } from '@/utils/supabaseTypes';
 
 type DbTransaction = {
   id: string;
@@ -34,8 +33,7 @@ type DbJournalEntry = {
 // Transactions API
 export const transactionsApi = {
   getAll: async (): Promise<Transaction[]> => {
-    const { data, error } = await supabase
-      .from(tableSource('transactions'))
+    const { data, error } = await fromTable('transactions')
       .select('*, journal_entries(*)');
     
     if (error) {
@@ -79,8 +77,7 @@ export const transactionsApi = {
   },
   
   getById: async (id: string): Promise<Transaction | null> => {
-    const { data, error } = await supabase
-      .from(tableSource('transactions'))
+    const { data, error } = await fromTable('transactions')
       .select('*, journal_entries(*)')
       .eq('id', id)
       .single();
@@ -124,8 +121,7 @@ export const transactionsApi = {
   },
   
   create: async (transaction: Omit<Transaction, 'id'>): Promise<Transaction> => {
-    const { data, error } = await supabase
-      .from(tableSource('transactions'))
+    const { data, error } = await fromTable('transactions')
       .insert([{
         amount: transaction.amount,
         type: transaction.type, 
@@ -156,8 +152,7 @@ export const transactionsApi = {
         reference: entry.reference
       }));
       
-      const { error: entriesError } = await supabase
-        .from(tableSource('journal_entries'))
+      const { error: entriesError } = await fromTable('journal_entries')
         .insert(entries);
       
       if (entriesError) {
@@ -186,8 +181,7 @@ export const transactionsApi = {
   },
   
   updateStatus: async (id: string, status: TransactionStatus): Promise<Transaction> => {
-    const { data, error } = await supabase
-      .from(tableSource('transactions'))
+    const { data, error } = await fromTable('transactions')
       .update({ 
         status, 
         updated_at: new Date().toISOString() 
@@ -223,8 +217,7 @@ export const transactionsApi = {
   },
   
   delete: async (id: string): Promise<void> => {
-    const { error } = await supabase
-      .from(tableSource('transactions'))
+    const { error } = await fromTable('transactions')
       .delete()
       .eq('id', id);
     

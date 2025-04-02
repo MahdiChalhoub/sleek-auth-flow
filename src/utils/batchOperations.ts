@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { tableSource, ValidTable, assertType } from './supabaseUtils';
+import { fromTable } from './supabaseServiceHelper';
+import { assertType } from '@/utils/typeUtils';
 
 /**
  * Batch delete multiple records from a table
@@ -9,14 +10,13 @@ import { tableSource, ValidTable, assertType } from './supabaseUtils';
  * @returns Whether the operation was successful
  */
 export async function batchDelete(
-  table: ValidTable,
+  table: string,
   ids: string[]
 ): Promise<boolean> {
   if (!ids.length) return true;
 
   try {
-    const { error } = await supabase
-      .from(tableSource(table))
+    const { error } = await fromTable(table)
       .delete()
       .in('id', ids);
 
@@ -39,14 +39,13 @@ export async function batchDelete(
  * @returns Whether the operation was successful
  */
 export async function batchInsert<T extends Record<string, any>>(
-  table: ValidTable,
+  table: string,
   records: T[]
 ): Promise<boolean> {
   if (!records.length) return true;
 
   try {
-    const { error } = await supabase
-      .from(tableSource(table))
+    const { error } = await fromTable(table)
       .insert(records);
 
     if (error) {
@@ -68,7 +67,7 @@ export async function batchInsert<T extends Record<string, any>>(
  * @returns Whether the operation was successful
  */
 export async function batchUpdate<T extends { id: string }>(
-  table: ValidTable,
+  table: string,
   records: T[]
 ): Promise<boolean> {
   if (!records.length) return true;
@@ -78,8 +77,7 @@ export async function batchUpdate<T extends { id: string }>(
     // For now, we'll simulate it with multiple updates
     for (const record of records) {
       const { id, ...updates } = record;
-      const { error } = await supabase
-        .from(tableSource(table))
+      const { error } = await fromTable(table)
         .update(updates)
         .eq('id', id);
 
@@ -102,11 +100,10 @@ export async function batchUpdate<T extends { id: string }>(
  * @returns CSV string
  */
 export async function exportTableToCSV(
-  table: ValidTable
+  table: string
 ): Promise<string> {
   try {
-    const { data, error } = await supabase
-      .from(tableSource(table))
+    const { data, error } = await fromTable(table)
       .select('*');
 
     if (error) {

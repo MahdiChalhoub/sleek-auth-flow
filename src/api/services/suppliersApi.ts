@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Supplier } from '@/models/supplier';
 import { tableSource } from '@/utils/supabaseUtils';
 import { assertType } from '@/utils/typeUtils';
+import { fromTable } from '@/utils/supabaseServiceHelper';
 
 type DbSupplier = {
   id: string;
@@ -19,8 +20,7 @@ type DbSupplier = {
 // Suppliers API
 export const suppliersApi = {
   getAll: async (): Promise<Supplier[]> => {
-    const { data, error } = await supabase
-      .from(tableSource('suppliers'))
+    const { data, error } = await fromTable('suppliers')
       .select('*');
     
     if (error) {
@@ -44,8 +44,7 @@ export const suppliersApi = {
   },
   
   getById: async (id: string): Promise<Supplier | null> => {
-    const { data, error } = await supabase
-      .from(tableSource('suppliers'))
+    const { data, error } = await fromTable('suppliers')
       .select('*')
       .eq('id', id)
       .single();
@@ -69,8 +68,7 @@ export const suppliersApi = {
   },
   
   create: async (supplier: Omit<Supplier, 'id'>): Promise<Supplier> => {
-    const { data, error } = await supabase
-      .from(tableSource('suppliers'))
+    const { data, error } = await fromTable('suppliers')
       .insert([{
         name: supplier.name,
         contact_person: supplier.contactPerson,
@@ -109,8 +107,7 @@ export const suppliersApi = {
     if (updates.address) dbUpdates.address = updates.address;
     if (updates.notes) dbUpdates.notes = updates.notes;
     
-    const { data, error } = await supabase
-      .from(tableSource('suppliers'))
+    const { data, error } = await fromTable('suppliers')
       .update(dbUpdates)
       .eq('id', id)
       .select()
@@ -135,8 +132,7 @@ export const suppliersApi = {
   },
   
   delete: async (id: string): Promise<void> => {
-    const { error } = await supabase
-      .from(tableSource('suppliers'))
+    const { error } = await fromTable('suppliers')
       .delete()
       .eq('id', id);
     

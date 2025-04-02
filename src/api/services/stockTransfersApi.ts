@@ -4,6 +4,7 @@ import { StockTransfer } from '@/models/stockTransfer';
 import { tableSource } from '@/utils/supabaseUtils';
 import { mapDatabaseStatus, mapToDbStatus } from '../mappers/statusMappers';
 import { assertType } from '@/utils/typeUtils';
+import { fromTable } from '@/utils/supabaseServiceHelper';
 
 type DbStockTransfer = {
   id: string;
@@ -27,8 +28,7 @@ type DbStockTransferItem = {
 // Stock Transfers API
 export const stockTransfersApi = {
   getAll: async (): Promise<StockTransfer[]> => {
-    const { data, error } = await supabase
-      .from(tableSource('stock_transfers'))
+    const { data, error } = await fromTable('stock_transfers')
       .select('*, stock_transfer_items(*)');
     
     if (error) {
@@ -60,8 +60,7 @@ export const stockTransfersApi = {
   },
   
   getById: async (id: string): Promise<StockTransfer | null> => {
-    const { data, error } = await supabase
-      .from(tableSource('stock_transfers'))
+    const { data, error } = await fromTable('stock_transfers')
       .select('*, stock_transfer_items(*)')
       .eq('id', id)
       .single();
@@ -93,8 +92,7 @@ export const stockTransfersApi = {
   },
   
   create: async (transfer: Omit<StockTransfer, 'id'>): Promise<StockTransfer> => {
-    const { data, error } = await supabase
-      .from(tableSource('stock_transfers'))
+    const { data, error } = await fromTable('stock_transfers')
       .insert([{
         source_location_id: transfer.sourceLocationId,
         destination_location_id: transfer.destinationLocationId,
@@ -118,8 +116,7 @@ export const stockTransfersApi = {
         quantity: item.quantity
       }));
       
-      const { error: itemsError } = await supabase
-        .from(tableSource('stock_transfer_items'))
+      const { error: itemsError } = await fromTable('stock_transfer_items')
         .insert(items);
       
       if (itemsError) {
@@ -149,8 +146,7 @@ export const stockTransfersApi = {
     if (updates.notes) dbUpdates.notes = updates.notes;
     dbUpdates.updated_at = new Date().toISOString();
     
-    const { data, error } = await supabase
-      .from(tableSource('stock_transfers'))
+    const { data, error } = await fromTable('stock_transfers')
       .update(dbUpdates)
       .eq('id', id)
       .select()
@@ -179,8 +175,7 @@ export const stockTransfersApi = {
   },
   
   delete: async (id: string): Promise<void> => {
-    const { error } = await supabase
-      .from(tableSource('stock_transfers'))
+    const { error } = await fromTable('stock_transfers')
       .delete()
       .eq('id', id);
     

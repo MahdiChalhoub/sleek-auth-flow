@@ -38,9 +38,11 @@ export function rpcParams<T extends Record<string, any>>(params: T): T {
 
 /**
  * Generate a Supabase table source with proper typing
- * Modified to accept string literals directly
+ * 
+ * This is a type-safe way to reference table names that will be checked
+ * against the actual database schema
  */
-export function tableSource(tableName: string) {
+export function tableSource<T extends string>(tableName: T): T {
   return tableName;
 }
 
@@ -101,9 +103,9 @@ export async function safeTransaction<T>(
 }
 
 /**
- * Valid types for use with assertType
+ * Valid table types for use with tableSource and other database utilities
  */
-export type ValidTable = any;
+export type ValidTable = string;
 
 /**
  * Assert that a value is of a specific type

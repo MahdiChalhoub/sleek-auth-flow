@@ -6,12 +6,9 @@ import { ArrowLeft, Maximize, Minimize } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
-import ProductCardPOS from '@/components/POS/ProductCardPOS';
+import ProductCard from '@/components/ProductCard';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-// Import the Product type
-import { Product } from '@/models/interfaces/productInterfaces';
 
 const POSSales = () => {
   // Add fullscreen state
@@ -22,7 +19,7 @@ const POSSales = () => {
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch((err) => {
-        toast.error("Error attempting to enable fullscreen mode:", err.message);
+        toast.error("Error attempting to enable fullscreen mode: " + (err instanceof Error ? err.message : String(err)));
       });
       setIsFullscreen(true);
     } else {
@@ -46,19 +43,13 @@ const POSSales = () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const { products, isLoading: isLoadingProducts, error: productsError } = useProducts();
   const { categories, isLoading: isLoadingCategories, error: categoriesError } = useCategories();
 
   useEffect(() => {
     if (products) {
-      // Convert returned products to the expected Product interface
-      const convertedProducts = products.map(p => ({
-        ...p,
-        has_stock: typeof p.has_stock !== 'undefined' ? p.has_stock : true,
-      })) as unknown as Product[];
-      setFilteredProducts(convertedProducts);
+      setFilteredProducts(products);
     }
   }, [products]);
 
@@ -66,22 +57,12 @@ const POSSales = () => {
   const handleCategorySelect = (category: string | null) => {
     setSelectedCategory(category);
     if (category === null) {
-      // Convert to expected Product interface
-      const convertedProducts = products.map(p => ({
-        ...p,
-        has_stock: typeof p.has_stock !== 'undefined' ? p.has_stock : true,
-      })) as unknown as Product[];
-      setFilteredProducts(convertedProducts);
+      setFilteredProducts(products);
     } else {
       const filtered = products.filter((product) => 
-        product.categoryId && product.categoryId === category
+        product.category && product.category.id === category
       );
-      // Convert to expected Product interface
-      const convertedFiltered = filtered.map(p => ({
-        ...p,
-        has_stock: typeof p.has_stock !== 'undefined' ? p.has_stock : true,
-      })) as unknown as Product[];
-      setFilteredProducts(convertedFiltered);
+      setFilteredProducts(filtered);
     }
   };
 
@@ -90,28 +71,23 @@ const POSSales = () => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
     let filtered = products;
-    
+
     // Apply category filter if selected
     if (selectedCategory) {
       filtered = filtered.filter((product) => 
-        product.categoryId && product.categoryId === selectedCategory
+        product.category && product.category.id === selectedCategory
       );
     }
-    
+
     // Apply search filter
     if (query.trim() !== "") {
-      filtered = filtered.filter((product) => 
+      filtered = filtered.filter((product) =>
         product.name.toLowerCase().includes(query) || 
         product.barcode?.toLowerCase().includes(query)
       );
     }
-    
-    // Convert to expected Product interface
-    const convertedFiltered = filtered.map(p => ({
-      ...p,
-      has_stock: typeof p.has_stock !== 'undefined' ? p.has_stock : true,
-    })) as unknown as Product[];
-    setFilteredProducts(convertedFiltered);
+
+    setFilteredProducts(filtered);
   };
 
   return (
@@ -171,13 +147,11 @@ const POSSales = () => {
               {isLoadingProducts ? (
                 <p>Loading products...</p>
               ) : productsError ? (
-                <p>Error loading products: {productsError.message}</p>
+                <p>Error loading products: {typeof productsError === 'object' && productsError !== null && 'message' in productsError ? 
+                    (productsError as Error).message : 'Unknown error'}</p>
               ) : filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
-                  <ProductCardPOS
-                    key={product.id}
-                    product={product}
-                  />
+                  <ProductCard key={product.id} product={product} />
                 ))
               ) : (
                 <p>No products found.</p>
