@@ -61,11 +61,11 @@ const LocationSelector: React.FC<LocationSelectorProps> = ({ isOpen, onOpenChang
                 onClick={() => handleSwitchLocation(loc.id)}
               >
                 <div className={`p-2 rounded-full ${
-                  loc.type === 'store' ? 'bg-blue-100' : 
+                  loc.type === 'retail' ? 'bg-blue-100' : 
                   loc.type === 'warehouse' ? 'bg-amber-100' : 'bg-green-100'
                 }`}>
                   <MapPin className={`h-4 w-4 ${
-                    loc.type === 'store' ? 'text-blue-600' : 
+                    loc.type === 'retail' ? 'text-blue-600' : 
                     loc.type === 'warehouse' ? 'text-amber-600' : 'text-green-600'
                   }`} />
                 </div>

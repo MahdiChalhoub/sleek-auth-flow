@@ -1,9 +1,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { useAuth } from '@/contexts/AuthContext';
+import { fromTable } from '@/utils/supabaseServiceHelper';
 
 export const useBusinessManagement = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -19,16 +19,14 @@ export const useBusinessManagement = () => {
       setIsLoading(true);
       
       // Fetch businesses where user is the owner
-      const { data: ownedBusinesses, error: ownedError } = await supabase
-        .from('businesses')
+      const { data: ownedBusinesses, error: ownedError } = await fromTable('businesses')
         .select('*')
         .eq('owner_id', user.id);
       
       if (ownedError) throw ownedError;
       
       // Fetch businesses where user is a member
-      const { data: memberBusinesses, error: memberError } = await supabase
-        .from('business_users')
+      const { data: memberBusinesses, error: memberError } = await fromTable('business_users')
         .select('business:businesses(*)')
         .eq('user_id', user.id)
         .eq('is_active', true);
@@ -96,8 +94,7 @@ export const useBusinessManagement = () => {
     }
     
     try {
-      const { data, error } = await supabase
-        .from('businesses')
+      const { data, error } = await fromTable('businesses')
         .insert({
           name: newBusiness.name,
           owner_id: user.id,
@@ -128,8 +125,7 @@ export const useBusinessManagement = () => {
 
   const handleDeleteBusiness = useCallback(async (businessId: string) => {
     try {
-      const { error } = await supabase
-        .from('businesses')
+      const { error } = await fromTable('businesses')
         .delete()
         .eq('id', businessId);
       
@@ -147,8 +143,7 @@ export const useBusinessManagement = () => {
     try {
       const newStatus = isActive ? 'active' : 'inactive';
       
-      const { error } = await supabase
-        .from('businesses')
+      const { error } = await fromTable('businesses')
         .update({ 
           status: newStatus,
           active: isActive

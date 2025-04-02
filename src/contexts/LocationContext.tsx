@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Branch } from '@/types/location';
 import { useAuth } from './AuthContext';
+import { fromTable } from '@/utils/supabaseServiceHelper';
 
 interface LocationContextType {
   currentLocation: Branch | null;
@@ -42,8 +43,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setIsLoading(true);
       
       // Fetch locations from Supabase
-      const { data: locations, error } = await supabase
-        .from('locations')
+      const { data: locations, error } = await fromTable('locations')
         .select('*')
         .eq('business_id', currentBusiness.id)
         .eq('status', 'active');

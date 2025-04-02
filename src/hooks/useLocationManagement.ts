@@ -1,9 +1,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
 import { Branch } from '@/types/location';
 import { useAuth } from '@/contexts/AuthContext';
+import { fromTable } from '@/utils/supabaseServiceHelper';
 
 export const useLocationManagement = () => {
   const [locations, setLocations] = useState<Branch[]>([]);
@@ -16,8 +16,7 @@ export const useLocationManagement = () => {
     try {
       setIsLoading(true);
       
-      const { data, error } = await supabase
-        .from('locations')
+      const { data, error } = await fromTable('locations')
         .select('*')
         .eq('business_id', currentBusiness.id)
         .order('created_at', { ascending: false });
@@ -60,8 +59,7 @@ export const useLocationManagement = () => {
     }
     
     try {
-      const { data, error } = await supabase
-        .from('locations')
+      const { data, error } = await fromTable('locations')
         .insert({
           name: newLocation.name,
           business_id: currentBusiness.id,
@@ -89,8 +87,7 @@ export const useLocationManagement = () => {
 
   const handleDeleteLocation = useCallback(async (locationId: string) => {
     try {
-      const { error } = await supabase
-        .from('locations')
+      const { error } = await fromTable('locations')
         .delete()
         .eq('id', locationId);
       
@@ -108,8 +105,7 @@ export const useLocationManagement = () => {
     try {
       const newStatus = isActive ? 'active' : 'inactive';
       
-      const { error } = await supabase
-        .from('locations')
+      const { error } = await fromTable('locations')
         .update({ status: newStatus })
         .eq('id', locationId);
       

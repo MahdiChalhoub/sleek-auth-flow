@@ -6,6 +6,7 @@ import SignupForm, { SignupFormData } from '@/components/auth/SignupForm';
 import AuthLinks from '@/components/auth/AuthLinks';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { fromTable } from '@/utils/supabaseServiceHelper';
 
 const Signup: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,8 +34,7 @@ const Signup: React.FC = () => {
       }
       
       // 2. Create a default business for the user
-      const { data: businessData, error: businessError } = await supabase
-        .from('businesses')
+      const { data: businessData, error: businessError } = await fromTable('businesses')
         .insert({
           name: `${data.fullName}'s Business`,
           owner_id: authData.user.id,
@@ -54,8 +54,7 @@ const Signup: React.FC = () => {
       
       // 3. Create a default location for the business
       if (businessData) {
-        const { error: locationError } = await supabase
-          .from('locations')
+        const { error: locationError } = await fromTable('locations')
           .insert({
             name: 'Main Store',
             business_id: businessData.id,

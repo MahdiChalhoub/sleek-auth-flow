@@ -6,5 +6,6 @@ import { supabase } from '@/lib/supabase';
  * This avoids TS errors when the Database type is not up to date
  */
 export const fromTable = (tableName: string) => {
-  return supabase.from(tableName);
+  // Use type assertion to bypass TypeScript's type checking for table names
+  return supabase.from(tableName as any);
 };

@@ -1,18 +1,38 @@
 
-import React from "react";
-import { Building, Globe, Check, X, ChevronDown, ChevronUp, Edit, Trash2 } from "lucide-react";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Business } from "@/models/interfaces/businessInterfaces";
+import React from 'react';
+import { Business } from '@/models/interfaces/businessInterfaces';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  ChevronDown,
+  ChevronUp,
+  Building,
+  Mail,
+  Phone,
+  MapPin,
+  Globe,
+  Trash2,
+  Power,
+  PowerOff
+} from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 
-interface BusinessCardProps {
+export interface BusinessCardProps {
   business: Business;
   isExpanded: boolean;
-  onToggleExpand: (businessId: string) => void;
-  onDeleteBusiness: (id: string) => void;
-  onToggleBusinessStatus: (id: string) => void;
-  children?: React.ReactNode;
+  onToggleExpand: () => void;
+  onDeleteBusiness: () => void;
+  onToggleStatus: (isActive: boolean) => void;
 }
 
 export const BusinessCard: React.FC<BusinessCardProps> = ({
@@ -20,82 +40,110 @@ export const BusinessCard: React.FC<BusinessCardProps> = ({
   isExpanded,
   onToggleExpand,
   onDeleteBusiness,
-  onToggleBusinessStatus,
-  children,
+  onToggleStatus
 }) => {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+
+  const handleDelete = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    onDeleteBusiness();
+    setIsDeleteDialogOpen(false);
+  };
+
+  const isActive = business.status === 'active' || business.active;
+
   return (
-    <React.Fragment>
-      <TableRow className="hover:bg-muted/40">
-        <TableCell className="font-medium flex items-center gap-2">
-          {business.logoUrl ? (
-            <img 
-              src={business.logoUrl} 
-              alt={business.name} 
-              className="w-8 h-8 rounded-full" 
-            />
-          ) : (
-            <Building className="w-6 h-6 text-muted-foreground" />
-          )}
-          {business.name}
-        </TableCell>
-        <TableCell>{business.type || "N/A"}</TableCell>
-        <TableCell>
-          <div className="flex items-center gap-1">
-            <Globe className="h-4 w-4 text-muted-foreground" />
-            {business.country || "N/A"} / {business.currency || "N/A"}
+    <Card className="shadow-sm">
+      <CardHeader className="p-4 pb-2">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Building className="h-5 w-5 text-primary" />
+            <span className="font-medium">{business.name}</span>
+            <Badge variant={isActive ? "success" : "destructive"} className="ml-2">
+              {isActive ? 'Active' : 'Inactive'}
+            </Badge>
           </div>
-        </TableCell>
-        <TableCell>
-          <Badge 
-            variant={business.active ? "success" : "destructive"}
-            className={`gap-1 ${business.active ? 'bg-green-500/20 text-green-600 hover:bg-green-500/30' : 'bg-red-500/20 text-red-600 hover:bg-red-500/30'}`}
-          >
-            {business.active ? (
-              <>
-                <Check className="h-3 w-3" /> Active
-              </>
-            ) : (
-              <>
-                <X className="h-3 w-3" /> Inactive
-              </>
-            )}
-          </Badge>
-        </TableCell>
-        <TableCell className="text-right">
-          <div className="flex items-center justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => onToggleBusinessStatus(business.id)}>
-              {business.active ? "Deactivate" : "Activate"}
-            </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8">
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => onDeleteBusiness(business.id)}>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleDelete}
+              className="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
+            >
               <Trash2 className="h-4 w-4" />
             </Button>
             <Button 
               variant="ghost" 
-              size="icon" 
-              className="h-8 w-8"
-              onClick={() => onToggleExpand(business.id)}
+              size="sm" 
+              onClick={() => onToggleStatus(!isActive)}
+              className={`h-8 w-8 p-0 ${isActive ? 'text-destructive hover:text-destructive/80' : 'text-success hover:text-success/80'}`}
             >
-              {isExpanded ? (
-                <ChevronUp className="h-4 w-4" />
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
+              {isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onToggleExpand}
+              className="h-8 w-8 p-0"
+            >
+              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
           </div>
-        </TableCell>
-      </TableRow>
+        </div>
+      </CardHeader>
+
       {isExpanded && (
-        <TableRow>
-          <TableCell colSpan={5} className="p-0 border-b-0">
-            <div className="border-t border-dashed p-4 bg-muted/20">
-              {children}
+        <CardContent className="p-4 pt-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">{business.email || 'No email'}</span>
             </div>
-          </TableCell>
-        </TableRow>
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">{business.phone || 'No phone'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">{business.address || 'No address'}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">{business.country || 'No country'}</span>
+            </div>
+          </div>
+          {business.description && (
+            <div className="mt-4">
+              <h4 className="text-sm font-medium mb-1">Description</h4>
+              <p className="text-sm text-muted-foreground">{business.description}</p>
+            </div>
+          )}
+        </CardContent>
       )}
-    </React.Fragment>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the business "{business.name}" and all its associated data.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
   );
 };

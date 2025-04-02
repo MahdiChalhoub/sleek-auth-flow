@@ -34,7 +34,7 @@ export const BusinessList: React.FC<BusinessListProps> = ({
           business={business}
           isExpanded={expandedBusinessId === business.id}
           onToggleExpand={() => toggleExpand(business.id)}
-          onDelete={() => handleDeleteBusiness(business.id)}
+          onDeleteBusiness={() => handleDeleteBusiness(business.id)}
           onToggleStatus={(isActive) => handleToggleBusinessStatus(business.id, isActive)}
         />
       ))}
