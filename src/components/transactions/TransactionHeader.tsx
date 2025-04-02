@@ -1,64 +1,73 @@
 
-import React from "react";
-import { ArrowLeft, DownloadCloud, Loader2, Plus } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { ROUTES } from "@/constants/routes";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { PlusCircle, Loader2, CloudOff, Cloud, HardDrive } from 'lucide-react';
 
-interface TransactionHeaderProps {
-  isOfflineMode: boolean;
-  isSyncing: boolean;
-  onToggleOfflineMode: () => void;
-  onBackupData: () => void;
+export interface TransactionHeaderProps {
   onNewTransaction: () => void;
-  isLoading: boolean;
+  onBackupOpen?: () => void;  // Make this optional
+  isOfflineMode?: boolean;
+  isSyncing?: boolean;
+  onToggleOfflineMode?: () => void;
 }
 
 const TransactionHeader: React.FC<TransactionHeaderProps> = ({
-  isOfflineMode,
-  isSyncing,
-  onToggleOfflineMode,
-  onBackupData,
   onNewTransaction,
-  isLoading
+  onBackupOpen,
+  isOfflineMode = false,
+  isSyncing = false,
+  onToggleOfflineMode
 }) => {
   return (
     <div className="flex items-center justify-between mb-6">
+      <h1 className="text-2xl font-bold">Transactions</h1>
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" asChild>
-          <Link to={ROUTES.HOME}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <h1 className="text-2xl font-semibold">Transactions</h1>
-        
-        {isOfflineMode && (
-          <Badge variant="outline" className="ml-2 bg-amber-100 text-amber-800 border-amber-200">
-            Offline Mode
-          </Badge>
+        {onToggleOfflineMode && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleOfflineMode}
+            className={isOfflineMode ? "bg-amber-100 text-amber-800 hover:bg-amber-200 hover:text-amber-900" : ""}
+          >
+            {isOfflineMode ? (
+              <>
+                <HardDrive className="mr-2 h-4 w-4" />
+                Offline Mode
+              </>
+            ) : (
+              <>
+                <Cloud className="mr-2 h-4 w-4" />
+                Online Mode
+              </>
+            )}
+          </Button>
         )}
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <div className="flex items-center mr-4">
-          <span className="text-sm mr-2">Offline Mode</span>
-          <Switch 
-            checked={isOfflineMode} 
-            onCheckedChange={onToggleOfflineMode}
+        
+        {onBackupOpen && (
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={onBackupOpen}
             disabled={isSyncing}
-          />
-          {isSyncing && <Loader2 className="ml-2 h-4 w-4 animate-spin text-primary" />}
-        </div>
+          >
+            {isSyncing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Syncing...
+              </>
+            ) : (
+              <>
+                <CloudOff className="mr-2 h-4 w-4" />
+                Backup & Sync
+              </>
+            )}
+          </Button>
+        )}
         
-        <Button variant="outline" onClick={onBackupData} className="mr-2" disabled={isLoading}>
-          <DownloadCloud className="h-4 w-4 mr-2" />
-          Backup
-        </Button>
-        
-        <Button disabled={isLoading} onClick={onNewTransaction}>
-          <Plus className="h-4 w-4 mr-2" />
+        <Button 
+          onClick={onNewTransaction}
+        >
+          <PlusCircle className="mr-2 h-4 w-4" />
           New Transaction
         </Button>
       </div>

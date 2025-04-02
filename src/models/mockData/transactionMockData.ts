@@ -1,315 +1,103 @@
 
-import { Transaction, LedgerEntry } from '../transaction';
-import { TransactionPermission } from '../interfaces/permissionInterfaces';
+import { Transaction, TransactionStatus, PaymentMethod, TransactionType, LedgerEntry } from '../transaction';
+import { mockLedgerEntries } from './ledgerEntryData';
 
-export const mockTransactions: Transaction[] = [
+// Use the mockLedgerEntries instead of recreating ledger entries here
+export const transactionsMock: Transaction[] = [
   {
-    id: 't1',
-    amount: 125.50,
-    type: 'income',
-    status: 'open',
-    createdAt: '2023-06-01T10:30:00Z',
-    updatedAt: '2023-06-01T10:30:00Z',
-    createdBy: 'John Admin',
-    description: 'Grocery purchase',
-    paymentMethod: 'cash',
-    journalEntries: []
+    id: 'tx1',
+    amount: 1250.75,
+    status: 'open' as TransactionStatus,
+    type: 'sale' as TransactionType,
+    description: 'Monthly sales revenue',
+    createdAt: '2023-01-15T09:30:00.000Z',
+    updatedAt: '2023-01-15T09:30:00.000Z',
+    createdBy: 'John Doe',
+    paymentMethod: 'cash' as PaymentMethod,
+    branchId: 'branch-1',
+    notes: 'January sales',
+    journalEntries: mockLedgerEntries.filter(entry => entry.transactionId === 'tx1')
   },
   {
-    id: 't2',
-    amount: 75.25,
-    type: 'expense',
-    status: 'locked',
-    createdAt: '2023-06-01T11:45:00Z',
-    updatedAt: '2023-06-01T12:00:00Z',
-    createdBy: 'Cathy Cashier',
-    description: 'Electronics',
-    paymentMethod: 'card',
-    lockedBy: 'Cathy Cashier',
-    lockedAt: '2023-06-01T12:00:00Z',
-    journalEntries: []
-  },
-  {
-    id: 't3',
-    amount: 250.00,
-    type: 'expense',
-    status: 'verified',
-    createdAt: '2023-06-01T13:15:00Z',
-    updatedAt: '2023-06-01T14:30:00Z',
-    createdBy: 'Mike Manager',
+    id: 'tx2',
+    amount: 450.00,
+    status: 'verified' as TransactionStatus,
+    type: 'expense' as TransactionType,
     description: 'Office supplies',
-    paymentMethod: 'bank',
-    lockedBy: 'Mike Manager',
-    lockedAt: '2023-06-01T13:45:00Z',
-    verifiedBy: 'John Admin',
-    verifiedAt: '2023-06-01T14:30:00Z',
+    createdAt: '2023-01-17T14:20:00.000Z',
+    updatedAt: '2023-01-17T14:20:00.000Z',
+    createdBy: 'Jane Smith',
+    paymentMethod: 'bank' as PaymentMethod,
+    branchId: 'branch-2',
+    notes: 'Monthly supplies for office',
+    journalEntries: mockLedgerEntries.filter(entry => entry.transactionId === 'tx2')
+  },
+  {
+    id: 'tx3',
+    amount: 2000.00,
+    status: 'locked' as TransactionStatus,
+    type: 'transfer' as TransactionType,
+    description: 'Transfer between branches',
+    createdAt: '2023-01-20T11:15:00.000Z',
+    updatedAt: '2023-01-20T11:15:00.000Z',
+    createdBy: 'Admin User',
+    paymentMethod: 'bank' as PaymentMethod,
+    branchId: 'branch-1',
+    notes: 'Fund allocation',
     journalEntries: []
   },
   {
-    id: 't4',
-    amount: 50.75,
-    type: 'expense',
-    status: 'secure',
-    createdAt: '2023-06-01T15:00:00Z',
-    updatedAt: '2023-06-01T16:20:00Z',
-    createdBy: 'John Admin',
-    description: 'Food & beverages',
-    paymentMethod: 'wave',
-    lockedBy: 'John Admin',
-    lockedAt: '2023-06-01T15:30:00Z',
-    verifiedBy: 'Sarah Supervisor',
-    verifiedAt: '2023-06-01T16:00:00Z',
+    id: 'tx4',
+    amount: 3500.00,
+    status: 'open' as TransactionStatus,
+    type: 'income' as TransactionType,
+    description: 'Consulting services',
+    createdAt: '2023-01-25T09:45:00.000Z',
+    updatedAt: '2023-01-25T09:45:00.000Z',
+    createdBy: 'John Doe',
+    paymentMethod: 'card' as PaymentMethod,
+    branchId: 'branch-3',
+    notes: 'Project completion payment',
     journalEntries: []
   },
-];
-
-export const mockLedgerEntries: LedgerEntry[] = [
   {
-    id: "le1",
-    account: "Cash",
-    amount: 125.50,
-    description: "Cash received for grocery purchase",
-    createdAt: "2023-06-01T10:30:00Z",
-    createdBy: "John Admin",
-    reference: "INV-001",
-    accountType: "cash",
-    isDebit: true,
-    date: "2023-06-01T10:30:00Z",
-    debit: 125.50,
-    credit: 0,
-    balance: 125.50,
-    transactionId: "t1"
-  },
-  {
-    id: "le2",
-    account: "Revenue",
-    amount: 125.50,
-    description: "Revenue from grocery purchase",
-    createdAt: "2023-06-01T10:30:00Z",
-    createdBy: "John Admin",
-    reference: "INV-001",
-    accountType: "revenue",
-    isDebit: false,
-    date: "2023-06-01T10:30:00Z",
-    debit: 0,
-    credit: 125.50,
-    balance: 125.50,
-    transactionId: "t1"
-  },
-  {
-    id: "le3",
-    account: "Bank",
-    amount: 75.25,
-    description: "Card payment for electronics",
-    createdAt: "2023-06-01T11:45:00Z",
-    createdBy: "Cathy Cashier",
-    reference: "EXP-001",
-    accountType: "bank",
-    isDebit: true,
-    date: "2023-06-01T11:45:00Z",
-    debit: 75.25,
-    credit: 0,
-    balance: 75.25,
-    transactionId: "t2"
-  },
-  {
-    id: "le4",
-    account: "Revenue",
-    amount: 75.25,
-    description: "Revenue from electronics sale",
-    createdAt: "2023-06-01T11:45:00Z",
-    createdBy: "Cathy Cashier",
-    reference: "EXP-001",
-    accountType: "revenue",
-    isDebit: false,
-    date: "2023-06-01T11:45:00Z",
-    debit: 0,
-    credit: 75.25,
-    balance: 75.25,
-    transactionId: "t2"
+    id: 'tx5',
+    amount: 750.25,
+    status: 'verified' as TransactionStatus,
+    type: 'expense' as TransactionType,
+    description: 'Equipment maintenance',
+    createdAt: '2023-01-28T13:50:00.000Z',
+    updatedAt: '2023-01-28T13:50:00.000Z',
+    createdBy: 'Jane Smith',
+    paymentMethod: 'cash' as PaymentMethod,
+    branchId: 'branch-2',
+    notes: 'Repair of office printer',
+    journalEntries: []
   }
 ];
 
-// Journal entries data model updated for compatibility
-export interface JournalTransaction {
-  id: string;
-  date: string;
-  transactionType: string;
-  description: string;
-  entries: LedgerEntry[];
-  createdBy: string;
-  verified?: boolean;
-  verifiedBy?: string;
-  verifiedAt?: string;
-  notes?: string;
-}
+export const getTransactionById = (id: string): Transaction | undefined => {
+  return transactionsMock.find(transaction => transaction.id === id);
+};
 
-export const mockJournalTransactions: JournalTransaction[] = [
-  {
-    id: "j1",
-    date: "2023-06-01T10:30:00Z",
-    transactionType: "sale",
-    description: "Sale of grocery items",
-    entries: [
-      {
-        id: "le1",
-        account: "Cash",
-        amount: 125.50,
-        description: "Cash received for grocery purchase",
-        createdAt: "2023-06-01T10:30:00Z",
-        createdBy: "John Admin",
-        accountType: "cash",
-        isDebit: true,
-        date: "2023-06-01T10:30:00Z",
-        debit: 125.50,
-        credit: 0,
-        balance: 125.50,
-        reference: "INV-001",
-        transactionId: "t1"
-      },
-      {
-        id: "le2",
-        account: "Revenue",
-        amount: 125.50,
-        description: "Revenue from grocery purchase",
-        createdAt: "2023-06-01T10:30:00Z",
-        createdBy: "John Admin",
-        accountType: "revenue",
-        isDebit: false,
-        date: "2023-06-01T10:30:00Z",
-        debit: 0,
-        credit: 125.50,
-        balance: 125.50,
-        reference: "INV-001",
-        transactionId: "t1"
-      }
-    ],
-    createdBy: "John Admin",
-    verified: true,
-    verifiedBy: "Sarah Supervisor",
-    verifiedAt: "2023-06-01T11:00:00Z",
-  },
-  {
-    id: "j2",
-    date: "2023-06-01T11:45:00Z",
-    transactionType: "sale",
-    description: "Sale of electronics",
-    entries: [
-      {
-        id: "le3",
-        account: "Bank",
-        amount: 75.25,
-        description: "Card payment for electronics",
-        createdAt: "2023-06-01T11:45:00Z",
-        createdBy: "Cathy Cashier",
-        accountType: "bank",
-        isDebit: true,
-        date: "2023-06-01T11:45:00Z",
-        debit: 75.25,
-        credit: 0,
-        balance: 75.25,
-        reference: "EXP-001",
-        transactionId: "t2"
-      },
-      {
-        id: "le4",
-        account: "Revenue",
-        amount: 75.25,
-        description: "Revenue from electronics sale",
-        createdAt: "2023-06-01T11:45:00Z",
-        createdBy: "Cathy Cashier",
-        accountType: "revenue",
-        isDebit: false,
-        date: "2023-06-01T11:45:00Z",
-        debit: 0,
-        credit: 75.25,
-        balance: 75.25,
-        reference: "EXP-001",
-        transactionId: "t2"
-      }
-    ],
-    createdBy: "Cathy Cashier",
-    verified: true,
-    verifiedBy: "John Admin",
-    verifiedAt: "2023-06-01T12:15:00Z",
-  },
-  {
-    id: "j3",
-    date: "2023-06-01T13:00:00Z",
-    transactionType: "purchase",
-    description: "Purchase of office supplies",
-    entries: [
-      {
-        id: "le5",
-        account: "Inventory",
-        amount: 250.00,
-        description: "Purchase of office supplies inventory",
-        createdAt: "2023-06-01T13:00:00Z",
-        createdBy: "Mike Manager",
-        accountType: "inventory",
-        isDebit: true,
-        date: "2023-06-01T13:00:00Z",
-        debit: 250.00,
-        credit: 0,
-        balance: 250.00,
-        reference: "PUR-001",
-        transactionId: "t3"
-      },
-      {
-        id: "le6",
-        account: "Accounts Payable",
-        amount: 250.00,
-        description: "Payable for office supplies purchase",
-        createdAt: "2023-06-01T13:00:00Z",
-        createdBy: "Mike Manager",
-        accountType: "accounts_payable",
-        isDebit: false,
-        date: "2023-06-01T13:00:00Z",
-        debit: 0,
-        credit: 250.00,
-        balance: 250.00,
-        reference: "PUR-001",
-        transactionId: "t3"
-      }
-    ],
-    createdBy: "Mike Manager",
-    verified: false,
-    notes: "Awaiting verification"
-  }
-];
+export const getTransactionsByBranch = (branchId: string): Transaction[] => {
+  return transactionsMock.filter(transaction => transaction.branchId === branchId);
+};
 
-export const mockTransactionPermissions: TransactionPermission[] = [
-  {
-    roleId: 'r1', // Admin
-    canCreate: true,
-    canEdit: true,
-    canLock: true,
-    canUnlock: true,
-    canVerify: true,
-    canUnverify: true,
-    canDelete: true,
-    canViewReports: true,
-  },
-  {
-    roleId: 'r2', // Manager
-    canCreate: true,
-    canEdit: true,
-    canLock: true,
-    canUnlock: true,
-    canVerify: true,
-    canUnverify: false,
-    canDelete: false,
-    canViewReports: true,
-  },
-  {
-    roleId: 'r3', // Cashier
-    canCreate: true,
-    canEdit: false,
-    canLock: true,
-    canUnlock: false,
-    canVerify: false,
-    canUnverify: false,
-    canDelete: false,
-    canViewReports: false,
-  },
-];
+export const getTransactionsByType = (type: TransactionType): Transaction[] => {
+  return transactionsMock.filter(transaction => transaction.type === type);
+};
+
+export const getTransactionsByStatus = (status: TransactionStatus): Transaction[] => {
+  return transactionsMock.filter(transaction => transaction.status === status);
+};
+
+export const getTransactionsByDateRange = (startDate: string, endDate: string): Transaction[] => {
+  const start = new Date(startDate).getTime();
+  const end = new Date(endDate).getTime();
+  
+  return transactionsMock.filter(transaction => {
+    const txDate = new Date(transaction.createdAt).getTime();
+    return txDate >= start && txDate <= end;
+  });
+};

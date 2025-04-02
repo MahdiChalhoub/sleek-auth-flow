@@ -1,95 +1,139 @@
 
-import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Database } from "lucide-react";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Download, Upload, ChevronDown, ChevronUp, HardDrive } from 'lucide-react';
+import { Transaction } from '@/models/transaction';
 
-interface BackupDialogProps {
-  open: boolean;
+export interface BackupDialogProps {
+  open: boolean;  // Changed from isOpen to open
   onOpenChange: (open: boolean) => void;
-  onBackupGenerate: (type: 'json' | 'sql') => void;
+  transactions?: Transaction[];  // Make optional
 }
 
-const BackupDialog: React.FC<BackupDialogProps> = ({
-  open,
+const BackupDialog: React.FC<BackupDialogProps> = ({ 
+  open, 
   onOpenChange,
-  onBackupGenerate
+  transactions = []  // Default to empty array
 }) => {
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  
+  const handleExport = () => {
+    // Create a JSON string from the transactions data
+    const dataStr = JSON.stringify(transactions, null, 2);
+    
+    // Create a Blob containing the data
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    
+    // Create a URL for the Blob
+    const url = URL.createObjectURL(blob);
+    
+    // Create a temporary anchor element and trigger download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    
+    // Clean up
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+  
+  const handleImport = () => {
+    // Create a file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    
+    // Handle file selection
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const jsonData = JSON.parse(event.target?.result as string);
+          console.log('Imported data:', jsonData);
+          // In a real app, you would process and validate the imported data
+          // Then update your application state
+        } catch (error) {
+          console.error('Error parsing imported file:', error);
+        }
+      };
+      reader.readAsText(file);
+    };
+    
+    // Trigger file selection dialog
+    input.click();
+  };
+  
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Backup Data</DialogTitle>
+          <DialogTitle>Backup & Sync Transactions</DialogTitle>
           <DialogDescription>
-            Create a backup of your POS data. Choose your preferred format.
+            Export your transactions for backup or import from a backup file.
           </DialogDescription>
         </DialogHeader>
         
-        <div className="py-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button 
-              variant="outline" 
-              className="h-auto p-4 flex flex-col items-center justify-center text-center space-y-2 border-2"
-              onClick={() => onBackupGenerate('json')}
+        <div className="space-y-4 py-4">
+          {/* Local Storage Section */}
+          <div className="rounded-lg border overflow-hidden">
+            <div 
+              className={`p-3 bg-muted flex items-center justify-between cursor-pointer
+                ${expandedSection === 'local' ? 'border-b' : ''}`}
+              onClick={() => setExpandedSection(expandedSection === 'local' ? null : 'local')}
             >
-              <Database className="h-12 w-12 mb-2 text-blue-500" />
-              <span className="font-medium">JSON Backup</span>
-              <span className="text-xs text-muted-foreground">Complete data in JSON format</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="h-auto p-4 flex flex-col items-center justify-center text-center space-y-2 border-2"
-              onClick={() => onBackupGenerate('sql')}
-            >
-              <Database className="h-12 w-12 mb-2 text-green-500" />
-              <span className="font-medium">SQL Backup</span>
-              <span className="text-xs text-muted-foreground">SQL dump for database restore</span>
-            </Button>
-          </div>
-          
-          <div>
-            <h3 className="text-sm font-medium mb-2">Auto-Backup Settings</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm">Frequency</label>
-                <Select defaultValue="daily">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center">
+                <HardDrive className="h-5 w-5 mr-2" />
+                <span className="font-medium">Local Storage</span>
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm">Storage Location</label>
-                <Select defaultValue="local">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="local">Local</SelectItem>
-                    <SelectItem value="gdrive">Google Drive</SelectItem>
-                    <SelectItem value="dropbox">Dropbox</SelectItem>
-                    <SelectItem value="custom">Custom URL</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {expandedSection === 'local' ? 
+                <ChevronUp className="h-4 w-4" /> : 
+                <ChevronDown className="h-4 w-4" />
+              }
             </div>
+            
+            {expandedSection === 'local' && (
+              <div className="p-3 space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  {transactions.length > 0
+                    ? `You have ${transactions.length} transactions stored locally.`
+                    : 'No transactions stored locally.'
+                  }
+                </p>
+                <div className="flex space-x-2">
+                  <Button 
+                    size="sm" 
+                    className="flex-1"
+                    variant="outline"
+                    onClick={handleExport}
+                    disabled={transactions.length === 0}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    className="flex-1"
+                    variant="outline"
+                    onClick={handleImport}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Import
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button>
-            Save Settings
+            Close
           </Button>
         </DialogFooter>
       </DialogContent>

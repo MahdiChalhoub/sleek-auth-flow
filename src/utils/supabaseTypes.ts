@@ -16,3 +16,12 @@ export type RPCParam = string | number | boolean | object | null;
 export function rpcParams<T>(params: T): T {
   return params;
 }
+
+/**
+ * Helper function to safely cast between related types
+ * Use this when TypeScript complains about types not being compatible
+ * even though they have similar structure
+ */
+export function typeCast<T>(value: any): T {
+  return value as T;
+}

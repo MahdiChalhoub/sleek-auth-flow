@@ -1,73 +1,77 @@
 
-// Re-export types from the appropriate locations
-export type { 
-  PaymentMethod,
-  TransactionStatus,
-  DiscrepancyResolution,
-  AccountType,
-  TransactionType
-} from './types/transactionTypes';
+// Create or update the transaction.ts file to export PaymentMethod
+export type PaymentMethod = 'cash' | 'card' | 'bank' | 'wave' | 'mobile' | 'not_specified';
 
-export type {
-  Transaction,
-  JournalEntry,
-  LedgerEntry,
-  TransactionSummary,
-  TransactionItem,
-  Business
-} from './interfaces/transactionInterfaces';
+export type TransactionStatus = 'open' | 'locked' | 'verified' | 'secure';
 
-// Re-export needed types from their proper locations
-export type { 
-  TransactionPermission,
-  StaffFinancePermission,
-  LoyaltyPermission,
-  ReturnPermission
-} from './interfaces/permissionInterfaces';
+export type TransactionType = 'sale' | 'expense' | 'transfer' | 'adjustment' | 'income';
 
-// Re-export Register types from registerInterfaces
-export type {
-  Register,
-  RegisterSession
-} from './interfaces/registerInterfaces';
+export interface Transaction {
+  id: string;
+  amount: number;
+  status: TransactionStatus;
+  type: TransactionType;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  paymentMethod: PaymentMethod;
+  branchId?: string;
+  notes?: string;
+  referenceId?: string;
+  referenceType?: string;
+  financialYearId?: string;
+  journalEntries: JournalEntry[];
+}
 
-export { 
-  mockTransactions,
-  mockLedgerEntries,
-  mockJournalTransactions,
-  mockTransactionPermissions
-} from './mockData/transactionMockData';
+export interface JournalEntry {
+  id: string;
+  transactionId: string;
+  account: string;
+  amount: number;
+  type: 'debit' | 'credit';
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
-// Mock data for branches
-export const mockBranches = [
-  {
-    id: 'branch-1',
-    name: 'Main Store',
-    address: '123 Main St',
-    businessId: 'business-1',
-    type: 'store',
-    status: 'active',
-    isDefault: true
-  },
-  {
-    id: 'branch-2',
-    name: 'Warehouse',
-    address: '456 Storage Blvd',
-    businessId: 'business-1',
-    type: 'warehouse',
-    status: 'active',
-    isDefault: false
-  },
-  {
-    id: 'branch-3',
-    name: 'Downtown Location',
-    address: '789 Center Ave',
-    businessId: 'business-1',
-    type: 'store',
-    status: 'maintenance',
-    isDefault: false
-  }
-] as const;
+// Add this interface to support the LedgerEntry type used in some components
+export interface LedgerEntry {
+  id: string;
+  transactionId: string;
+  accountType: string;
+  amount: number;
+  isDebit: boolean;
+  description: string;
+  reference?: string;
+  createdAt: string;
+  createdBy: string;
+}
 
-// Branch type definition 
-export type Branch = typeof mockBranches[number];
+// Define the DB types for mapping
+export interface DBTransaction {
+  id: string;
+  amount: number;
+  status: string;
+  type: string;
+  notes: string | null;
+  location_id: string | null;
+  reference_id: string | null;
+  reference_type: string | null;
+  financial_year_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DBJournalEntry {
+  id: string;
+  transaction_id: string;
+  accountType: string;
+  amount: number;
+  isDebit: boolean;
+  description: string;
+  reference?: string;
+  created_at: string;
+  updated_at: string;
+  createdBy: string;
+}

@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useRegister } from "@/components/register/useRegister";
-import { Register, PaymentMethod, DiscrepancyResolution } from "@/models/register";
+import { Register } from "@/models/interfaces/registerInterfaces";
+import { PaymentMethod } from "@/models/transaction";
+import { DiscrepancyResolution } from "@/models/interfaces/registerInterfaces";
 import OpenRegisterDialog from "@/components/register/dialogs/OpenRegisterDialog";
 import CloseRegisterDialog from "@/components/register/dialogs/CloseRegisterDialog";
 import DiscrepancyDialog from "@/components/register/dialogs/DiscrepancyDialog";
@@ -127,7 +129,7 @@ const POSRegister: React.FC = () => {
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
 
   if (isLoading) {
     return <div className="container mx-auto p-4">Loading register data...</div>;

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -52,6 +53,7 @@ const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({
           description: item.products.description,
           barcode: item.products.barcode,
           categoryId: item.products.category_id,
+          categoryName: item.products.categories?.name,
           category: item.products.categories?.name,
           price: item.products.price,
           cost: item.products.cost,
@@ -61,6 +63,7 @@ const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({
           image: item.products.image_url,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          // Create locationStock array with this location's stock info
           locationStock: [{
             id: item.id,
             productId: item.product_id,
@@ -89,9 +92,10 @@ const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({
   }, [locationId, toast]);
 
   const getStockStatus = (product: Product) => {
-    const locationStockItem = product.locationStock?.[0];
+    // Check if locationStock exists and has at least one item
+    if (!product.locationStock || product.locationStock.length === 0) return 'normal';
     
-    if (!locationStockItem) return 'normal';
+    const locationStockItem = product.locationStock[0];
     
     if (locationStockItem.stock <= 0) return 'out';
     if (locationStockItem.stock < (locationStockItem.minStockLevel || 5)) return 'low';
@@ -163,12 +167,15 @@ const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({
               <TableBody>
                 {products.map((product) => {
                   const status = getStockStatus(product);
-                  const locationStockItem = product.locationStock?.[0];
+                  // Handle the case where locationStock might not exist
+                  const locationStockItem = product.locationStock && product.locationStock.length > 0 
+                    ? product.locationStock[0] 
+                    : null;
                   
                   return (
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{locationStockItem?.stock || 0}</TableCell>
+                      <TableCell>{locationStockItem?.stock || product.stock || 0}</TableCell>
                       <TableCell>{locationStockItem?.minStockLevel || 5}</TableCell>
                       <TableCell>{renderStockBadge(status)}</TableCell>
                       <TableCell className="text-right">

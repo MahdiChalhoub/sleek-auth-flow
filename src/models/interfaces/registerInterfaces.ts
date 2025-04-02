@@ -1,8 +1,10 @@
 
-import { PaymentMethod } from '../types/transactionTypes';
+import { PaymentMethod } from "../transaction";
 
-// Define DiscrepancyResolution type to match what's used in transactionTypes
-export type DiscrepancyResolution = 'pending' | 'approved' | 'rejected' | 'deduct_salary' | 'ecart_caisse' | 'adjusted';
+// Re-export PaymentMethod for use in register-related files
+export { PaymentMethod } from "../transaction";
+
+export type DiscrepancyResolution = 'pending' | 'deduct_salary' | 'ecart_caisse' | 'approved' | 'rejected' | 'adjusted';
 
 export interface Register {
   id: string;
@@ -12,29 +14,17 @@ export interface Register {
   closedAt?: string;
   openedBy?: string;
   closedBy?: string;
+  discrepancyApprovedAt?: string;
+  discrepancyApprovedBy?: string;
+  discrepancyResolution?: DiscrepancyResolution;
+  discrepancyNotes?: string;
+  discrepancies?: Record<PaymentMethod, number>;
   openingBalance: Record<PaymentMethod, number>;
   currentBalance: Record<PaymentMethod, number>;
   expectedBalance: Record<PaymentMethod, number>;
-  discrepancies?: Record<PaymentMethod, number>;
-  discrepancyResolution?: DiscrepancyResolution;
-  discrepancyApprovedBy?: string;
-  discrepancyApprovedAt?: string;
-  discrepancyNotes?: string;
 }
 
-export interface RegisterSession {
-  id: string;
-  registerId: string;
-  cashierId: string;
-  cashierName: string;
-  openedAt: string;
-  closedAt?: string;
-  openingBalance: Record<PaymentMethod, number>;
-  closingBalance?: Record<PaymentMethod, number>;
-  expectedBalance?: Record<PaymentMethod, number>;
-  discrepancies?: Record<PaymentMethod, number>;
-  discrepancyResolution?: DiscrepancyResolution;
-  discrepancyApprovedBy?: string;
-  discrepancyApprovedAt?: string;
-  discrepancyNotes?: string;
+export interface RegisterOptions {
+  id?: string;
+  businessId?: string;
 }

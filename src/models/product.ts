@@ -1,9 +1,7 @@
-
 import { ProductBatch } from "./productBatch";
 import { toast } from "sonner";
 import { supabase } from '@/lib/supabase';
-import { productBatchService } from './services/productBatchService';
-import { rpcParams } from '@/utils/supabaseTypes';
+import { rpcParams, typeCast } from '@/utils/supabaseTypes';
 
 export interface Product {
   id: string;
@@ -13,11 +11,35 @@ export interface Product {
   cost?: number;
   barcode?: string;
   imageUrl?: string;
+  image?: string;
   stock: number;
   isCombo?: boolean;
   hasStock?: boolean;
   categoryId?: string;
   categoryName?: string;
+  category?: string;
+  createdAt: string;
+  updatedAt: string;
+  minStockLevel?: number;
+  maxStockLevel?: number;
+  comboComponents?: ComboComponent[];
+  locationStock?: ProductLocationStock[];
+}
+
+export interface ComboComponent {
+  id: string;
+  comboProductId: string;
+  componentProductId: string;
+  quantity: number;
+  product?: Product;
+}
+
+export interface ProductLocationStock {
+  id: string;
+  productId: string;
+  locationId: string;
+  stock: number;
+  minStockLevel: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -61,7 +83,6 @@ export interface ProductCategory {
   updatedAt?: string;
 }
 
-// Database mappings
 interface DBProduct {
   id: string;
   name: string;
@@ -82,6 +103,37 @@ interface DBProduct {
   } | null;
 }
 
+export const mockProducts: Product[] = [
+  {
+    id: 'prod-1',
+    name: 'Product 1',
+    price: 10.99,
+    stock: 100,
+    barcode: '1234567890',
+    categoryId: 'cat-1',
+    categoryName: 'Category 1',
+    category: 'Category 1',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    imageUrl: 'https://placehold.co/100x100',
+    image: 'https://placehold.co/100x100',
+  },
+  {
+    id: 'prod-2',
+    name: 'Product 2',
+    price: 19.99,
+    stock: 50,
+    barcode: '0987654321',
+    categoryId: 'cat-2',
+    categoryName: 'Category 2',
+    category: 'Category 2',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    imageUrl: 'https://placehold.co/100x100',
+    image: 'https://placehold.co/100x100',
+  }
+];
+
 const mapDbProductToModel = (dbProduct: DBProduct): Product => {
   return {
     id: dbProduct.id,
@@ -91,11 +143,13 @@ const mapDbProductToModel = (dbProduct: DBProduct): Product => {
     cost: dbProduct.cost || undefined,
     barcode: dbProduct.barcode || undefined,
     imageUrl: dbProduct.image_url || undefined,
+    image: dbProduct.image_url || undefined,
     stock: dbProduct.stock || 0,
     isCombo: dbProduct.is_combo,
     hasStock: dbProduct.has_stock,
     categoryId: dbProduct.category_id || undefined,
     categoryName: dbProduct.category?.name,
+    category: dbProduct.category?.name,
     createdAt: dbProduct.created_at,
     updatedAt: dbProduct.updated_at,
   };
@@ -156,8 +210,7 @@ export const productsService = {
       const product = await productsService.getById(id);
       if (!product) return null;
       
-      // Get product batches using the productBatchService
-      const batches = await productBatchService.getByProductId(id);
+      const batches = await productsService.getByProductId(id);
       
       return {
         ...product,
@@ -167,6 +220,23 @@ export const productsService = {
       console.error(`Error fetching product with batches ${id}:`, error);
       toast.error('Failed to load product details with batches');
       return null;
+    }
+  },
+  
+  getByProductId: async (productId: string): Promise<ProductBatch[]> => {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_product_batches', rpcParams({ product_id: productId }));
+      
+      if (error) {
+        throw error;
+      }
+      
+      return typeCast<ProductBatch[]>(data || []);
+    } catch (error) {
+      console.error(`Error fetching batches for product ${productId}:`, error);
+      toast.error('Failed to load product batches');
+      return [];
     }
   },
   
