@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Transaction } from "@/models/transaction";
+import { Transaction, TransactionType } from "@/models/transaction";
 import { useToast } from "@/hooks/use-toast";
 import { TransactionFormValues } from "@/components/transactions/TransactionFormDialog";
 
@@ -79,6 +79,7 @@ export function useTransactionOperations(initialTransactions: Transaction[] = []
       await new Promise(resolve => setTimeout(resolve, 1200));
       
       const newId = `txn-${Date.now().toString(36)}`;
+      const transactionType: TransactionType = data.type as TransactionType || 'expense';
       
       const newTransaction: Transaction = {
         id: newId,
@@ -90,7 +91,7 @@ export function useTransactionOperations(initialTransactions: Transaction[] = []
         description: data.description,
         paymentMethod: data.paymentMethod,
         branchId: data.branchId,
-        type: data.type || 'expense',
+        type: transactionType,
         journalEntries: []
       };
       

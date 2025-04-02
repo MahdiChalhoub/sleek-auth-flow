@@ -1,102 +1,60 @@
 
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, User, Calendar, CheckCircle, XCircle } from 'lucide-react';
-import { Register } from '@/models/transaction';
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { CircleUser, Clock, CalendarClock } from "lucide-react";
+import { Register } from "@/models/interfaces/registerInterfaces";
 
 interface RegisterMetaCardProps {
   register: Register;
 }
 
-const RegisterMetaCard = ({ register }: RegisterMetaCardProps) => {
+const RegisterMetaCard: React.FC<RegisterMetaCardProps> = ({ register }) => {
   const formatDate = (dateString?: string) => {
-    if (!dateString) return "N/A";
+    if (!dateString) return "Not available";
     return new Date(dateString).toLocaleString();
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>{register.name}</CardTitle>
-          <div className={`flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-            register.isOpen 
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' 
-              : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-          }`}>
-            {register.isOpen ? (
-              <>
-                <CheckCircle className="mr-1 h-3 w-3" />
-                Open
-              </>
-            ) : (
-              <>
-                <XCircle className="mr-1 h-3 w-3" />
-                Closed
-              </>
-            )}
-          </div>
-        </div>
-        <CardDescription>
-          {register.isOpen ? "Currently open for transactions" : "Register is currently closed"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {register.isOpen && register.openedAt && (
-            <>
-              <div className="flex items-center gap-2 text-sm">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Opened on:</span>
-                <span className="font-medium">{formatDate(register.openedAt)}</span>
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Opened by:</span>
-                <span className="font-medium">{register.openedBy || "Unknown"}</span>
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Time elapsed:</span>
-                <span className="font-medium">
-                  {register.openedAt ? getElapsedTime(register.openedAt) : "N/A"}
-                </span>
-              </div>
-            </>
-          )}
+    <Card>
+      <CardContent className="p-4">
+        <h2 className="text-lg font-semibold mb-2">{register.name}</h2>
+        
+        <ul className="space-y-3">
+          <li className="flex items-center gap-2">
+            <div className="bg-blue-50 dark:bg-blue-950 p-2 rounded-full">
+              <CircleUser className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Operator</p>
+              <p className="font-medium">{register.openedBy || "Not assigned"}</p>
+            </div>
+          </li>
           
-          {!register.isOpen && register.closedAt && (
-            <>
-              <div className="flex items-center gap-2 text-sm">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Closed on:</span>
-                <span className="font-medium">{formatDate(register.closedAt)}</span>
+          <li className="flex items-center gap-2">
+            <div className="bg-emerald-50 dark:bg-emerald-950 p-2 rounded-full">
+              <Clock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Opened At</p>
+              <p className="font-medium">{formatDate(register.openedAt)}</p>
+            </div>
+          </li>
+          
+          {register.closedAt && (
+            <li className="flex items-center gap-2">
+              <div className="bg-amber-50 dark:bg-amber-950 p-2 rounded-full">
+                <CalendarClock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               </div>
-              
-              <div className="flex items-center gap-2 text-sm">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Closed by:</span>
-                <span className="font-medium">{register.closedBy || "Unknown"}</span>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Closed At</p>
+                <p className="font-medium">{formatDate(register.closedAt)}</p>
               </div>
-            </>
+            </li>
           )}
-        </div>
+        </ul>
       </CardContent>
     </Card>
   );
 };
-
-function getElapsedTime(dateString: string): string {
-  const startDate = new Date(dateString);
-  const now = new Date();
-  
-  const diffMs = now.getTime() - startDate.getTime();
-  const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  
-  return `${diffHrs}h ${diffMins}m`;
-}
 
 export default RegisterMetaCard;

@@ -1,7 +1,7 @@
 
 export type TransactionStatus = 'pending' | 'open' | 'locked' | 'verified' | 'unverified' | 'secure';
 export type PaymentMethod = 'cash' | 'card' | 'bank' | 'wave' | 'mobile' | 'not_specified';
-export type DiscrepancyResolution = 'pending' | 'approved' | 'deduct_salary' | 'ecart_caisse' | 'rejected';
+export type DiscrepancyResolution = 'pending' | 'approved' | 'rejected' | 'deduct_salary' | 'ecart_caisse' | 'adjusted';
 export type AccountType = 
   'cash' | 'bank' | 'inventory' | 'revenue' | 'expense' | 
   'accounts_receivable' | 'accounts_payable' | 'equity' | 
@@ -9,4 +9,5 @@ export type AccountType =
 export type TransactionType = 
   'sale' | 'purchase' | 'return_sale' | 'return_purchase' | 
   'payment_received' | 'payment_made' | 'expense' | 'transfer' | 
-  'adjustment' | 'salary' | 'cash_in' | 'cash_out';
+  'adjustment' | 'salary' | 'cash_in' | 'cash_out' |
+  'income'; // Added 'income' type to ensure compatibility

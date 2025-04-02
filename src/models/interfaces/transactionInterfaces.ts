@@ -21,6 +21,10 @@ export interface Transaction {
   referenceId?: string;
   referenceType?: string;
   paymentMethod: PaymentMethod;
+  verifiedBy?: string;
+  verifiedAt?: string;
+  lockedBy?: string;
+  lockedAt?: string;
 }
 
 export interface JournalEntry {
@@ -28,10 +32,13 @@ export interface JournalEntry {
   transactionId: string;
   amount: number;
   type: 'debit' | 'credit';
-  account: AccountType;
+  account: AccountType | string;
   description?: string;
   createdAt: string;
   updatedAt: string;
+  reference?: string;
+  isDebit?: boolean;
+  accountType?: string;
 }
 
 export interface TransactionSummary {
@@ -62,7 +69,7 @@ export interface LedgerEntry {
   credit: number;
   balance: number;
   reference?: string;
-  accountId: string;
+  account: string;
   accountName: string;
   type: TransactionType;
 }
@@ -72,4 +79,7 @@ export interface Business {
   name: string;
   active: boolean;
   createdAt: string;
+  address?: string;
+  logo?: string;
+  status?: string;
 }

@@ -17,7 +17,7 @@ export async function getProductBatches(
       page_number: page,
       page_size: limit,
       filter_options: filters
-    });
+    }) as any;
 
     if (error) throw error;
 
@@ -32,7 +32,7 @@ export async function getExpiringSoonBatches(daysThreshold = 30): Promise<Produc
   try {
     const { data, error } = await supabase.rpc('get_expiring_soon_batches', {
       days_threshold: daysThreshold
-    });
+    }) as any;
 
     if (error) throw error;
 
@@ -45,7 +45,7 @@ export async function getExpiringSoonBatches(daysThreshold = 30): Promise<Produc
 
 export async function getExpiredBatches(): Promise<ProductBatch[]> {
   try {
-    const { data, error } = await supabase.rpc('get_expired_batches');
+    const { data, error } = await supabase.rpc('get_expired_batches') as any;
 
     if (error) throw error;
 
@@ -64,7 +64,7 @@ export async function updateBatchStatus(
     const { data, error } = await supabase.rpc('update_batch_status', {
       batch_id: batchId,
       new_status: status
-    });
+    }) as any;
 
     if (error) throw error;
 
@@ -85,7 +85,7 @@ export async function disposeBatch(
       batch_id: batchId,
       disposal_notes: disposalNotes,
       disposed_by: disposedBy
-    });
+    }) as any;
 
     if (error) throw error;
 
@@ -95,3 +95,12 @@ export async function disposeBatch(
     return false;
   }
 }
+
+// Export as a service object to make it easier to import
+export const productBatchService = {
+  getProductBatches,
+  getExpiringSoonBatches,
+  getExpiredBatches,
+  updateBatchStatus,
+  disposeBatch
+};

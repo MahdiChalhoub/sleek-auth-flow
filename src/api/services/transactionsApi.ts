@@ -1,6 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
+import { Transaction, JournalEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
 import { tableSource } from '@/utils/supabaseUtils';
 import { assertType } from '@/utils/typeUtils';
 
@@ -43,6 +42,17 @@ export const transactionsApi = {
     return data.map(item => {
       const transaction = assertType<DbTransaction & { journal_entries?: DbJournalEntry[] }>(item);
       
+      const journalEntries: JournalEntry[] = (transaction.journal_entries || []).map(entry => ({
+        id: entry.id,
+        transactionId: entry.transaction_id,
+        account: entry.account,
+        amount: entry.amount,
+        type: entry.type,
+        description: '',
+        createdAt: entry.created_at,
+        updatedAt: entry.updated_at
+      }));
+
       return {
         id: transaction.id,
         amount: transaction.amount,
@@ -56,18 +66,9 @@ export const transactionsApi = {
         notes: transaction.notes,
         referenceId: transaction.reference_id,
         referenceType: transaction.reference_type,
-        type: transaction.type,
+        type: transaction.type as any,
         financialYearId: transaction.financial_year_id,
-        journalEntries: (transaction.journal_entries || []).map(entry => ({
-          id: entry.id,
-          transactionId: entry.transaction_id,
-          accountType: entry.account,
-          amount: entry.amount,
-          isDebit: entry.type === 'debit',
-          description: '',
-          createdAt: entry.created_at,
-          createdBy: "System"
-        })) as LedgerEntry[]
+        journalEntries
       } as Transaction;
     });
   },
@@ -86,6 +87,17 @@ export const transactionsApi = {
     
     const transaction = assertType<DbTransaction & { journal_entries?: DbJournalEntry[] }>(data);
     
+    const journalEntries: JournalEntry[] = (transaction.journal_entries || []).map(entry => ({
+      id: entry.id,
+      transactionId: entry.transaction_id,
+      account: entry.account,
+      amount: entry.amount,
+      type: entry.type,
+      description: '',
+      createdAt: entry.created_at,
+      updatedAt: entry.updated_at
+    }));
+
     return {
       id: transaction.id,
       amount: transaction.amount,
@@ -99,18 +111,9 @@ export const transactionsApi = {
       notes: transaction.notes,
       referenceId: transaction.reference_id,
       referenceType: transaction.reference_type,
-      type: transaction.type,
+      type: transaction.type as any,
       financialYearId: transaction.financial_year_id,
-      journalEntries: (transaction.journal_entries || []).map(entry => ({
-        id: entry.id,
-        transactionId: entry.transaction_id,
-        accountType: entry.account,
-        amount: entry.amount,
-        isDebit: entry.type === 'debit',
-        description: '',
-        createdAt: entry.created_at,
-        createdBy: "System"
-      })) as LedgerEntry[]
+      journalEntries
     } as Transaction;
   },
   

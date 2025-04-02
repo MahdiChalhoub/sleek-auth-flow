@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { AlertTriangle, CheckCircle, FileText } from "lucide-react";
-import { Register, PaymentMethod, DiscrepancyResolution } from "@/models/transaction";
+import { AlertTriangle, CheckCircle, FileText, DollarSign, Wallet } from "lucide-react";
+import { PaymentMethod } from "@/models/types/transactionTypes";
+import { Register, DiscrepancyResolution } from "@/models/interfaces/registerInterfaces";
 import RegisterBalanceCard from "@/components/RegisterBalanceCard";
 
 interface ClosingSummaryProps {
@@ -141,8 +142,5 @@ const ClosingSummary: React.FC<ClosingSummaryProps> = ({
     </div>
   );
 };
-
-// Import this at the top of the file
-import { DollarSign, Wallet } from "lucide-react";
 
 export default ClosingSummary;

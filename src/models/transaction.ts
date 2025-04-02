@@ -1,97 +1,23 @@
 
-// Let's fix the interface issue with LedgerEntry and JournalEntry
-export type PaymentMethod = 'cash' | 'card' | 'bank' | 'mobile' | 'wave' | 'not_specified';
-export type TransactionStatus = 'pending' | 'open' | 'verified' | 'secure' | 'locked' | 'unverified';
-export type TransactionType = 'income' | 'expense' | 'transfer' | 'adjustment';
+// Re-export types from the appropriate locations
+export type { 
+  PaymentMethod,
+  TransactionStatus,
+  DiscrepancyResolution,
+  AccountType,
+  TransactionType
+} from './types/transactionTypes';
 
-// Properties needed for both LedgerEntry and JournalEntry
-interface BaseJournalEntry {
-  id: string;
-  transactionId?: string;
-  amount: number;
-  description: string;
-  createdAt: string;
-  createdBy: string;
-}
+export type {
+  Transaction,
+  JournalEntry,
+  LedgerEntry,
+  TransactionSummary,
+  TransactionItem,
+  Business
+} from './interfaces/transactionInterfaces';
 
-// Update LedgerEntry with needed fields
-export interface LedgerEntry extends BaseJournalEntry {
-  date: string;
-  debit: number;
-  credit: number;
-  balance: number;
-  account: string;
-  reference: string;
-  accountType: string;
-  isDebit: boolean;
-}
-
-// Update JournalEntry with needed fields
-export interface JournalEntry extends BaseJournalEntry {
-  account: string;
-  type: 'debit' | 'credit';
-  updatedAt: string;
-  accountType?: string;
-  isDebit?: boolean;
-  reference?: string;
-}
-
-// Update Transaction interface
-export interface Transaction {
-  id: string;
-  amount: number;
-  type: TransactionType;
-  status: TransactionStatus;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  description: string;
-  paymentMethod: PaymentMethod;
-  branchId?: string;
-  notes?: string;
-  referenceId?: string;
-  referenceType?: string;
-  financialYearId?: string;
-  journalEntries: JournalEntry[];
-  date?: string;
-  // Additional fields for compatibility
-  verifiedBy?: string;
-  verifiedAt?: string;
-  lockedBy?: string;
-  lockedAt?: string;
-}
-
-// Add Register and DiscrepancyResolution types needed by the register components
-export type DiscrepancyResolution = 'approved' | 'rejected' | 'adjusted' | 'pending';
-
-export interface Register {
-  id: string;
-  name: string;
-  isOpen: boolean;
-  openedAt?: string;
-  closedAt?: string;
-  openedBy?: string;
-  closedBy?: string;
-  openingBalance: Record<PaymentMethod, number>;
-  currentBalance: Record<PaymentMethod, number>;
-  expectedBalance: Record<PaymentMethod, number>;
-  discrepancies?: Record<PaymentMethod, number>;
-  discrepancyResolution?: DiscrepancyResolution;
-  discrepancyApprovedBy?: string;
-  discrepancyApprovedAt?: string;
-  discrepancyNotes?: string;
-}
-
-// Add Business type for TransactionFormDialog
-export interface Business {
-  id: string;
-  name: string;
-  address?: string;
-  logo?: string;
-  status?: string;
-}
-
-// Re-export needed types and mock data from their proper locations
+// Re-export needed types from their proper locations
 export type { 
   TransactionPermission,
   StaffFinancePermission,

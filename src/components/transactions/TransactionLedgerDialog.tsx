@@ -20,9 +20,9 @@ const TransactionLedgerDialog: React.FC<TransactionLedgerDialogProps> = ({ trans
       debit: transaction.type === 'expense' ? transaction.amount : 0,
       credit: transaction.type === 'income' ? transaction.amount : 0,
       balance: transaction.type === 'income' ? transaction.amount : -transaction.amount,
-      accountId: "acc1",
+      account: transaction.type === 'income' ? "Revenue" : "Expenses",
       accountName: transaction.type === 'income' ? "Revenue" : "Expenses",
-      type: transaction.type || 'expense'
+      type: transaction.type
     }
   ];
 
@@ -101,7 +101,17 @@ const TransactionLedgerDialog: React.FC<TransactionLedgerDialogProps> = ({ trans
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(transaction.journalEntries?.length ? transaction.journalEntries : mockLedgerEntries).map((entry) => (
+                {(transaction.journalEntries?.length ? transaction.journalEntries.map(entry => ({
+                  id: entry.id,
+                  date: entry.createdAt,
+                  description: entry.description || '',
+                  debit: entry.type === 'debit' ? entry.amount : 0,
+                  credit: entry.type === 'credit' ? entry.amount : 0,
+                  balance: entry.type === 'debit' ? entry.amount : -entry.amount,
+                  account: entry.account,
+                  accountName: entry.account,
+                  type: transaction.type
+                })) : mockLedgerEntries).map((entry) => (
                   <TableRow key={entry.id}>
                     <TableCell>{getFormattedDate(entry.date)}</TableCell>
                     <TableCell>{entry.accountName}</TableCell>

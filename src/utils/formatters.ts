@@ -1,91 +1,58 @@
 
 /**
- * Formats a date string to a localized format (e.g., "Jan 1, 2023")
+ * Formats a date string into a readable format
  */
-export function getFormattedDate(dateString: string): string {
-  try {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return dateString || 'Invalid date';
-  }
-}
-
-/**
- * Formats a date string to a localized date and time format (e.g., "Jan 1, 2023, 12:00 PM")
- */
-export function getFormattedDateTime(dateString: string): string {
-  try {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric'
-    }).format(date);
-  } catch (error) {
-    console.error('Error formatting date time:', error);
-    return dateString || 'Invalid date';
-  }
-}
-
-/**
- * Formats a number as currency (e.g., "$123.45")
- */
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 2
-    }).format(amount);
-  } catch (error) {
-    console.error('Error formatting currency:', error);
-    return `${amount.toFixed(2)}`;
-  }
-}
-
-/**
- * Formats a number with thousand separators (e.g., "1,234.56")
- */
-export function formatNumber(value: number): string {
-  try {
-    return new Intl.NumberFormat('en-US').format(value);
-  } catch (error) {
-    console.error('Error formatting number:', error);
-    return value.toString();
-  }
-}
-
-/**
- * Formats a phone number (e.g., "(123) 456-7890")
- */
-export function formatPhoneNumber(phone: string): string {
-  if (!phone) return '';
-
-  // Remove non-digit characters
-  const cleaned = phone.replace(/\D/g, '');
+export const getFormattedDate = (dateString: string): string => {
+  if (!dateString) return 'N/A';
   
-  // Format based on length
-  if (cleaned.length === 10) {
-    return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
+  const date = new Date(dateString);
+  
+  // Check if the date is valid
+  if (isNaN(date.getTime())) {
+    return 'Invalid date';
   }
   
-  // If not standard format, return as is with spaces every 3 digits
-  return cleaned.replace(/(\d{3})(?=\d)/g, '$1 ').trim();
-}
+  // Format the date: MM/DD/YYYY HH:MM
+  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+};
 
 /**
- * Truncates text to specified length with ellipsis
+ * Formats a number as currency
  */
-export function truncateText(text: string, maxLength: number = 50): string {
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-US', { 
+    style: 'currency', 
+    currency: 'USD',
+    minimumFractionDigits: 2
+  }).format(amount);
+};
+
+/**
+ * Formats a percentage
+ */
+export const formatPercent = (value: number): string => {
+  return new Intl.NumberFormat('en-US', { 
+    style: 'percent', 
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1 
+  }).format(value / 100);
+};
+
+/**
+ * Formats a number with thousand separators
+ */
+export const formatNumber = (value: number): string => {
+  return new Intl.NumberFormat('en-US').format(value);
+};
+
+/**
+ * Truncates text to a specified length with ellipsis
+ */
+export const truncateText = (text: string, maxLength: number): string => {
   if (!text) return '';
   if (text.length <= maxLength) return text;
-  return `${text.slice(0, maxLength - 3)}...`;
-}
+  return text.slice(0, maxLength) + '...';
+};

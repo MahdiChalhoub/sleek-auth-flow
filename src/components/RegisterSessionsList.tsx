@@ -14,7 +14,7 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Register, DiscrepancyResolution } from '@/models/transaction';
+import { Register, DiscrepancyResolution } from '@/models/interfaces/registerInterfaces';
 
 interface RegisterSessionsListProps {
   sessions: Register[];
@@ -46,6 +46,10 @@ const RegisterSessionsList: React.FC<RegisterSessionsListProps> = ({ sessions })
         return 'Écart de Caisse';
       case 'approved':
         return 'Approved';
+      case 'rejected':
+        return 'Rejected';
+      case 'adjusted':
+        return 'Adjusted';
       default:
         return 'Pending';
     }

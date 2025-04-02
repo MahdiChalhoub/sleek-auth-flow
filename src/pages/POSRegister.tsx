@@ -1,6 +1,6 @@
 
-import React, { useEffect } from "react";
-import { useRegister } from "@/components/register/useRegister";
+import React, { useState, useEffect } from "react";
+import { useRegisterSessions } from "@/hooks/useRegisterSessions";
 import RegisterHeader from "@/components/register/RegisterHeader";
 import RegisterMetaCard from "@/components/RegisterMetaCard";
 import RegisterBalanceCard from "@/components/RegisterBalanceCard";
@@ -13,32 +13,138 @@ import {
 } from "@/components/register/dialogs";
 import ClosingSummary from "@/components/register/ClosingSummary";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRegisterSessions } from "@/hooks/useRegisterSessions";
+import { PaymentMethod } from "@/models/transaction";
+import { DiscrepancyResolution, Register } from "@/models/interfaces/registerInterfaces";
 
 const POSRegister = () => {
   const { registers, isLoading: registersLoading } = useRegisterSessions();
+  const [register, setRegister] = useState<Register | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
-  const {
-    register,
-    isLoading,
-    isOpenRegisterDialogOpen,
-    setIsOpenRegisterDialogOpen,
-    isCloseRegisterDialogOpen,
-    setIsCloseRegisterDialogOpen,
-    isDiscrepancyDialogOpen,
-    setIsDiscrepancyDialogOpen,
-    discrepancies,
-    closingBalances,
-    discrepancyResolution,
-    discrepancyNotes,
-    setDiscrepancyNotes,
-    handleOpenRegister,
-    handleCloseRegister,
-    handleBalanceChange,
-    handleResolutionChange,
-    handleDiscrepancyApproval,
-    getTotalDiscrepancy
-  } = useRegister();
+  // Dialog states
+  const [isOpenRegisterDialogOpen, setIsOpenRegisterDialogOpen] = useState(false);
+  const [isCloseRegisterDialogOpen, setIsCloseRegisterDialogOpen] = useState(false);
+  const [isDiscrepancyDialogOpen, setIsDiscrepancyDialogOpen] = useState(false);
+  
+  // Form states
+  const [closingBalances, setClosingBalances] = useState<Record<PaymentMethod, number>>({
+    cash: 0,
+    card: 0,
+    bank: 0,
+    mobile: 0,
+    wave: 0,
+    not_specified: 0
+  });
+  const [discrepancies, setDiscrepancies] = useState<Record<PaymentMethod, number>>({
+    cash: 0,
+    card: 0,
+    bank: 0,
+    mobile: 0,
+    wave: 0,
+    not_specified: 0
+  });
+  const [discrepancyResolution, setDiscrepancyResolution] = useState<DiscrepancyResolution>('pending');
+  const [discrepancyNotes, setDiscrepancyNotes] = useState('');
+
+  // Set the first register as the active one when data loads
+  useEffect(() => {
+    if (registers.length > 0 && !register) {
+      setRegister(registers[0]);
+      setIsLoading(false);
+    }
+  }, [registers, register]);
+
+  // If the active register updates in the registers list, update local state
+  useEffect(() => {
+    if (register && registers.length > 0) {
+      const updatedRegister = registers.find(r => r.id === register.id);
+      if (updatedRegister) {
+        setRegister(updatedRegister);
+      }
+    }
+  }, [registers, register]);
+
+  // Handle opening a register
+  const handleOpenRegister = async (openingBalance: Record<PaymentMethod, number>) => {
+    try {
+      if (!register) return;
+      const { openRegister } = useRegisterSessions();
+      const updatedRegister = await openRegister(register.id, openingBalance);
+      setRegister(updatedRegister);
+      setIsOpenRegisterDialogOpen(false);
+    } catch (error) {
+      console.error("Error opening register:", error);
+    }
+  };
+
+  // Handle closing a register
+  const handleCloseRegister = async () => {
+    try {
+      if (!register) return;
+      const { closeRegister } = useRegisterSessions();
+      const updatedRegister = await closeRegister(
+        register.id,
+        closingBalances,
+        register.expectedBalance
+      );
+      
+      // Calculate discrepancies
+      const newDiscrepancies: Record<PaymentMethod, number> = {
+        cash: closingBalances.cash - register.expectedBalance.cash,
+        card: closingBalances.card - register.expectedBalance.card,
+        bank: closingBalances.bank - register.expectedBalance.bank,
+        mobile: closingBalances.mobile - register.expectedBalance.mobile,
+        wave: closingBalances.wave - register.expectedBalance.wave,
+        not_specified: closingBalances.not_specified - register.expectedBalance.not_specified
+      };
+      
+      setRegister(updatedRegister);
+      setDiscrepancies(newDiscrepancies);
+      setIsCloseRegisterDialogOpen(false);
+      
+      // If there are discrepancies, open the discrepancy dialog
+      if (Object.values(newDiscrepancies).some(value => value !== 0)) {
+        setIsDiscrepancyDialogOpen(true);
+      }
+    } catch (error) {
+      console.error("Error closing register:", error);
+    }
+  };
+
+  // Handle balance changes in the closing dialog
+  const handleBalanceChange = (method: PaymentMethod, value: string) => {
+    setClosingBalances(prev => ({
+      ...prev,
+      [method]: parseFloat(value) || 0
+    }));
+  };
+
+  // Handle resolution changes in the discrepancy dialog
+  const handleResolutionChange = (value: DiscrepancyResolution) => {
+    setDiscrepancyResolution(value);
+  };
+
+  // Handle discrepancy approval
+  const handleDiscrepancyApproval = async () => {
+    try {
+      if (!register) return;
+      const { resolveDiscrepancy } = useRegisterSessions();
+      const updatedRegister = await resolveDiscrepancy(
+        register.id,
+        discrepancyResolution,
+        discrepancyNotes
+      );
+      setRegister(updatedRegister);
+      setIsDiscrepancyDialogOpen(false);
+    } catch (error) {
+      console.error("Error resolving discrepancy:", error);
+    }
+  };
+
+  // Calculate total discrepancy
+  const getTotalDiscrepancy = () => {
+    return Object.values(discrepancies).reduce((sum, value) => sum + value, 0);
+  };
 
   if (isLoading || registersLoading || !register) {
     return (
@@ -140,7 +246,7 @@ const POSRegister = () => {
         </div>
         
         <ClosingSummary 
-          register={register}
+          register={register as any}
           discrepancies={discrepancies}
           closingBalances={closingBalances}
           onRequestApproval={() => setIsDiscrepancyDialogOpen(true)}
@@ -151,14 +257,14 @@ const POSRegister = () => {
       <OpenRegisterDialog 
         isOpen={isOpenRegisterDialogOpen}
         onClose={() => setIsOpenRegisterDialogOpen(false)}
-        register={register}
+        register={register as any}
         onOpenRegister={handleOpenRegister}
       />
       
       <CloseRegisterDialog 
         isOpen={isCloseRegisterDialogOpen}
         onClose={() => setIsCloseRegisterDialogOpen(false)}
-        register={register}
+        register={register as any}
         closingBalances={closingBalances}
         handleBalanceChange={handleBalanceChange}
         onCloseRegister={handleCloseRegister}
