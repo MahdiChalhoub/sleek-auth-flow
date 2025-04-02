@@ -35,6 +35,11 @@ const getById = async (id: string): Promise<Category | null> => {
 
 const create = async (category: Partial<Category>): Promise<Category | null> => {
   try {
+    // Make sure name is provided since it's required in the db schema
+    if (!category.name) {
+      throw new Error('Category name is required');
+    }
+    
     const { data, error } = await supabase
       .from('categories')
       .insert([category])

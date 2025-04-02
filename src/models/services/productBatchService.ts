@@ -1,6 +1,6 @@
 
 import { supabase } from '@/lib/supabase';
-import { ProductBatch } from '@/models/product';
+import { ProductBatch, mapDbProductBatchToModel, mapModelProductBatchToDb } from '@/models/productBatch';
 import { callRpc } from '@/utils/rpcUtils';
 import { rpcParams } from '@/utils/supabaseUtils';
 
@@ -53,17 +53,19 @@ export const productBatchService = {
     }
   },
   
-  addBatch: async (batch: Omit<ProductBatch, "id" | "createdAt" | "updatedAt">): Promise<ProductBatch | null> => {
+  addBatch: async (batch: Omit<ProductBatch, "id" | "created_at" | "updated_at">): Promise<ProductBatch | null> => {
     try {
+      const batchData = {
+        product_id: batch.product_id || batch.productId,
+        batch_number: batch.batch_number || batch.batchNumber,
+        quantity: batch.quantity,
+        expiry_date: batch.expiry_date || batch.expiryDate
+      };
+      
       const { data, error } = await callRpc<ProductBatch, { batch: any }>(
         'insert_product_batch',
         rpcParams({
-          batch: {
-            product_id: batch.productId,
-            batch_number: batch.batchNumber,
-            quantity: batch.quantity,
-            expiry_date: batch.expiryDate
-          }
+          batch: batchData
         })
       );
       
@@ -88,8 +90,8 @@ export const productBatchService = {
         rpcParams({
           batch_id: batch.id,
           new_quantity: batch.quantity,
-          new_expiry_date: batch.expiryDate,
-          new_batch_number: batch.batchNumber
+          new_expiry_date: batch.expiry_date || batch.expiryDate,
+          new_batch_number: batch.batch_number || batch.batchNumber
         })
       );
       
@@ -119,15 +121,5 @@ export const productBatchService = {
   }
 };
 
-export const mapDbProductBatchToModel = (dbBatch: any): ProductBatch => {
-  return {
-    id: dbBatch.id,
-    productId: dbBatch.product_id,
-    batchNumber: dbBatch.batch_number,
-    quantity: dbBatch.quantity,
-    expiryDate: dbBatch.expiry_date,
-    createdAt: dbBatch.created_at,
-    updatedAt: dbBatch.updated_at,
-    productName: dbBatch.product_name
-  };
-};
+// Re-export the helpers from productBatch.ts for convenience
+export { mapDbProductBatchToModel, mapModelProductBatchToDb };

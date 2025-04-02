@@ -1,213 +1,147 @@
 
 import { supabase } from '@/lib/supabase';
-import { UserStatus } from '@/types/auth';
+import { User, UserStatus } from '@/types/auth';
 
-export interface User {
+// Type for user data returned from the database
+interface DbUser {
   id: string;
-  status: string;
-  isDeleted: boolean;
-  lastLogin: string;
-  createdAt: string;
-  updatedAt: string;
-  fullName: string;
-  avatarUrl: string | null;
+  email: string;
+  status: UserStatus;
+  role?: string;
+  full_name?: string;
+  avatar_url?: string;
+  last_login?: string;
+  created_at?: string;
+  is_deleted?: boolean;
+  is_global_admin?: boolean;
 }
 
-export interface UpdateUserData {
-  fullName?: string;
-  roleId?: string;
-  status?: UserStatus;
-}
-
-// Function to get all users
+// Get all users from the database
 export const getAllUsers = async (): Promise<User[]> => {
   try {
     const { data: users, error } = await supabase
       .from('extended_users')
       .select(`
         *,
-        profiles:id(full_name, avatar_url)
-      `);
+        profiles:id (
+          full_name,
+          avatar_url
+        )
+      `)
+      .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
 
-    return users.map(user => {
-      const profileData = user.profiles || {};
-      return {
-        id: user.id,
-        status: user.status,
-        isDeleted: user.is_deleted,
-        lastLogin: user.last_login,
-        createdAt: user.created_at,
-        updatedAt: user.updated_at,
-        fullName: profileData.full_name || 'Unknown User',
-        avatarUrl: profileData.avatar_url || null
-      };
-    });
+    return (users || []).map((user: any) => ({
+      id: user.id,
+      status: user.status,
+      email: user.email || '',
+      role: user.role || 'user',
+      fullName: user.profiles?.full_name || '',
+      avatarUrl: user.profiles?.avatar_url || '',
+      lastLogin: user.last_login,
+      createdAt: user.created_at,
+      isDeleted: user.is_deleted || false,
+      isGlobalAdmin: user.is_global_admin || false
+    }));
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error('Error in getAllUsers:', error);
     return [];
   }
 };
 
-// Function to get a user by ID
-export const getUserById = async (userId: string) => {
+// Create a new user
+export const createUser = async (userData: Partial<User>): Promise<User | null> => {
   try {
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-    
-    const { data: user, error } = await supabase
-      .from('extended_users')
-      .select(`
-        *,
-        profiles:id(full_name, avatar_url)
-      `)
-      .eq('id', userId)
-      .single();
-    
-    if (error) throw error;
-    
-    if (!user) {
-      return null;
-    }
-    
-    // Safely access profile data
-    const profileData = user.profiles || {};
-    
-    return {
-      id: userId,
-      status: user.status as UserStatus,
-      isDeleted: user.is_deleted,
-      lastLogin: user.last_login,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at,
-      fullName: profileData.full_name || 'Unknown User',
-      avatarUrl: profileData.avatar_url || null
-    };
+    // Handle user creation logic here
+    return null;
   } catch (error) {
-    console.error('Error fetching user:', error);
+    console.error('Error creating user:', error);
     return null;
   }
 };
 
-// Function to create a new user
-export const createUser = async (
-  email: string, 
-  password: string, 
-  fullName: string, 
-  roleId: string
-): Promise<boolean> => {
+// Update a user's information
+export const updateUser = async (id: string, userData: Partial<User>): Promise<User | null> => {
   try {
-    // You'd typically create a user with Supabase Auth first, 
-    // then assign the role in a separate table
-    // This is a simplified mock version
-    console.log('Creating user:', { email, fullName, roleId });
-    return true;
+    const { data, error } = await supabase
+      .from('extended_users')
+      .update({
+        status: userData.status,
+        role: userData.role,
+        is_deleted: userData.isDeleted,
+        is_global_admin: userData.isGlobalAdmin
+      })
+      .eq('id', id)
+      .select(`
+        *,
+        profiles:id (
+          full_name,
+          avatar_url
+        )
+      `)
+      .single();
+
+    if (error) {
+      console.error(`Error updating user ${id}:`, error);
+      throw error;
+    }
+
+    return {
+      id: data.id,
+      status: data.status as UserStatus,
+      email: data.email || '',
+      role: data.role || 'user',
+      fullName: data.profiles?.full_name || '',
+      avatarUrl: data.profiles?.avatar_url || '',
+      lastLogin: data.last_login,
+      createdAt: data.created_at,
+      isDeleted: data.is_deleted || false,
+      isGlobalAdmin: data.is_global_admin || false
+    };
   } catch (error) {
-    console.error('Error creating user:', error);
-    return false;
+    console.error(`Error updating user ${id}:`, error);
+    return null;
   }
 };
 
-// Function to update a user's data
-export const updateUser = async (userId: string, data: UpdateUserData): Promise<boolean> => {
+// Delete a user
+export const deleteUser = async (id: string): Promise<boolean> => {
   try {
-    // Update user in extended_users table
-    if (data.status) {
-      const { error } = await supabase
-        .from('extended_users')
-        .update({ status: data.status })
-        .eq('id', userId);
-
-      if (error) throw error;
+    // First check if user can be deleted
+    const canDelete = await canDeleteUser(id);
+    
+    if (!canDelete) {
+      throw new Error("User cannot be deleted because they have associated records");
     }
-
-    // Update user profile if fullName is provided
-    if (data.fullName) {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ full_name: data.fullName })
-        .eq('id', userId);
-
-      if (error) throw error;
-    }
-
-    // Update user role if roleId is provided
-    if (data.roleId) {
-      // First check if user already has a role
-      const { data: existingRole, error: roleCheckError } = await supabase
-        .from('user_roles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (roleCheckError && roleCheckError.code !== 'PGRST116') {
-        throw roleCheckError;
-      }
-
-      if (existingRole) {
-        // Update existing role
-        const { error } = await supabase
-          .from('user_roles')
-          .update({ role_id: data.roleId })
-          .eq('user_id', userId);
-
-        if (error) throw error;
-      } else {
-        // Create new role assignment
-        const { error } = await supabase
-          .from('user_roles')
-          .insert({ user_id: userId, role_id: data.roleId });
-
-        if (error) throw error;
-      }
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error updating user:', error);
-    return false;
-  }
-};
-
-// Function to delete a user (set is_deleted to true)
-export const deleteUser = async (userId: string): Promise<boolean> => {
-  try {
+    
     const { error } = await supabase
       .from('extended_users')
       .update({ is_deleted: true })
-      .eq('id', userId);
+      .eq('id', id);
 
     if (error) throw error;
-
     return true;
   } catch (error) {
-    console.error('Error deleting user:', error);
+    console.error(`Error deleting user ${id}:`, error);
     return false;
   }
 };
 
-// Function to check if a user can be deleted
-export const canDeleteUser = async (userId: string): Promise<boolean> => {
+// Check if a user can be deleted
+export const canDeleteUser = async (id: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc('can_delete_user', { user_id: userId });
+    const { data, error } = await supabase.rpc('can_delete_user', { user_id: id });
     
     if (error) throw error;
-    
-    return data;
+    return data || false;
   } catch (error) {
-    console.error('Error checking if user can be deleted:', error);
+    console.error(`Error checking if user ${id} can be deleted:`, error);
     return false;
   }
 };
 
-export const userService = {
-  getAllUsers,
-  getUserById,
-  updateUserStatus: (userId: string, status: UserStatus) => updateUser(userId, { status }),
-  deleteUser,
-  createUser,
-  updateUser,
-  canDeleteUser
-};
+export type { User };

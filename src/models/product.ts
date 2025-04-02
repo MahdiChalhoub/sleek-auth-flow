@@ -2,41 +2,12 @@
 import { supabase } from '@/lib/supabase';
 import { Category } from './interfaces/categoryInterfaces';
 import { callRpc } from '@/utils/rpcUtils';
+import { Product, ProductLocationStock } from './interfaces/productInterfaces';
+import { ProductBatch } from './productBatch';
+import { mockProducts } from './mockData';
 
-export interface Product {
-  id: string;
-  name: string;
-  description?: string;
-  barcode?: string;
-  price: number;
-  cost?: number;
-  stock: number;
-  image_url?: string;
-  image?: string;
-  category?: Category;
-  category_id?: string;
-  hasStock: boolean;
-  isCombo?: boolean;
-  min_stock_level?: number;
-  max_stock_level?: number;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface ProductBatch {
-  id: string;
-  product_id: string;
-  batch_number: string;
-  expiry_date: string;
-  quantity: number;
-  purchase_date: string;
-  cost_per_unit: number;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
-  product?: Product;
-  status: 'active' | 'expired' | 'low' | 'consumed';
-}
+// Re-export mockProducts for backward compatibility
+export { mockProducts };
 
 // Get all products
 const getAll = async (): Promise<Product[]> => {
@@ -67,7 +38,7 @@ const getAll = async (): Promise<Product[]> => {
       category: product.category,
       category_id: product.category_id,
       hasStock: product.has_stock,
-      isCombo: product.is_combo,
+      is_combo: product.is_combo,
       min_stock_level: product.min_stock_level || 5,
       max_stock_level: product.max_stock_level || 100,
       created_at: product.created_at,
@@ -109,7 +80,7 @@ const getById = async (id: string): Promise<Product | null> => {
       category: data.category,
       category_id: data.category_id,
       hasStock: data.has_stock,
-      isCombo: data.is_combo,
+      is_combo: data.is_combo,
       min_stock_level: data.min_stock_level || 5,
       max_stock_level: data.max_stock_level || 100,
       created_at: data.created_at,
@@ -141,3 +112,5 @@ export const productsService = {
   getById,
   getProductBatches
 };
+
+export type { Product, ProductBatch, ProductLocationStock };

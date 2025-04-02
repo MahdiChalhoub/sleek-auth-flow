@@ -1,53 +1,77 @@
 
-import { differenceInDays, parseISO, isValid } from 'date-fns';
-
-export type BatchStatus = 'fresh' | 'expiring_soon' | 'expired';
+import { differenceInDays, parseISO, format, addDays } from 'date-fns';
 
 /**
- * Determine the status of a product batch based on its expiry date
- * @param expiryDateStr ISO date string of the expiry date
- * @returns Status of the batch - 'fresh', 'expiring_soon', or 'expired'
+ * Determine the status of a batch based on its expiry date
+ * @param expiryDate The expiry date string in ISO format
  */
-export const getBatchStatus = (expiryDateStr: string): BatchStatus => {
-  if (!expiryDateStr || !isValid(parseISO(expiryDateStr))) {
-    console.warn('Invalid expiry date:', expiryDateStr);
-    return 'expired';
-  }
+export const getBatchStatus = (expiryDate: string): 'expired' | 'warning' | 'ok' | 'unknown' => {
+  if (!expiryDate) return 'unknown';
   
-  const expiryDate = parseISO(expiryDateStr);
-  const today = new Date();
-  const daysUntilExpiry = differenceInDays(expiryDate, today);
-  
-  if (daysUntilExpiry < 0) {
-    return 'expired';
-  } else if (daysUntilExpiry <= 30) {
-    return 'expiring_soon';
-  } else {
-    return 'fresh';
+  try {
+    const today = new Date();
+    const expiry = parseISO(expiryDate);
+    const daysRemaining = differenceInDays(expiry, today);
+    
+    if (daysRemaining < 0) return 'expired';
+    if (daysRemaining < 30) return 'warning';
+    return 'ok';
+  } catch (error) {
+    console.error('Error parsing expiry date:', error);
+    return 'unknown';
   }
 };
 
 /**
- * Format the days until expiry (or since expiry) as a human-readable string
- * @param expiryDateStr ISO date string of the expiry date
- * @returns Formatted string like "Expires in 5 days" or "Expired 10 days ago"
+ * Format the days until expiry as a human-readable string
+ * @param expiryDate The expiry date string in ISO format
  */
-export const formatDaysUntilExpiry = (expiryDateStr: string): string => {
-  if (!expiryDateStr || !isValid(parseISO(expiryDateStr))) {
-    return 'Invalid expiry date';
+export const formatDaysUntilExpiry = (expiryDate: string): string => {
+  if (!expiryDate) return 'No expiry date';
+  
+  try {
+    const today = new Date();
+    const expiry = parseISO(expiryDate);
+    const daysRemaining = differenceInDays(expiry, today);
+    
+    if (daysRemaining < 0) {
+      return `Expired ${Math.abs(daysRemaining)} days ago`;
+    } else if (daysRemaining === 0) {
+      return 'Expires today';
+    } else if (daysRemaining === 1) {
+      return 'Expires tomorrow';
+    } else if (daysRemaining < 30) {
+      return `Expires in ${daysRemaining} days`;
+    } else {
+      return `Expires on ${format(expiry, 'MMM d, yyyy')}`;
+    }
+  } catch (error) {
+    console.error('Error formatting days until expiry:', error);
+    return 'Invalid date';
   }
-  
-  const expiryDate = parseISO(expiryDateStr);
+};
+
+/**
+ * Calculate an appropriate expiry date based on product type
+ * @param productType The type of product (e.g., 'dairy', 'frozen', 'dry')
+ */
+export const calculateDefaultExpiryDate = (productType: string): Date => {
   const today = new Date();
-  const daysUntilExpiry = differenceInDays(expiryDate, today);
   
-  if (daysUntilExpiry < 0) {
-    return `Expired ${Math.abs(daysUntilExpiry)} days ago`;
-  } else if (daysUntilExpiry === 0) {
-    return 'Expires today';
-  } else if (daysUntilExpiry === 1) {
-    return 'Expires tomorrow';
-  } else {
-    return `Expires in ${daysUntilExpiry} days`;
+  switch (productType.toLowerCase()) {
+    case 'dairy':
+      return addDays(today, 14); // 2 weeks
+    case 'frozen':
+      return addDays(today, 180); // 6 months
+    case 'produce':
+      return addDays(today, 7); // 1 week
+    case 'meat':
+      return addDays(today, 5); // 5 days
+    case 'bakery':
+      return addDays(today, 3); // 3 days
+    case 'canned':
+      return addDays(today, 730); // 2 years
+    default:
+      return addDays(today, 365); // 1 year default
   }
 };

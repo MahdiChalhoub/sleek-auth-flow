@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, RefreshCw } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { Product, productsService } from '@/models/product';
+import { Product, ProductLocationStock } from '@/models/interfaces/productInterfaces';
 import { useToast } from '@/components/ui/use-toast';
 
 export interface ReorderSuggestionsProps {
@@ -37,7 +37,7 @@ const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({
             *,
             products:product_id(
               id, name, barcode, price, cost, description, image_url, 
-              category_id, categories:category_id(name)
+              category_id, categories:category_id(name), has_stock
             )
           `)
           .eq('location_id', locationId)
@@ -47,33 +47,36 @@ const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({
         if (error) throw error;
         
         // Transform the data to match our Product interface
-        const lowStockProducts = data.map((item: any) => ({
-          id: item.products.id,
-          name: item.products.name,
-          description: item.products.description,
-          barcode: item.products.barcode,
-          categoryId: item.products.category_id,
-          categoryName: item.products.categories?.name,
-          category: item.products.categories?.name,
-          price: item.products.price,
-          cost: item.products.cost,
-          stock: item.stock,
-          minStockLevel: item.min_stock_level,
-          imageUrl: item.products.image_url,
-          image: item.products.image_url,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          // Create locationStock array with this location's stock info
-          locationStock: [{
-            id: item.id,
-            productId: item.product_id,
-            locationId: item.location_id,
+        const lowStockProducts = data.map((item: any) => {
+          const product: Product = {
+            id: item.products.id,
+            name: item.products.name,
+            description: item.products.description,
+            barcode: item.products.barcode,
+            category_id: item.products.category_id,
+            category: item.products.categories,
+            price: item.products.price,
+            cost: item.products.cost,
             stock: item.stock,
-            minStockLevel: item.min_stock_level,
-            createdAt: item.created_at,
-            updatedAt: item.updated_at
-          }]
-        }));
+            image_url: item.products.image_url,
+            hasStock: item.products.has_stock,
+            min_stock_level: item.min_stock_level,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            // Create locationStock array with this location's stock info
+            locationStock: [{
+              id: item.id,
+              productId: item.product_id,
+              locationId: item.location_id,
+              stock: item.stock,
+              minStockLevel: item.min_stock_level,
+              createdAt: item.created_at,
+              updatedAt: item.updated_at
+            }]
+          };
+          
+          return product;
+        });
         
         setProducts(lowStockProducts);
       } catch (error) {
@@ -176,7 +179,7 @@ const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell>{locationStockItem?.stock || product.stock || 0}</TableCell>
-                      <TableCell>{locationStockItem?.minStockLevel || 5}</TableCell>
+                      <TableCell>{locationStockItem?.minStockLevel || product.min_stock_level || 5}</TableCell>
                       <TableCell>{renderStockBadge(status)}</TableCell>
                       <TableCell className="text-right">
                         <Button

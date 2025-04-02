@@ -13,10 +13,24 @@ export interface Product {
   image?: string;
   category?: Category;
   category_id?: string;
-  has_stock: boolean;
+  hasStock: boolean;
   is_combo?: boolean;
+  min_stock_level?: number;
+  max_stock_level?: number;
   created_at?: string;
   updated_at?: string;
+  // Properties for ReorderSuggestions component
+  locationStock?: ProductLocationStock[];
+}
+
+export interface ProductLocationStock {
+  id: string;
+  productId: string;
+  locationId: string;
+  stock: number;
+  minStockLevel: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ProductFormData {
@@ -30,6 +44,8 @@ export interface ProductFormData {
   imageUrl?: string;
   hasStock?: boolean;
   isCombo?: boolean;
+  minStockLevel?: number;
+  maxStockLevel?: number;
 }
 
 export interface ProductFilterOptions {

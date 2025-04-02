@@ -6,15 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
-import { ProductBatch } from '@/models/product';
+import { ProductBatch, mapDbProductBatchToModel } from '@/models/productBatch';
 import { safeArray } from '@/utils/supabaseUtils';
-import { rpcParams } from '@/utils/supabaseTypes';
-import { getBatchStatus, formatDaysUntilExpiry } from '@/utils/expirationUtils';
+import { rpcParams } from '@/utils/rpcUtils';
+import { formatDaysUntilExpiry } from '@/utils/expirationUtils';
 import { productsService } from '@/models/product';
 import { Spinner } from '@/components/ui/spinner';
 import { assertType } from '@/utils/typeUtils';
 import { callRpc } from '@/utils/rpcUtils';
-import { mapDbProductBatchToModel } from '@/models/productBatch';
 
 interface ExpiryDashboardProps {
   // Define any props here
@@ -60,7 +59,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
         // Fetch product names for each batch
         const batchesWithProductNames = await Promise.all(
           fetchedBatches.map(async (batch) => {
-            const product = await productsService.getById(batch.productId);
+            const product = await productsService.getById(batch.product_id);
             return {
               ...batch,
               productName: product?.name || 'Unknown'
@@ -116,9 +115,9 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
               {batches.map(batch => (
                 <li key={batch.id} className="mb-2 p-2 border rounded">
                   <div className="font-medium">Product: {(batch as any).productName || 'Unknown'}</div>
-                  <div>Batch Number: {batch.batchNumber}</div>
-                  <div>Expiry Date: {batch.expiryDate}</div>
-                  <div>{formatDaysUntilExpiry(batch.expiryDate)}</div>
+                  <div>Batch Number: {batch.batch_number}</div>
+                  <div>Expiry Date: {batch.expiry_date}</div>
+                  <div>{formatDaysUntilExpiry(batch.expiry_date)}</div>
                 </li>
               ))}
             </ul>

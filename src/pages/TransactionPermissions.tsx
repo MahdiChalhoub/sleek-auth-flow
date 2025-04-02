@@ -1,194 +1,188 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Save, Settings, ShieldAlert } from 'lucide-react';
-import { TransactionPermission } from '@/types/transaction';
-import { mockRoles } from '@/models/role';
-import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
+import { Role, mockRoles } from '@/models/role';
+import { TransactionPermission } from '@/models/interfaces/transactionInterfaces';
 
-const TransactionPermissions: React.FC = () => {
-  // Create permissions with all required fields
-  const [permissions, setPermissions] = useState<TransactionPermission[]>(
-    [
-      { 
-        id: 'create_transaction', 
-        name: 'Create Transactions', 
-        description: 'Create new transactions',
-        defaultRoles: ['admin', 'manager'],
-        roleId: '',
-        canCreate: true,
-        canEdit: false,
-        canLock: false,
-        canDelete: false,
-        canApprove: false,
-        canReject: false,
-        canView: true,
-        canReport: false
-      },
-      { 
-        id: 'edit_transaction', 
-        name: 'Edit Transactions', 
-        description: 'Edit existing transactions',
-        defaultRoles: ['admin', 'manager'],
-        roleId: '',
-        canCreate: false,
-        canEdit: true,
-        canLock: false,
-        canDelete: false,
-        canApprove: false,
-        canReject: false,
-        canView: true,
-        canReport: false
-      },
-      { 
-        id: 'lock_transaction', 
-        name: 'Lock Transactions', 
-        description: 'Lock transactions to prevent edits',
-        defaultRoles: ['admin'],
-        roleId: '',
-        canCreate: false,
-        canEdit: false,
-        canLock: true,
-        canDelete: false,
-        canApprove: false,
-        canReject: false,
-        canView: true,
-        canReport: false
-      },
-      { 
-        id: 'delete_transaction', 
-        name: 'Delete Transactions', 
-        description: 'Delete existing transactions',
-        defaultRoles: ['admin'],
-        roleId: '',
-        canCreate: false,
-        canEdit: false,
-        canLock: false,
-        canDelete: true,
-        canApprove: false,
-        canReject: false,
-        canView: true,
-        canReport: false
-      }
-    ]
-  );
+const TransactionPermissions = () => {
+  // Define default transaction permissions
+  const defaultPermissions: TransactionPermission[] = [
+    {
+      id: 'perm-sales-create',
+      name: 'Create Sales',
+      description: 'Ability to create new sales transactions',
+      roleId: '',
+      canCreate: true,
+      canEdit: false,
+      canLock: false,
+      canDelete: false,
+      canApprove: false,
+      canReconcile: false,
+      canViewSensitive: false,
+      maxAmount: 1000
+    },
+    {
+      id: 'perm-expenses-create',
+      name: 'Create Expenses',
+      description: 'Ability to create expense transactions',
+      roleId: '',
+      canCreate: true,
+      canEdit: false,
+      canLock: false,
+      canDelete: false,
+      canApprove: false,
+      canReconcile: false,
+      canViewSensitive: false,
+      maxAmount: 500
+    },
+    {
+      id: 'perm-refunds-process',
+      name: 'Process Refunds',
+      description: 'Ability to process refund transactions',
+      roleId: '',
+      canCreate: true,
+      canEdit: false,
+      canLock: false,
+      canDelete: false,
+      canApprove: false,
+      canReconcile: false,
+      canViewSensitive: false,
+      maxAmount: 200
+    }
+  ];
 
-  const handlePermissionToggle = (permissionId: string, field: keyof TransactionPermission, value: boolean) => {
-    setPermissions(prev =>
-      prev.map(p =>
-        p.id === permissionId ? { ...p, [field]: value } : p
-      )
-    );
+  const [permissions, setPermissions] = useState<TransactionPermission[]>(defaultPermissions);
+
+  const handlePermissionChange = (index: number, field: keyof TransactionPermission, value: any) => {
+    const updatedPermissions = [...permissions];
+    updatedPermissions[index] = {
+      ...updatedPermissions[index],
+      [field]: value
+    };
+    setPermissions(updatedPermissions);
   };
 
-  const handleSavePermissions = () => {
-    // This would save to the backend in a real implementation
+  const handleSave = () => {
     console.log('Saving permissions:', permissions);
-    toast.success('Permissions saved successfully');
+    // Here you would send the updated permissions to your API
   };
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Transaction Permissions</h1>
-          <p className="text-muted-foreground">
-            Configure transaction permissions for different roles
-          </p>
-        </div>
-        <Button onClick={handleSavePermissions}>
-          <Save className="mr-2 h-4 w-4" />
-          Save Changes
-        </Button>
-      </div>
-
-      <Tabs defaultValue="permissions">
-        <TabsList className="mb-4">
-          <TabsTrigger value="permissions">Permissions</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="permissions">
-          <div className="grid gap-6 md:grid-cols-2">
-            {mockRoles.map(role => (
-              <Card key={role.id}>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <ShieldAlert className="mr-2 h-5 w-5 text-primary" />
-                    {role.name}
-                  </CardTitle>
-                  <CardDescription>{role.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {permissions.map(permission => (
-                      <div key={permission.id} className="flex justify-between items-center">
-                        <div>
-                          <Label className="text-base font-medium">{permission.name}</Label>
-                          <p className="text-sm text-muted-foreground">{permission.description}</p>
-                        </div>
-                        <Switch
-                          checked={permission.defaultRoles.includes(role.id)}
-                          onCheckedChange={(checked) => {
-                            // This would update the permission's role assignments
-                            console.log(`${checked ? 'Adding' : 'Removing'} ${permission.name} from ${role.name}`);
-                          }}
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Transaction Permissions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[250px]">Permission</TableHead>
+                    <TableHead>Create</TableHead>
+                    <TableHead>Edit</TableHead>
+                    <TableHead>Delete</TableHead>
+                    <TableHead>Approve</TableHead>
+                    <TableHead>Reconcile</TableHead>
+                    <TableHead>Max Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {permissions.map((permission, index) => (
+                    <TableRow key={permission.id}>
+                      <TableCell>
+                        <div className="font-medium">{permission.name}</div>
+                        <div className="text-sm text-muted-foreground">{permission.description}</div>
+                      </TableCell>
+                      <TableCell>
+                        <Checkbox 
+                          checked={permission.canCreate}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange(index, 'canCreate', !!checked)
+                          }
                         />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="settings">
-          <Card>
-            <CardHeader>
-              <CardTitle>Transaction Settings</CardTitle>
-              <CardDescription>Configure global transaction settings</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <Label className="text-base font-medium">Require approval for transactions over $1000</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Transactions over this amount will require manager approval
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div>
-                    <Label className="text-base font-medium">Auto-lock transactions after 24 hours</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Transactions will be automatically locked after this period
-                    </p>
-                  </div>
-                  <Switch />
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <div>
-                    <Label className="text-base font-medium">Allow backdated transactions</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Users can create transactions with dates in the past
-                    </p>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
+                      </TableCell>
+                      <TableCell>
+                        <Checkbox 
+                          checked={permission.canEdit}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange(index, 'canEdit', !!checked)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Checkbox 
+                          checked={permission.canDelete}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange(index, 'canDelete', !!checked)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Checkbox 
+                          checked={permission.canApprove}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange(index, 'canApprove', !!checked)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Checkbox 
+                          checked={permission.canReconcile}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange(index, 'canReconcile', !!checked)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input 
+                          type="number" 
+                          value={permission.maxAmount}
+                          onChange={(e) => 
+                            handlePermissionChange(index, 'maxAmount', Number(e.target.value))
+                          }
+                          className="w-[100px]"
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium">Role Assignment</h3>
+                <p className="text-sm text-muted-foreground">Specify which roles have these transaction permissions.</p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+
+              <div className="space-y-2">
+                {mockRoles.map(role => (
+                  <div key={role.id} className="flex items-center justify-between py-2 border-b">
+                    <div>
+                      <h4 className="font-medium">{role.name}</h4>
+                      <p className="text-sm text-muted-foreground">{role.description}</p>
+                    </div>
+                    <Switch />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline">Cancel</Button>
+              <Button onClick={handleSave}>Save Changes</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

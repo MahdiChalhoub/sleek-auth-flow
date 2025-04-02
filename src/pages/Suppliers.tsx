@@ -1,159 +1,269 @@
 
-import React, { useState } from "react";
-import { Plus, FileText, Eye, Edit, Trash2, Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { mockSuppliers } from "@/models/supplier";
-import SupplierFormModal from "@/components/inventory/SupplierFormModal";
+import { Spinner } from "@/components/ui/spinner";
+import { Plus, Search, Trash, Edit, Eye } from "lucide-react";
+import SupplierFormDialog from "@/components/inventory/SupplierFormDialog";
 import SupplierViewModal from "@/components/inventory/SupplierViewModal";
-import SecurityCodeDialog from "@/components/inventory/SecurityCodeDialog";
-import CreatePurchaseOrderModal from "@/components/inventory/CreatePurchaseOrderModal";
+import SupplierDeleteDialog from "@/components/inventory/SupplierDeleteDialog";
+import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
-const Suppliers: React.FC = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+const Suppliers = () => {
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [filteredSuppliers, setFilteredSuppliers] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState<any>(null);
-  const [viewOpen, setViewOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [securityOpen, setSecurityOpen] = useState(false);
-  const [createPOOpen, setCreatePOOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchSuppliers();
+  }, []);
+
+  useEffect(() => {
+    if (searchTerm) {
+      setFilteredSuppliers(
+        suppliers.filter(supplier => 
+          supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (supplier.contact_person && supplier.contact_person.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (supplier.phone && supplier.phone.includes(searchTerm)) ||
+          (supplier.email && supplier.email.toLowerCase().includes(searchTerm.toLowerCase()))
+        )
+      );
+    } else {
+      setFilteredSuppliers(suppliers);
+    }
+  }, [searchTerm, suppliers]);
+
+  const fetchSuppliers = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('suppliers')
+        .select('*')
+        .order('name');
+      
+      if (error) throw error;
+      
+      setSuppliers(data || []);
+      setFilteredSuppliers(data || []);
+    } catch (error: any) {
+      console.error('Error fetching suppliers:', error);
+      toast.error('Failed to load suppliers', {
+        description: error.message || 'Please try again later'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddSupplier = async (supplierData: any) => {
+    try {
+      const { data, error } = await supabase
+        .from('suppliers')
+        .insert([supplierData])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      setSuppliers(prev => [...prev, data]);
+      toast.success('Supplier added successfully');
+      return true;
+    } catch (error: any) {
+      console.error('Error adding supplier:', error);
+      toast.error('Failed to add supplier', {
+        description: error.message
+      });
+      return false;
+    }
+  };
+
+  const handleUpdateSupplier = async (id: string, supplierData: any) => {
+    try {
+      const { data, error } = await supabase
+        .from('suppliers')
+        .update(supplierData)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      setSuppliers(prev => prev.map(s => s.id === id ? data : s));
+      toast.success('Supplier updated successfully');
+      return true;
+    } catch (error: any) {
+      console.error('Error updating supplier:', error);
+      toast.error('Failed to update supplier', {
+        description: error.message
+      });
+      return false;
+    }
+  };
+
+  const handleDeleteSupplier = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('suppliers')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      setSuppliers(prev => prev.filter(s => s.id !== id));
+      toast.success('Supplier deleted successfully');
+      return true;
+    } catch (error: any) {
+      console.error('Error deleting supplier:', error);
+      toast.error('Failed to delete supplier', {
+        description: error.message
+      });
+      return false;
+    }
+  };
 
   const handleViewSupplier = (supplier: any) => {
     setSelectedSupplier(supplier);
-    setViewOpen(true);
+    setShowViewModal(true);
   };
 
   const handleEditSupplier = (supplier: any) => {
     setSelectedSupplier(supplier);
-    setEditOpen(true);
+    setShowEditDialog(true);
   };
 
-  const handleDeleteSupplier = (supplierId: string) => {
-    setDeleteId(supplierId);
-    setSecurityOpen(true);
-  };
-
-  const handleCreatePO = (supplier: any) => {
+  const handleDeleteConfirm = (supplier: any) => {
     setSelectedSupplier(supplier);
-    setCreatePOOpen(true);
+    setShowDeleteDialog(true);
   };
-
-  // Filter suppliers based on search query
-  const filteredSuppliers = mockSuppliers.filter(supplier => 
-    supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    supplier.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    supplier.phone.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Suppliers</h1>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus size={16} />
-              Add Supplier
-            </Button>
-          </DialogTrigger>
-          <SupplierFormModal />
-        </Dialog>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative w-full">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search suppliers by name, email or phone..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
-
+    <div className="container mx-auto p-4 space-y-6">
       <Card>
-        <CardContent className="p-0">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[250px]">Supplier Name</TableHead>
-                  <TableHead>Contact Person</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead className="text-center">Products</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredSuppliers.map((supplier) => (
-                  <TableRow key={supplier.id}>
-                    <TableCell className="font-medium">{supplier.name}</TableCell>
-                    <TableCell>{supplier.contactPerson}</TableCell>
-                    <TableCell>{supplier.email}</TableCell>
-                    <TableCell>{supplier.phone}</TableCell>
-                    <TableCell className="text-center">{supplier.products.length}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => handleViewSupplier(supplier)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => handleEditSupplier(supplier)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleCreatePO(supplier)}
-                        >
-                          Create PO
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-destructive hover:text-destructive/90"
-                          onClick={() => handleDeleteSupplier(supplier.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-2xl">Suppliers</CardTitle>
+          <Button onClick={() => setShowAddDialog(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Add Supplier
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search suppliers..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
+
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <Spinner size="lg" />
+            </div>
+          ) : filteredSuppliers.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              {searchTerm ? 'No suppliers match your search' : 'No suppliers found. Add your first supplier!'}
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Contact Person</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredSuppliers.map(supplier => (
+                    <TableRow key={supplier.id}>
+                      <TableCell className="font-medium">{supplier.name}</TableCell>
+                      <TableCell>{supplier.contact_person || '-'}</TableCell>
+                      <TableCell>{supplier.phone || '-'}</TableCell>
+                      <TableCell>{supplier.email || '-'}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleViewSupplier(supplier)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditSupplier(supplier)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => handleDeleteConfirm(supplier)}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Modals */}
-      <Dialog open={viewOpen} onOpenChange={setViewOpen}>
-        <SupplierViewModal supplier={selectedSupplier} onClose={() => setViewOpen(false)} />
-      </Dialog>
+      {/* Supplier Form Dialog for Adding */}
+      <SupplierFormDialog
+        open={showAddDialog}
+        onOpenChange={setShowAddDialog}
+        onSubmit={handleAddSupplier}
+      />
 
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <SupplierFormModal supplier={selectedSupplier} onClose={() => setEditOpen(false)} />
-      </Dialog>
-
-      <Dialog open={securityOpen} onOpenChange={setSecurityOpen}>
-        <SecurityCodeDialog 
-          title="Delete Supplier" 
-          description="Enter security code to delete this supplier"
-          onConfirm={() => {
-            console.log("Supplier deleted:", deleteId);
-            setSecurityOpen(false);
-          }}
-          onCancel={() => setSecurityOpen(false)}
+      {/* Supplier Form Dialog for Editing */}
+      {selectedSupplier && (
+        <SupplierFormDialog
+          open={showEditDialog}
+          onOpenChange={setShowEditDialog}
+          onSubmit={(data) => handleUpdateSupplier(selectedSupplier.id, data)}
+          supplier={selectedSupplier}
         />
-      </Dialog>
+      )}
 
-      <Dialog open={createPOOpen} onOpenChange={setCreatePOOpen}>
-        <CreatePurchaseOrderModal supplier={selectedSupplier} onClose={() => setCreatePOOpen(false)} />
-      </Dialog>
+      {/* Supplier View Modal */}
+      {selectedSupplier && (
+        <SupplierViewModal
+          supplier={selectedSupplier}
+          onClose={() => setShowViewModal(false)}
+          isOpen={showViewModal}
+        />
+      )}
+
+      {/* Supplier Delete Confirmation */}
+      {selectedSupplier && (
+        <SupplierDeleteDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          onConfirm={() => handleDeleteSupplier(selectedSupplier.id)}
+          supplier={selectedSupplier}
+        />
+      )}
     </div>
   );
 };
