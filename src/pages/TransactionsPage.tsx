@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,6 +55,9 @@ export default function TransactionsPage() {
   const [ledgerDialogOpen, setLedgerDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [activeTab, setActiveTab] = useState('all');
+  const [showTransactionFormDialog, setShowTransactionFormDialog] = useState(false);
+  const [showLedgerDialog, setShowLedgerDialog] = useState(false);
+  const [businesses, setBusinesses] = useState([]); // Add businesses state
 
   const filteredTransactions = transactions.filter(transaction => {
     if (activeTab !== 'all' && transaction.type !== activeTab) {
@@ -103,6 +105,31 @@ export default function TransactionsPage() {
   const viewTransactionDetails = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setLedgerDialogOpen(true);
+  };
+
+  const renderTransactionFormDialog = () => {
+    if (!showTransactionFormDialog) return null;
+    
+    return (
+      <TransactionFormDialog
+        open={showTransactionFormDialog}
+        onOpenChange={setShowTransactionFormDialog}
+        onSubmit={handleCreateTransaction}
+        businesses={businesses} // Add the missing businesses prop
+      />
+    );
+  };
+
+  const renderTransactionLedgerDialog = () => {
+    if (!selectedTransaction) return null;
+    
+    return (
+      <TransactionLedgerDialog
+        open={showLedgerDialog} // Change isOpen to open
+        onOpenChange={setShowLedgerDialog}
+        transaction={selectedTransaction}
+      />
+    );
   };
 
   return (
@@ -266,20 +293,10 @@ export default function TransactionsPage() {
       </Card>
       
       {/* Transaction Form Dialog */}
-      <TransactionFormDialog
-        open={transactionDialogOpen}
-        onOpenChange={setTransactionDialogOpen}
-        onSubmit={handleCreateTransaction}
-      />
+      {renderTransactionFormDialog()}
       
       {/* Transaction Ledger Dialog */}
-      {selectedTransaction && (
-        <TransactionLedgerDialog
-          open={ledgerDialogOpen}
-          onOpenChange={setLedgerDialogOpen}
-          transaction={selectedTransaction}
-        />
-      )}
+      {renderTransactionLedgerDialog()}
     </div>
   );
 }

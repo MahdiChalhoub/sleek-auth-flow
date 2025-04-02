@@ -1,4 +1,3 @@
-
 // Import required dependencies
 import { format, parseISO } from 'date-fns';
 
@@ -6,15 +5,20 @@ import { format, parseISO } from 'date-fns';
 export interface ProductBatch {
   id: string;
   product_id: string;
+  productId?: string; // For compatibility with existing components
   batch_number: string;
+  batchNumber?: string; // For compatibility with existing components
   quantity: number;
   expiry_date: string;
-  purchase_date: string;
-  cost_per_unit: number;
-  created_at: string;
-  updated_at: string;
+  expiryDate?: string; // For compatibility with existing components
+  purchase_date?: string;
+  cost_per_unit?: number;
   status: string;
-  productName?: string; // Optional field for UI display
+  created_at: string;
+  createdAt?: string; // For compatibility
+  updated_at: string;
+  updatedAt?: string; // For compatibility
+  productName?: string; // For display purposes
 }
 
 // Helper function to create a new ProductBatch
@@ -69,4 +73,29 @@ export function mapModelProductBatchToDb(modelBatch: Omit<ProductBatch, "id">): 
     created_at: modelBatch.created_at,
     updated_at: modelBatch.updated_at
   };
+}
+
+// Convert snake_case to camelCase for compatibility with components
+export function adaptProductBatch(batch: ProductBatch): ProductBatch {
+  return {
+    ...batch,
+    productId: batch.product_id,
+    batchNumber: batch.batch_number,
+    expiryDate: batch.expiry_date,
+    createdAt: batch.created_at,
+    updatedAt: batch.updated_at
+  };
+}
+
+// Convert camelCase to snake_case for API calls
+export function normalizeProductBatch(batch: Partial<ProductBatch>): Partial<ProductBatch> {
+  const normalized: Partial<ProductBatch> = { ...batch };
+  
+  if (batch.productId) normalized.product_id = batch.productId;
+  if (batch.batchNumber) normalized.batch_number = batch.batchNumber;
+  if (batch.expiryDate) normalized.expiry_date = batch.expiryDate;
+  if (batch.createdAt) normalized.created_at = batch.createdAt;
+  if (batch.updatedAt) normalized.updated_at = batch.updatedAt;
+  
+  return normalized;
 }

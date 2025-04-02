@@ -253,9 +253,9 @@ const Suppliers = () => {
 
       {selectedSupplier && (
         <SupplierDeleteDialog
-          isOpen={showDeleteDialog}
+          open={showDeleteDialog}
           onOpenChange={setShowDeleteDialog}
-          onConfirm={() => handleDeleteSupplier(selectedSupplier.id)}
+          onConfirm={handleDeleteSupplier}
           supplier={selectedSupplier}
         />
       )}

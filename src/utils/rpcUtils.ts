@@ -33,3 +33,20 @@ export async function callRpc<T, P extends Record<string, any>>(
 export function rpcParams<T extends Record<string, any>>(params: T): T {
   return params;
 }
+
+/**
+ * Specialized function to check if a user can be deleted
+ */
+export async function canDeleteUser(userId: string): Promise<boolean> {
+  const { data, error } = await callRpc<boolean, { user_id: string }>(
+    'can_delete_user',
+    { user_id: userId }
+  );
+  
+  if (error || data === null) {
+    console.error('Error checking if user can be deleted:', error);
+    return false;
+  }
+  
+  return data;
+}

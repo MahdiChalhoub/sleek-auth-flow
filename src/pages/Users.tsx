@@ -18,10 +18,10 @@ import { toast } from 'sonner';
 import { User, UserStatus, Role } from '@/types/auth';
 import { getAllUsers, updateUser, deleteUser } from '@/services/userService';
 import { useAuth } from '@/contexts/AuthContext';
-import UserFormDialog from '@/components/users/UserFormDialog';
-import UserViewDialog from '@/components/users/UserViewDialog';
-import UserDeleteDialog from '@/components/users/UserDeleteDialog';
-import UserRoleDialog from '@/components/users/UserRoleDialog';
+import { UserFormDialog } from '@/components/users/UserFormDialog';
+import { UserViewDialog } from '@/components/users/UserViewDialog';
+import { UserDeleteDialog } from '@/components/users/UserDeleteDialog';
+import { UserRoleDialog } from '@/components/users/UserRoleDialog';
 import { formatDate } from '@/utils/formatters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -49,7 +49,6 @@ const Users: React.FC = () => {
   const { user: currentUser, hasPermission } = useAuth();
   const navigate = useNavigate();
   
-  // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
@@ -67,7 +66,6 @@ const Users: React.FC = () => {
     fetchUsers();
   }, []);
   
-  // Fetch roles
   useEffect(() => {
     const fetchRoles = async () => {
       setLoadingRoles(true);
@@ -90,7 +88,6 @@ const Users: React.FC = () => {
     fetchRoles();
   }, []);
   
-  // Filter users based on search term and status
   useEffect(() => {
     let filtered = [...users];
     
@@ -111,8 +108,6 @@ const Users: React.FC = () => {
   
   const handleAddUser = async (userData: Partial<User>) => {
     try {
-      // In a real app, you would call an API to create the user
-      // For now, we'll just add it to the local state
       const newUser: User = {
         id: `user-${Date.now()}`,
         email: userData.email || '',
@@ -172,7 +167,7 @@ const Users: React.FC = () => {
   const updateUserRole = async (userId: string, selectedRoleId: string) => {
     try {
       await updateUser(userId, { 
-        role: selectedRoleId as any // Using 'as any' temporarily to fix the type error
+        role: selectedRoleId as any
       });
       
       setUsers(prevUsers => 
@@ -601,7 +596,6 @@ const Users: React.FC = () => {
         </TabsContent>
       </Tabs>
       
-      {/* User Form Dialog for Adding */}
       {showAddDialog && (
         <UserFormDialog
           open={showAddDialog}
@@ -611,7 +605,6 @@ const Users: React.FC = () => {
         />
       )}
       
-      {/* User Form Dialog for Editing */}
       {selectedUser && showEditDialog && (
         <UserFormDialog
           open={showEditDialog}
@@ -622,7 +615,6 @@ const Users: React.FC = () => {
         />
       )}
       
-      {/* User View Dialog */}
       {selectedUser && showViewDialog && (
         <UserViewDialog
           open={showViewDialog}
@@ -631,7 +623,6 @@ const Users: React.FC = () => {
         />
       )}
       
-      {/* User Delete Confirmation */}
       {selectedUser && showDeleteDialog && (
         <UserDeleteDialog
           open={showDeleteDialog}
@@ -641,7 +632,6 @@ const Users: React.FC = () => {
         />
       )}
       
-      {/* User Role Dialog */}
       {selectedUser && showRoleDialog && (
         <UserRoleDialog
           open={showRoleDialog}

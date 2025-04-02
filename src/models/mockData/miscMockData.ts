@@ -13,6 +13,7 @@ export const mockBranches: Branch[] = [
     status: "active", // Added status field which is required
     businessId: "bus-1", // Added businessId which is required
     type: "store", // Added type which is required
+    isDefault: true,
     openingHours: {
       monday: "9:00 AM - 9:00 PM",
       tuesday: "9:00 AM - 9:00 PM",
@@ -23,7 +24,9 @@ export const mockBranches: Branch[] = [
       sunday: "10:00 AM - 8:00 PM"
     },
     latitude: 34.0522,
-    longitude: -118.2437
+    longitude: -118.2437,
+    locationCode: "MAIN-01",
+    timezone: "America/Los_Angeles"
   },
   {
     id: "b2",
@@ -35,6 +38,7 @@ export const mockBranches: Branch[] = [
     status: "active", // Added status field which is required
     businessId: "bus-1", // Added businessId which is required
     type: "store", // Added type which is required
+    isDefault: false,
     openingHours: {
       monday: "8:00 AM - 8:00 PM",
       tuesday: "8:00 AM - 8:00 PM",
@@ -45,7 +49,9 @@ export const mockBranches: Branch[] = [
       sunday: "11:00 AM - 7:00 PM"
     },
     latitude: 34.0407,
-    longitude: -118.2468
+    longitude: -118.2468,
+    locationCode: "DOWN-02",
+    timezone: "America/Los_Angeles"
   },
   {
     id: "b3",
@@ -57,6 +63,7 @@ export const mockBranches: Branch[] = [
     status: "active", // Added status field which is required
     businessId: "bus-2", // Added businessId which is required
     type: "store", // Added type which is required
+    isDefault: false,
     openingHours: {
       monday: "7:00 AM - 11:00 PM",
       tuesday: "7:00 AM - 11:00 PM",
@@ -67,7 +74,9 @@ export const mockBranches: Branch[] = [
       sunday: "8:00 AM - 10:00 PM"
     },
     latitude: 34.0522,
-    longitude: -118.4441
+    longitude: -118.4441,
+    locationCode: "WEST-03",
+    timezone: "America/Los_Angeles"
   }
 ];
 
