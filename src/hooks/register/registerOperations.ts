@@ -1,5 +1,6 @@
 
-import { Register, PaymentMethod, DiscrepancyResolution } from '@/models/transaction';
+import { Register, DiscrepancyResolution } from '@/models/register';
+import { PaymentMethod } from '@/models/transaction';
 import { updateRegister } from './registerService';
 
 export async function openRegister(

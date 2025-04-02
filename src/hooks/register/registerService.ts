@@ -1,7 +1,8 @@
 
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Register, PaymentMethod, DiscrepancyResolution } from '@/models/transaction';
+import { Register } from '@/models/register';
+import { PaymentMethod, DiscrepancyResolution } from '@/models/transaction';
 import { DatabaseRegister, mapToAppModel, mapToDbModel } from './mappers';
 
 export async function fetchRegisters(): Promise<Register[]> {

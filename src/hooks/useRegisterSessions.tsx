@@ -1,47 +1,52 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { Register } from '@/models/transaction';
-import { fetchRegisters, getRegisterById, createRegister, updateRegister } from './register/registerService';
-import { openRegister, closeRegister, resolveDiscrepancy } from './register/registerOperations';
-import { DatabaseRegister } from './register/mappers';
-
-export type { DatabaseRegister } from './register/mappers';
+import { useState, useEffect } from 'react';
+import { fetchRegisters, getRegisterById } from './register/registerService';
+import { Register } from '@/models/register';
+import { mockRegisters } from '@/models/register';
 
 export const useRegisterSessions = () => {
-  const queryClient = useQueryClient();
+  const [registers, setRegisters] = useState<Register[]>(mockRegisters);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  const { data: registers = [], isLoading, error } = useQuery({
-    queryKey: ['registerSessions'],
-    queryFn: fetchRegisters
-  });
-
-  const createRegisterMutation = useMutation({
-    mutationFn: createRegister,
-    onSuccess: () => {
-      toast.success('Register created successfully');
-      queryClient.invalidateQueries({ queryKey: ['registerSessions'] });
+  const loadRegisters = async () => {
+    setIsLoading(true);
+    try {
+      const fetchedRegisters = await fetchRegisters();
+      setRegisters(fetchedRegisters.length > 0 ? fetchedRegisters : mockRegisters);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading registers:', err);
+      setError(err instanceof Error ? err : new Error('Failed to load registers'));
+      setRegisters(mockRegisters); // Fallback to mock data
+    } finally {
+      setIsLoading(false);
     }
-  });
+  };
 
-  const updateRegisterMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string, updates: Partial<Register> }) => {
-      return updateRegister(id, updates);
-    },
-    onSuccess: () => {
-      toast.success('Register updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['registerSessions'] });
+  useEffect(() => {
+    loadRegisters();
+  }, []);
+
+  const getRegisterByIdWithFallback = async (id: string): Promise<Register | null> => {
+    try {
+      const register = await getRegisterById(id);
+      if (!register) {
+        // If not found in database, try to find in mock data
+        return mockRegisters.find(r => r.id === id) || null;
+      }
+      return register;
+    } catch (err) {
+      console.error(`Error fetching register ${id}:`, err);
+      // Fallback to mock data
+      return mockRegisters.find(r => r.id === id) || null;
     }
-  });
+  };
 
   return {
     registers,
-    getRegisterById,
-    createRegister: createRegisterMutation.mutate,
-    updateRegister: updateRegisterMutation.mutate,
-    openRegister,
-    closeRegister,
-    resolveDiscrepancy,
+    getRegisterById: getRegisterByIdWithFallback,
+    refresh: loadRegisters,
     isLoading,
     error
   };

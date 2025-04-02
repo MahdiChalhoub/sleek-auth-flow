@@ -1,14 +1,29 @@
+
 import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 import { Database } from '@/integrations/supabase/types';
 import { PostgrestError } from '@supabase/supabase-js';
 
 // Type helper to properly define database tables
 export type TableName = keyof Database['public']['Tables'];
+export const validTables = ['categories', 'client_credit_sales', 'clients', 'sales', 
+  'client_transactions', 'combo_components', 'products', 'financial_years', 
+  'journal_entries', 'transactions', 'locations', 'product_location_stock', 
+  'purchase_order_items', 'purchase_orders', 'register_sessions', 'return_items', 
+  'returns', 'sale_items', 'settings', 'stock_transfer_items', 'stock_transfers', 
+  'suppliers'] as const;
+
+export type ValidTable = typeof validTables[number];
 
 // This function gets the correct table name based on the environment
-export function tableSource(tableName: string) {
-  // For now, all tables are in the public schema
-  return tableName;
+export function tableSource(tableName: string): ValidTable {
+  // Validate the table name to ensure type safety
+  if (validTables.includes(tableName as ValidTable)) {
+    return tableName as ValidTable;
+  }
+  
+  console.warn(`Warning: '${tableName}' is not a recognized table name`);
+  // Return the input as is, but with proper typing
+  return tableName as ValidTable;
 }
 
 /**

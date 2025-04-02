@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus } from '@/models/transaction';
+import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus, TransactionType, JournalEntry } from '@/models/transaction';
 import { toast } from 'sonner';
 import { useFinancialYears } from './useFinancialYears';
 import { transactionsApi } from '@/api/database';
@@ -25,10 +25,11 @@ export const useTransactions = () => {
         throw new Error('No active financial year. Cannot create transaction without a financial year.');
       }
       
-      // Ensure we have createdAt and updatedAt
+      // Ensure we have createdAt and updatedAt and required fields
       const now = new Date().toISOString();
-      const completeData = {
+      const completeData: Omit<Transaction, 'id'> = {
         ...transactionData,
+        type: transactionData.type || 'expense', // Default type
         financialYearId,
         createdAt: transactionData.createdAt || now,
         updatedAt: transactionData.updatedAt || now
