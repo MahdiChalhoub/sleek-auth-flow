@@ -4,6 +4,7 @@ export const ROUTES = {
   LOGIN: '/login',
   SIGNUP: '/signup',
   FORGOT_PASSWORD: '/forgot-password',
+  BUSINESS_SELECTION: '/business-selection',
   
   // Main navigation
   HOME: '/home',
@@ -51,7 +52,7 @@ export const ROUTES = {
   EXPORTS: '/exports',
   
   // Admin
-  ROLES: '/role-management',  // Updated from '/roles' to '/role-management'
+  ROLES: '/role-management',
   USERS: '/users',
   SETTINGS: '/settings',
   NOTIFICATIONS: '/notifications',

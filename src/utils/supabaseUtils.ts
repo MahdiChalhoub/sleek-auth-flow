@@ -1,4 +1,3 @@
-
 import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 import { Database } from '@/integrations/supabase/types';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -7,8 +6,8 @@ import { PostgrestError } from '@supabase/supabase-js';
 export type TableName = keyof Database['public']['Tables'];
 
 // This function gets the correct table name based on the environment
-export function tableSource(tableName: TableName): TableName {
-  // This handles the case where we're in a different environment or want to add a prefix/suffix
+export function tableSource(tableName: string) {
+  // For now, all tables are in the public schema
   return tableName;
 }
 
@@ -43,7 +42,7 @@ export function assertArray<T>(value: any): T[] {
  * ```
  */
 export function rpcParams<T extends Record<string, any>>(params: T): T {
-  return params as T;
+  return params;
 }
 
 /**

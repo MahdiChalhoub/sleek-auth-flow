@@ -57,6 +57,7 @@ import { ROUTES } from './constants/routes';
 import PrivateRoute from './components/auth/PrivateRoute';
 import ClientEditForm from './pages/ClientEditForm';
 import FinancialYearManagement from './pages/FinancialYearManagement';
+import BusinessSelection from './pages/BusinessSelection';
 
 function App() {
   return (
@@ -72,6 +73,7 @@ function App() {
               <Route path={ROUTES.SIGNUP} element={<Signup />} />
               <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ForgotPassword />} />
+              <Route path="/business-selection" element={<BusinessSelection />} />
               
               {/* Main layout with protected routes */}
               <Route path="/" element={

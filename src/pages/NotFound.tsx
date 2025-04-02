@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Home, Search } from 'lucide-react';
+import { ROUTES } from '@/constants/routes';
 
 const NotFound: React.FC = () => {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ const NotFound: React.FC = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour à la page précédente
           </Button>
-          <Link to="/role-management" className="w-full">
+          <Link to={ROUTES.ROLES} className="w-full">
             <Button className="w-full" variant="outline">
               Accéder à la gestion des rôles
             </Button>

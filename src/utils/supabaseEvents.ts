@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
@@ -96,4 +95,36 @@ export function unsubscribeAll(): void {
     supabase.removeChannel(channel);
   });
   activeSubscriptions.clear();
+}
+
+/**
+ * Create a broadcast channel with a custom event handler
+ */
+export function createBroadcastChannel<T>(
+  channelName: string,
+  eventHandler: (payload: any) => void
+) {
+  try {
+    const channel = supabase.channel(channelName);
+
+    channel
+      .on('broadcast', { event: 'message' }, (payload) => {
+        // Handle broadcast messages which are differently shaped than postgres changes
+        eventHandler(payload);
+      })
+      .subscribe();
+
+    return {
+      channel,
+      unsubscribe: () => {
+        supabase.removeChannel(channel);
+      }
+    };
+  } catch (error) {
+    console.error('Error creating realtime channel:', error);
+    return {
+      channel: null,
+      unsubscribe: () => {}
+    };
+  }
 }
