@@ -1,41 +1,62 @@
 
 import { supabase } from '@/lib/supabase';
 
-/**
- * Helper type for RPC params to ensure type safety
- */
-type RpcParams<T extends Record<string, any>> = T;
+export interface RpcError {
+  message: string;
+  details: string;
+  hint: string;
+  code: string;
+}
 
 /**
- * Type-safe generic RPC function call
- * @param functionName The name of the RPC function to call
- * @param params The parameters to pass to the function
- * @returns The result of the RPC call with proper typing
+ * Call a Supabase PostgreSQL function with proper type checking
  */
 export async function callRpc<T, P extends Record<string, any>>(
-  functionName: string, 
-  params: RpcParams<P>
-): Promise<{ data: T | null; error: any | null }> {
+  functionName: string,
+  params: P
+): Promise<{ data: T | null; error: RpcError | null }> {
   try {
-    // @ts-ignore - We're using a string for the function name, which TypeScript doesn't like
-    // but this is necessary for dynamic RPC calls
     const { data, error } = await supabase.rpc(functionName, params);
     
     if (error) {
-      console.error(`Error calling RPC function ${functionName}:`, error);
       return { data: null, error };
     }
     
-    return { data, error: null };
+    return { data: data as T, error: null };
   } catch (error) {
-    console.error(`Failed to call RPC function ${functionName}:`, error);
-    return { data: null, error };
+    console.error(`Error calling RPC function '${functionName}':`, error);
+    return {
+      data: null,
+      error: {
+        message: 'Unexpected error calling function',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        hint: 'Check server logs for more details',
+        code: 'UNEXPECTED_ERROR'
+      }
+    };
   }
 }
 
-/**
- * Helper to prepare RPC parameters with proper typing
- */
-export function rpcParams<T extends Record<string, any>>(params: T): T {
-  return params;
+// Specific function to check if a table exists
+export async function tableExists(tableName: string): Promise<boolean> {
+  try {
+    const { data, error } = await callRpc<boolean, { table_name: string }>(
+      'check_table_exists',
+      { table_name: tableName }
+    );
+    
+    if (error) {
+      console.error(`Error checking if table ${tableName} exists:`, error);
+      return false;
+    }
+    
+    return data || false;
+  } catch (error) {
+    console.error(`Error checking if table ${tableName} exists:`, error);
+    return false;
+  }
 }
+
+export const rpcParams = <T extends Record<string, any>>(params: T): T => {
+  return params;
+};

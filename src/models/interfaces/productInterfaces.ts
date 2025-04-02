@@ -19,7 +19,7 @@ export interface Product {
   max_stock_level?: number;
   created_at?: string;
   updated_at?: string;
-  // Properties for ReorderSuggestions component
+  // Adding locationStock for ReorderSuggestions component
   locationStock?: ProductLocationStock[];
 }
 

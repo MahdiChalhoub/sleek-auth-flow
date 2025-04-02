@@ -2,94 +2,99 @@
 import { supabase } from '@/lib/supabase';
 import { Category } from '@/models/interfaces/categoryInterfaces';
 
-const getAll = async (): Promise<Category[]> => {
+export async function getCategories(): Promise<Category[]> {
   try {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
       .order('name');
-
+    
     if (error) throw error;
-    return data || [];
+    
+    return data as Category[] || [];
   } catch (error) {
     console.error('Error fetching categories:', error);
     return [];
   }
-};
+}
 
-const getById = async (id: string): Promise<Category | null> => {
+export async function getCategoryById(id: string): Promise<Category | null> {
   try {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
       .eq('id', id)
       .single();
-
-    if (error) throw error;
-    return data;
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // Item not found
+      }
+      throw error;
+    }
+    
+    return data as Category;
   } catch (error) {
-    console.error(`Error fetching category with ID ${id}:`, error);
+    console.error(`Error fetching category with id ${id}:`, error);
     return null;
   }
-};
+}
 
-const create = async (category: Partial<Category>): Promise<Category | null> => {
+export async function createCategories(categories: Category[]): Promise<Category[]> {
   try {
-    // Make sure name is provided since it's required in the db schema
-    if (!category.name) {
-      throw new Error('Category name is required');
-    }
+    const categoriesToCreate = categories.map(cat => ({
+      name: cat.name,
+      description: cat.description,
+      id: cat.id
+    }));
     
     const { data, error } = await supabase
       .from('categories')
-      .insert([category])
-      .select()
-      .single();
-
+      .insert(categoriesToCreate)
+      .select();
+    
     if (error) throw error;
-    return data;
+    
+    return data as Category[] || [];
   } catch (error) {
-    console.error('Error creating category:', error);
-    return null;
+    console.error('Error creating categories:', error);
+    return [];
   }
-};
+}
 
-const update = async (id: string, category: Partial<Category>): Promise<Category | null> => {
+export async function updateCategory(id: string, category: Partial<Category>): Promise<Category | null> {
   try {
     const { data, error } = await supabase
       .from('categories')
-      .update(category)
+      .update({
+        name: category.name,
+        description: category.description
+      })
       .eq('id', id)
       .select()
       .single();
-
+    
     if (error) throw error;
-    return data;
+    
+    return data as Category;
   } catch (error) {
-    console.error(`Error updating category with ID ${id}:`, error);
+    console.error(`Error updating category with id ${id}:`, error);
     return null;
   }
-};
+}
 
-const remove = async (id: string): Promise<boolean> => {
+export async function deleteCategory(id: string): Promise<boolean> {
   try {
     const { error } = await supabase
       .from('categories')
       .delete()
       .eq('id', id);
-
+    
     if (error) throw error;
+    
     return true;
   } catch (error) {
-    console.error(`Error deleting category with ID ${id}:`, error);
+    console.error(`Error deleting category with id ${id}:`, error);
     return false;
   }
-};
-
-export const categoriesService = {
-  getAll,
-  getById,
-  create,
-  update,
-  remove
-};
+}

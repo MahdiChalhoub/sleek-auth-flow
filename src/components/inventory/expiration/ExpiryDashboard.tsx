@@ -12,7 +12,6 @@ import { rpcParams } from '@/utils/rpcUtils';
 import { formatDaysUntilExpiry } from '@/utils/expirationUtils';
 import { productsService } from '@/models/product';
 import { Spinner } from '@/components/ui/spinner';
-import { assertType } from '@/utils/typeUtils';
 import { callRpc } from '@/utils/rpcUtils';
 
 interface ExpiryDashboardProps {
@@ -67,7 +66,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
           })
         );
 
-        setBatches(batchesWithProductNames as ProductBatch[]);
+        setBatches(batchesWithProductNames);
       } catch (error) {
         console.error('Error loading batches:', error);
         toast.error('Failed to load product batches');
@@ -114,7 +113,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
             <ul>
               {batches.map(batch => (
                 <li key={batch.id} className="mb-2 p-2 border rounded">
-                  <div className="font-medium">Product: {(batch as any).productName || 'Unknown'}</div>
+                  <div className="font-medium">Product: {batch.productName || 'Unknown'}</div>
                   <div>Batch Number: {batch.batch_number}</div>
                   <div>Expiry Date: {batch.expiry_date}</div>
                   <div>{formatDaysUntilExpiry(batch.expiry_date)}</div>

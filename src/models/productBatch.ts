@@ -32,7 +32,8 @@ export const createProductBatch = (data: Partial<ProductBatch>): ProductBatch =>
     cost_per_unit: data.cost_per_unit || 0,
     created_at: data.created_at || data.createdAt || new Date().toISOString(),
     updated_at: data.updated_at || data.updatedAt || new Date().toISOString(),
-    status: data.status || 'active'
+    status: data.status || 'active',
+    productName: data.productName || ''
   };
 };
 

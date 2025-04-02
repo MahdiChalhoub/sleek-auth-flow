@@ -4,10 +4,67 @@ import { Category } from './interfaces/categoryInterfaces';
 import { callRpc } from '@/utils/rpcUtils';
 import { Product, ProductLocationStock } from './interfaces/productInterfaces';
 import { ProductBatch } from './productBatch';
-import { mockProducts } from './mockData';
 
-// Re-export mockProducts for backward compatibility
-export { mockProducts };
+// Create mock products for testing
+export const mockProducts: Product[] = [
+  {
+    id: "1",
+    name: "Basic T-shirt",
+    description: "Comfortable cotton t-shirt",
+    barcode: "1234567890",
+    price: 19.99,
+    cost: 8.50,
+    stock: 25,
+    image_url: "/images/products/tshirt.jpg",
+    category: { id: "1", name: "Clothing" },
+    category_id: "1",
+    hasStock: true,
+    is_combo: false,
+    min_stock_level: 5,
+    max_stock_level: 50,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    locationStock: []
+  },
+  {
+    id: "2",
+    name: "Premium Coffee",
+    description: "Organic fair-trade coffee beans",
+    barcode: "2345678901",
+    price: 12.99,
+    cost: 6.00,
+    stock: 15,
+    image_url: "/images/products/coffee.jpg",
+    category: { id: "2", name: "Groceries" },
+    category_id: "2",
+    hasStock: true,
+    is_combo: false,
+    min_stock_level: 3,
+    max_stock_level: 30,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    locationStock: []
+  },
+  {
+    id: "3",
+    name: "Wireless Headphones",
+    description: "Noise-cancelling wireless headphones",
+    barcode: "3456789012",
+    price: 89.99,
+    cost: 45.00,
+    stock: 8,
+    image_url: "/images/products/headphones.jpg",
+    category: { id: "3", name: "Electronics" },
+    category_id: "3",
+    hasStock: true,
+    is_combo: false,
+    min_stock_level: 2,
+    max_stock_level: 20,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    locationStock: []
+  }
+];
 
 // Get all products
 const getAll = async (): Promise<Product[]> => {
@@ -42,7 +99,8 @@ const getAll = async (): Promise<Product[]> => {
       min_stock_level: product.min_stock_level || 5,
       max_stock_level: product.max_stock_level || 100,
       created_at: product.created_at,
-      updated_at: product.updated_at
+      updated_at: product.updated_at,
+      locationStock: []
     }));
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -84,7 +142,8 @@ const getById = async (id: string): Promise<Product | null> => {
       min_stock_level: data.min_stock_level || 5,
       max_stock_level: data.max_stock_level || 100,
       created_at: data.created_at,
-      updated_at: data.updated_at
+      updated_at: data.updated_at,
+      locationStock: []
     };
   } catch (error) {
     console.error(`Error fetching product with ID ${id}:`, error);
