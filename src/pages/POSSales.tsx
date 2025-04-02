@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -54,7 +55,7 @@ const POSSales = () => {
   
   useEffect(() => {
     if (products) {
-      setFilteredProducts(products);
+      setFilteredProducts(products as unknown as Product[]);
     }
   }, [products]);
   
@@ -63,12 +64,12 @@ const POSSales = () => {
     setSelectedCategory(category);
     
     if (category === null) {
-      setFilteredProducts(products);
+      setFilteredProducts(products as unknown as Product[]);
     } else {
       const filtered = products.filter(product => 
-        product.category_id === category
+        product.category_id === category || product.categoryId === category
       );
-      setFilteredProducts(filtered);
+      setFilteredProducts(filtered as unknown as Product[]);
     }
   };
 
@@ -82,7 +83,7 @@ const POSSales = () => {
     // Apply category filter if selected
     if (selectedCategory) {
       filtered = filtered.filter(product => 
-        product.category_id === selectedCategory
+        product.category_id === selectedCategory || product.categoryId === selectedCategory
       );
     }
     
@@ -95,7 +96,7 @@ const POSSales = () => {
       );
     }
     
-    setFilteredProducts(filtered);
+    setFilteredProducts(filtered as unknown as Product[]);
   };
 
   // Mock handler for adding products to cart - this would be implemented with a proper cart state

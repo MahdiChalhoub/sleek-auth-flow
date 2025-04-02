@@ -27,13 +27,15 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user }) => {
       greeting = "Good afternoon";
     }
     
+    const userName = user?.fullName || user?.name || user?.email?.split('@')[0] || 'User';
+    
     const roleSpecificMessage = {
       admin: "Here's an overview of your business performance.",
       manager: "Here's how your team is performing today.",
       cashier: "Here's your performance summary."
     };
     
-    return `${greeting}, ${user?.name}! ${roleSpecificMessage[user?.role || "cashier"]}`;
+    return `${greeting}, ${userName}! ${roleSpecificMessage[user?.role || "cashier"]}`;
   };
 
   // Get current date in nice format

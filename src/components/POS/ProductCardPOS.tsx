@@ -7,13 +7,16 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Product } from '@/models/interfaces/productInterfaces';
 
 interface ProductCardPOSProps {
-  product: Product;
+  product: Product | any; // Allow any for compatibility with different Product types
   onAddToCart?: () => void;
 }
 
 const ProductCardPOS = ({ product, onAddToCart }: ProductCardPOSProps) => {
   // Use the most appropriate image property
-  const imageSource = product.image_url || product.image || "/placeholder.svg";
+  const imageSource = product.image_url || product.imageUrl || product.image || "/placeholder.svg";
+  
+  // Handle the has_stock property that might be named differently
+  const hasStock = typeof product.has_stock !== 'undefined' ? product.has_stock : true;
   
   const handleAddToCart = () => {
     if (onAddToCart) {

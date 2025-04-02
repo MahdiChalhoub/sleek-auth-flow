@@ -26,6 +26,7 @@ export interface User {
   id: string;
   email: string;
   fullName?: string;
+  name?: string; // Added for backward compatibility
   avatarUrl?: string;
   status: UserStatus;
   role: UserRole;
@@ -33,6 +34,7 @@ export interface User {
   lastLogin?: string;
   createdAt?: string;
   permissions?: UserPermission[];
+  isGlobalAdmin?: boolean; // Added for admin access checks
 }
 
 export interface AuthContextType {

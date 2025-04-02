@@ -22,7 +22,10 @@ interface BusinessSelectorProps {
 const BusinessSelector: React.FC<BusinessSelectorProps> = ({ isOpen, onOpenChange }) => {
   const { currentBusiness, userBusinesses, switchBusiness, user } = useAuth();
   
-  if (!currentBusiness || !user?.isGlobalAdmin) return null;
+  // Check if user is admin (compatible with both properties)
+  const isAdmin = user?.isGlobalAdmin || user?.role === 'admin';
+  
+  if (!currentBusiness || !isAdmin) return null;
   
   const handleSwitchBusiness = (businessId: string) => {
     switchBusiness(businessId);

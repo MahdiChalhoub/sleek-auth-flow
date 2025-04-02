@@ -1,160 +1,101 @@
 
-import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
-import { Database } from '@/integrations/supabase/types';
 import { PostgrestError } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+import { TableName } from './typeUtils';
 
-// Type helper to properly define database tables
-export type TableName = keyof Database['public']['Tables'];
-export const validTables = ['categories', 'client_credit_sales', 'clients', 'sales', 
-  'client_transactions', 'combo_components', 'products', 'financial_years', 
-  'journal_entries', 'transactions', 'locations', 'product_location_stock', 
-  'purchase_order_items', 'purchase_orders', 'register_sessions', 'return_items', 
-  'returns', 'sale_items', 'settings', 'stock_transfer_items', 'stock_transfers', 
-  'suppliers'] as const;
+/**
+ * Helper function to safely get an array from a Supabase query
+ * Returns an empty array if data is null or undefined
+ */
+export function safeArray<T, R>(data: T[] | null | undefined, mapFn?: (item: T) => R): R[] {
+  if (!data) return [];
+  return mapFn ? data.map(mapFn) : (data as unknown as R[]);
+}
 
-export type ValidTable = typeof validTables[number];
-
-// This function gets the correct table name based on the environment
-export function tableSource(tableName: string): ValidTable {
-  // Validate the table name to ensure type safety
-  if (validTables.includes(tableName as ValidTable)) {
-    return tableName as ValidTable;
+/**
+ * Format Supabase error for display
+ */
+export function formatSupabaseError(error: PostgrestError | Error | null | unknown): string {
+  if (!error) return 'Unknown error';
+  
+  if (error instanceof Error) {
+    return error.message;
   }
   
-  console.warn(`Warning: '${tableName}' is not a recognized table name`);
-  // Return the input as is, but with proper typing
-  return tableName as ValidTable;
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return (error as { message: string }).message;
+  }
+  
+  return String(error);
 }
 
 /**
- * A safe way to handle arrays returned from Supabase
- * This ensures we always return an array, even if the data is null or undefined
- */
-export function safeArray<T, U>(data: T[] | null | undefined, mapFunction?: (item: T) => U): U[] {
-  if (!data) return [];
-  if (!mapFunction) return data as unknown as U[];
-  return data.map(mapFunction);
-}
-
-/**
- * Asserts that a value is an array of the given type
- */
-export function assertArray<T>(value: any): T[] {
-  if (!Array.isArray(value)) return [];
-  return value as T[];
-}
-
-/**
- * Type-safe RPC parameters for PostgreSQL functions
- * This solves a common issue with TypeScript and Supabase RPC calls
- * 
- * Use it like this:
- * ```
- * const { data, error } = await supabase.rpc(
- *   'my_function',
- *   rpcParams({ param1: 'value1', param2: 'value2' })
- * );
- * ```
+ * Helper to create parameters for RPC functions
+ * This helps with type safety and consistent parameter formatting
  */
 export function rpcParams<T extends Record<string, any>>(params: T): T {
   return params;
 }
 
 /**
- * Format Supabase error messages in a user-friendly way
+ * Generate a Supabase table source with proper typing
  */
-export function formatSupabaseError(error: any): string {
-  if (!error) return "Unknown error";
-  
-  if (error.message) {
-    return error.message;
-  }
-  
-  if (error.code) {
-    switch (error.code) {
-      case "23505":
-        return "A record with this information already exists";
-      case "23503":
-        return "This operation would violate referential integrity";
-      case "23514":
-        return "Check constraint violated";
-      case "42P01":
-        return "Table does not exist";
-      case "42703":
-        return "Column does not exist";
-      default:
-        return `Database error: ${error.code}`;
-    }
-  }
-  
-  return "An unexpected database error occurred";
+export function tableSource<T extends TableName>(tableName: T) {
+  return supabase.from(tableName);
 }
 
 /**
- * Similar to Promise.all but doesn't fail if one promise fails
- * Returns a tuple of [results, errors]
+ * Utility to wait for all promises to settle and return results
  */
-export async function settleAll<T>(promises: Promise<T>[]): Promise<[T[], Error[]]> {
-  const results: T[] = [];
-  const errors: Error[] = [];
-
-  const settlements = await Promise.allSettled(promises);
+export async function settleAll<T>(promises: Promise<T>[]): Promise<(T | Error)[]> {
+  const results = await Promise.allSettled(promises);
   
-  settlements.forEach(settlement => {
-    if (settlement.status === 'fulfilled') {
-      results.push(settlement.value);
+  return results.map(result => {
+    if (result.status === 'fulfilled') {
+      return result.value;
     } else {
-      errors.push(settlement.reason);
+      return new Error(result.reason);
     }
   });
-
-  return [results, errors];
 }
 
 /**
- * Safely cast a value to a specific type
+ * Execute a Supabase query with error handling
  */
-export function assertType<T>(value: any): T {
-  return value as T;
-}
-
-/**
- * Helper function to safely execute a Supabase query with proper error handling
- */
-export async function safeQuery<T, U = T>(
-  query: Promise<{ data: T | null; error: any }>,
-  errorMessage: string,
-  mapFn?: (data: T) => U
-): Promise<U | null> {
+export async function safeQuery<T>(
+  queryFn: () => Promise<{ data: T | null; error: PostgrestError | null }>,
+  errorMessage = 'Database operation failed'
+): Promise<T> {
   try {
-    const { data, error } = await query;
+    const { data, error } = await queryFn();
     
     if (error) {
       console.error(`${errorMessage}:`, error);
-      throw error;
+      throw new Error(`${errorMessage}: ${error.message}`);
     }
     
-    if (!data) return null;
+    if (data === null) {
+      return [] as unknown as T;
+    }
     
-    return mapFn ? mapFn(data) : (data as unknown as U);
-  } catch (err) {
-    console.error(`${errorMessage}:`, err);
-    return null;
+    return data;
+  } catch (error) {
+    console.error(`${errorMessage}:`, error);
+    throw error;
   }
 }
 
 /**
- * Safely execute a database transaction with multiple write operations
+ * Execute a Supabase transaction with error handling
  */
 export async function safeTransaction<T>(
-  operations: () => Promise<T>,
-  errorMessage: string
-): Promise<T | null> {
+  transactionFn: () => Promise<T>,
+  errorMessage = 'Transaction failed'
+): Promise<T> {
   try {
-    const result = await operations();
-    return result;
-  } catch (err) {
-    console.error(`${errorMessage}:`, err);
-    return null;
+    return await transactionFn();
+  } catch (error) {
+    console.error(`${errorMessage}:`, error);
+    throw error;
   }
 }

@@ -1,71 +1,49 @@
 
-import { User } from "@/types/auth";
-import { mockUserBusinessAssignments } from "@/models/interfaces/businessInterfaces";
-import { toast } from "sonner";
+import { User, UserRole } from '@/types/auth';
 
-// Create a unique ID based on the email for consistency
-export const generateUserId = (email: string): string => {
-  return `user-${email.split("@")[0].toLowerCase()}`;
-};
-
-// Generate mock user based on email
-export const generateMockUser = (email: string, role: User["role"], isGlobalAdmin: boolean): User => {
-  const userId = generateUserId(email);
+/**
+ * Convert a Supabase auth user to our internal User type
+ */
+export function mapAuthUserToUser(authUser: any, additionalData: { role?: UserRole, status?: string } = {}): User {
+  if (!authUser) return null as unknown as User;
+  
+  const email = authUser.email || '';
+  const displayName = authUser.user_metadata?.name || 
+                       authUser.user_metadata?.full_name || 
+                       email.split('@')[0];
   
   return {
-    id: userId,
-    name: email.split("@")[0],
+    id: authUser.id,
     email,
-    role,
-    avatarUrl: `https://avatar.vercel.sh/${email}`,
-    isGlobalAdmin,
+    fullName: displayName,
+    avatarUrl: authUser.user_metadata?.avatar_url,
+    status: additionalData.status || 'active',
+    role: additionalData.role || 'cashier',
+    lastLogin: authUser.last_sign_in_at,
+    createdAt: authUser.created_at
   };
-};
+}
 
-// Check if user has access to selected business
-export const checkBusinessAccess = (userId: string, businessId: string): boolean => {
-  const userAssignments = mockUserBusinessAssignments.filter(
-    assignment => assignment.userId === userId
-  );
-  
-  const userBusinessIds = userAssignments.map(a => a.businessId);
-  
-  return userBusinessIds.includes(businessId);
-};
+/**
+ * Get the appropriate name for display from a user object
+ */
+export function getUserDisplayName(user: User | null): string {
+  if (!user) return 'Guest';
+  return user.fullName || user.name || user.email.split('@')[0] || 'User';
+}
 
-// Handle login storage based on remember me setting
-export const setAuthStorage = (user: User, businessId: string, rememberMe: boolean): void => {
-  // Use appropriate storage based on rememberMe setting
-  const storage = rememberMe ? localStorage : sessionStorage;
-  storage.setItem("pos_user", JSON.stringify(user));
-  storage.setItem("pos_current_business", businessId);
-  
-  // Store the storage type preference
-  localStorage.setItem("auth_storage_type", rememberMe ? "local" : "session");
-};
+/**
+ * Check if a user has a specific role
+ */
+export function hasRole(user: User | null, role: UserRole): boolean {
+  if (!user) return false;
+  return user.role === role || (role !== 'admin' && user.role === 'admin');
+}
 
-// Clear auth data from storage
-export const clearAuthStorage = (): void => {
-  // Get the storage type that was used for login
-  const storageType = localStorage.getItem("auth_storage_type") || "local";
-  const storage = storageType === "local" ? localStorage : sessionStorage;
-  
-  // Clear auth data from the appropriate storage
-  storage.removeItem("pos_user");
-  storage.removeItem("pos_current_business");
-  
-  // Also clear from the other storage type to be safe
-  if (storageType === "local") {
-    sessionStorage.removeItem("pos_user");
-    sessionStorage.removeItem("pos_current_business");
-  } else {
-    localStorage.removeItem("pos_user");
-    localStorage.removeItem("pos_current_business");
-  }
-  
-  // Clear storage type preference
-  localStorage.removeItem("auth_storage_type");
-  localStorage.removeItem("intended_redirect");
-  
-  toast.info("You have been logged out");
-};
+/**
+ * Check if the user is an administrator
+ */
+export function isAdmin(user: User | null): boolean {
+  if (!user) return false;
+  return user.role === 'admin' || !!user.isGlobalAdmin;
+}

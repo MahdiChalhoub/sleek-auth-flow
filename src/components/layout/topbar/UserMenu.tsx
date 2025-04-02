@@ -45,6 +45,12 @@ const UserMenu: React.FC<UserMenuProps> = ({
     onOpenChange?.(!isOpen);
   }, [isOpen, onOpenChange]);
   
+  // Get user display name safely
+  const userDisplayName = user?.fullName || user?.name || user?.email?.split('@')[0] || 'User';
+  
+  // Check if user is admin (compatible with both properties)
+  const isAdmin = user?.isGlobalAdmin || user?.role === 'admin';
+  
   return (
     <DropdownMenu open={isOpen} onOpenChange={onOpenChange}>
       <DropdownMenuTrigger asChild>
@@ -56,11 +62,11 @@ const UserMenu: React.FC<UserMenuProps> = ({
           aria-expanded={isOpen}
         >
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.avatarUrl} alt={user?.name} />
-            <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
+            <AvatarImage src={user?.avatarUrl} alt={userDisplayName} />
+            <AvatarFallback>{userDisplayName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="hidden md:block text-left">
-            <div className="text-sm font-medium">{user?.name}</div>
+            <div className="text-sm font-medium">{userDisplayName}</div>
             <div className="flex items-center gap-1">
               <Badge variant="outline" className="text-[10px]">{user?.role}</Badge>
               {currentBusiness && (
@@ -96,7 +102,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
           <MapPin className="mr-2 h-4 w-4" />
           Switch Location
         </DropdownMenuItem>
-        {currentBusiness && user?.isGlobalAdmin && (
+        {currentBusiness && isAdmin && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Businesses</DropdownMenuLabel>

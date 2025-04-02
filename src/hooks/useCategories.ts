@@ -35,11 +35,34 @@ export const useCategories = () => {
     }
   }, [categoryTreeHook.categories, categoryTreeHook.loading, categoryTreeHook.error]);
   
+  const fetchData = () => {
+    // Delegate to the categoryTreeHook's fetch method if it exists
+    if (typeof categoryTreeHook.fetchData === 'function') {
+      return categoryTreeHook.fetchData();
+    }
+    // Fallback implementation
+    setIsLoading(true);
+    return supabase.from('categories').select('*')
+      .then(({ data, error }) => {
+        if (error) throw error;
+        if (data) {
+          setCategories(data as unknown as Category[]);
+        }
+        setIsLoading(false);
+        return data;
+      })
+      .catch(err => {
+        setError(err);
+        setIsLoading(false);
+        throw err;
+      });
+  };
+  
   return {
     categories,
     isLoading,
     error,
-    refresh: categoryTreeHook.fetchData
+    refresh: fetchData
   };
 };
 

@@ -1,7 +1,7 @@
 
 // Re-export the Category type from useCategoryTree
 import { Category } from '@/hooks/useCategoryTree';
-export { Category };
+export type { Category };
 
 export interface CategoryWithProducts extends Category {
   productCount: number;
