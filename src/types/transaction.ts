@@ -13,11 +13,14 @@ export interface TransactionPermission {
   canReject: boolean;
   canView: boolean;
   canReport: boolean;
+  canReconcile: boolean;
+  maxAmount: number;
 }
 
 export interface TransactionFormData {
+  type?: 'sale' | 'expense' | 'refund' | 'transfer' | string;
   description?: string;
   amount?: number;
-  paymentMethod?: 'cash' | 'card' | 'bank' | 'wave' | 'mobile' | 'not_specified';
+  paymentMethod?: 'cash' | 'card' | 'bank' | 'wave' | 'mobile' | 'not_specified' | string;
   branchId?: string;
 }

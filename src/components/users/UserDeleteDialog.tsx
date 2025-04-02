@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -8,40 +8,41 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Supplier } from '@/models/interfaces/supplierInterfaces';
+import { User } from '@/types/auth';
 
-export interface SupplierDeleteDialogProps {
+interface UserDeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => Promise<boolean>;
-  supplier: Supplier;
+  onConfirm: () => Promise<void>;
+  user: User;
 }
 
-const SupplierDeleteDialog: React.FC<SupplierDeleteDialogProps> = ({
+const UserDeleteDialog: React.FC<UserDeleteDialogProps> = ({
   open,
   onOpenChange,
   onConfirm,
-  supplier
+  user,
 }) => {
   const handleConfirm = async () => {
     await onConfirm();
     onOpenChange(false);
   };
-
+  
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Supplier</AlertDialogTitle>
+          <AlertDialogTitle>Delete User</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete <strong>{supplier.name}</strong>? This action cannot be undone.
+            Are you sure you want to delete the user <strong>{user.fullName || user.name || user.email}</strong>?
+            This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction 
+          <AlertDialogAction
             onClick={handleConfirm}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
@@ -53,4 +54,4 @@ const SupplierDeleteDialog: React.FC<SupplierDeleteDialogProps> = ({
   );
 };
 
-export default SupplierDeleteDialog;
+export default UserDeleteDialog;

@@ -1,64 +1,27 @@
 
 import { supabase } from '@/lib/supabase';
 
-export interface RpcError {
-  message: string;
-  details: string;
-  hint: string;
-  code: string;
-}
+type RpcFunction = 'can_delete_user' | 'get_product_batches' | 'get_all_product_batches' | 
+                   'insert_product_batch' | 'update_product_batch' | 'delete_product_batch' |
+                   'check_table_exists';
 
 /**
- * Call a Supabase PostgreSQL function with proper type checking
+ * Helper function to call Supabase RPC functions with proper typing
  */
 export async function callRpc<T, P extends Record<string, any>>(
-  functionName: string,
+  functionName: RpcFunction,
   params: P
-): Promise<{ data: T | null; error: RpcError | null }> {
+): Promise<{ data: T | null; error: Error | null }> {
   try {
     const { data, error } = await supabase.rpc(functionName, params);
     
     if (error) {
-      return { data: null, error };
+      return { data: null, error: new Error(error.message) };
     }
     
-    return { data: data as T, error: null };
-  } catch (error) {
-    console.error(`Error calling RPC function '${functionName}':`, error);
-    return {
-      data: null,
-      error: {
-        message: 'Unexpected error calling function',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        hint: 'Check server logs for more details',
-        code: 'UNEXPECTED_ERROR'
-      }
-    };
+    return { data, error: null };
+  } catch (err: any) {
+    console.error(`Error calling RPC function ${functionName}:`, err);
+    return { data: null, error: err instanceof Error ? err : new Error(String(err)) };
   }
 }
-
-// Specific function to check if a table exists
-export async function tableExists(tableName: string): Promise<boolean> {
-  try {
-    const { data, error } = await callRpc<boolean, { table_name: string }>(
-      'check_table_exists',
-      { table_name: tableName }
-    );
-    
-    if (error) {
-      console.error(`Error checking if table ${tableName} exists:`, error);
-      return false;
-    }
-    
-    if (data === null) return false;
-    
-    return data;
-  } catch (error) {
-    console.error(`Error checking if table ${tableName} exists:`, error);
-    return false;
-  }
-}
-
-export const rpcParams = <T extends Record<string, any>>(params: T): T => {
-  return params;
-};

@@ -41,4 +41,6 @@ export interface TransactionPermission {
   canReject: boolean;
   canView: boolean;
   canReport: boolean;
+  canReconcile: boolean;
+  maxAmount: number;
 }

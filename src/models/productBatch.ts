@@ -30,6 +30,7 @@ export const createProductBatch = (data: Partial<ProductBatch>): ProductBatch =>
     expiry_date: data.expiry_date || data.expiryDate || '',
     purchase_date: data.purchase_date || new Date().toISOString(),
     cost_per_unit: data.cost_per_unit || 0,
+    notes: data.notes || '',
     created_at: data.created_at || data.createdAt || new Date().toISOString(),
     updated_at: data.updated_at || data.updatedAt || new Date().toISOString(),
     status: data.status || 'active',
@@ -52,6 +53,7 @@ export const mapDbProductBatchToModel = (dbBatch: any): ProductBatch => {
     expiryDate: dbBatch.expiry_date, // Add alternative property
     purchase_date: dbBatch.purchase_date || new Date().toISOString(),
     cost_per_unit: dbBatch.cost_per_unit || 0,
+    notes: dbBatch.notes || '',
     created_at: dbBatch.created_at,
     createdAt: dbBatch.created_at, // Add alternative property
     updated_at: dbBatch.updated_at,
@@ -71,6 +73,7 @@ export const mapModelProductBatchToDb = (batch: Partial<ProductBatch>): any => {
     expiry_date: batch.expiry_date || batch.expiryDate,
     purchase_date: batch.purchase_date,
     cost_per_unit: batch.cost_per_unit,
+    notes: batch.notes,
     created_at: batch.created_at || batch.createdAt,
     updated_at: batch.updated_at || batch.updatedAt,
     status: batch.status

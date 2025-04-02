@@ -2,7 +2,6 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Transaction } from '@/models/interfaces/transactionInterfaces';
-import { formatDate, formatCurrency } from '@/utils/formatters';
 
 export interface TransactionLedgerDialogProps {
   open: boolean;
@@ -23,10 +22,12 @@ export function TransactionLedgerDialog({
         </DialogHeader>
         <div className="py-4">
           <h3 className="font-medium">Transaction ID: {transaction.id}</h3>
-          <p className="text-muted-foreground">Amount: {formatCurrency(transaction.amount)}</p>
-          <p className="text-muted-foreground">Date: {formatDate(transaction.created_at)}</p>
+          <p className="text-muted-foreground">Amount: ${transaction.amount.toFixed(2)}</p>
           <p className="text-muted-foreground">Type: {transaction.type}</p>
           <p className="text-muted-foreground">Status: {transaction.status}</p>
+          {transaction.created_at && (
+            <p className="text-muted-foreground">Date: {new Date(transaction.created_at).toLocaleDateString()}</p>
+          )}
           {transaction.notes && (
             <div className="mt-4">
               <h4 className="text-sm font-medium">Notes:</h4>

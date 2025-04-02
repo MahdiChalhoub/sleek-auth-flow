@@ -96,8 +96,8 @@ const getAll = async (): Promise<Product[]> => {
       category_id: product.category_id,
       hasStock: product.has_stock,
       is_combo: product.is_combo,
-      min_stock_level: product.min_stock_level ?? 5,
-      max_stock_level: product.max_stock_level ?? 100,
+      min_stock_level: product.min_stock_level || 5,
+      max_stock_level: product.max_stock_level || 100,
       created_at: product.created_at,
       updated_at: product.updated_at,
       locationStock: []
@@ -139,8 +139,8 @@ const getById = async (id: string): Promise<Product | null> => {
       category_id: data.category_id,
       hasStock: data.has_stock,
       is_combo: data.is_combo,
-      min_stock_level: data.min_stock_level ?? 5,
-      max_stock_level: data.max_stock_level ?? 100,
+      min_stock_level: data.min_stock_level || 5,
+      max_stock_level: data.max_stock_level || 100,
       created_at: data.created_at,
       updated_at: data.updated_at,
       locationStock: []
