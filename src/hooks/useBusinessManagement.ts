@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { useAuth } from '@/contexts/AuthContext';
-import { fromTable } from '@/utils/supabaseServiceHelper';
+import { fromTable, isDataResponse, safeDataTransform } from '@/utils/supabaseServiceHelper';
 
 export const useBusinessManagement = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -17,39 +17,41 @@ export const useBusinessManagement = () => {
       setIsLoading(true);
       
       // Fetch businesses where user is the owner
-      const { data: ownedBusinesses, error: ownedError } = await fromTable('businesses')
+      const ownedResponse = await fromTable('businesses')
         .select('*')
         .eq('owner_id', user.id);
       
-      if (ownedError) throw ownedError;
-      
       // Fetch businesses where user is a member
-      const { data: memberBusinesses, error: memberError } = await fromTable('business_users')
+      const memberResponse = await fromTable('business_users')
         .select('business:businesses(*)')
         .eq('user_id', user.id);
       
-      if (memberError) throw memberError;
+      if (!isDataResponse(ownedResponse) || !isDataResponse(memberResponse)) {
+        console.error('Error fetching businesses:', 
+          ownedResponse.error?.message || memberResponse.error?.message);
+        return;
+      }
       
       // Combine and deduplicate businesses
-      const memberBusinessesData = memberBusinesses
-        // Use type assertion to safely access business property
-        .map(item => (item as any).business)
-        .filter(Boolean);
+      const memberBusinessesData = safeDataTransform(memberResponse.data, item => {
+        if (item && typeof item === 'object' && 'business' in item) {
+          return item.business;
+        }
+        return null;
+      });
       
-      const allBusinesses = [...(ownedBusinesses || []), ...memberBusinessesData];
+      const allBusinesses = [...(ownedResponse.data || []), ...memberBusinessesData];
       
       // Remove duplicates based on business ID
-      const uniqueBusinesses = allBusinesses.reduce((acc, current) => {
-        const x = acc.find(item => item.id === current.id);
-        if (!x) {
-          return acc.concat([current]);
-        } else {
-          return acc;
+      const uniqueBusinessMap = new Map<string, any>();
+      allBusinesses.forEach(business => {
+        if (business && business.id) {
+          uniqueBusinessMap.set(business.id, business);
         }
-      }, [] as any[]);
+      });
       
       // Map to our Business interface
-      const mappedBusinesses: Business[] = uniqueBusinesses.map(business => ({
+      const mappedBusinesses: Business[] = Array.from(uniqueBusinessMap.values()).map(business => ({
         id: business.id,
         name: business.name,
         address: business.address,
@@ -88,7 +90,7 @@ export const useBusinessManagement = () => {
     }
     
     try {
-      const { data, error } = await fromTable('businesses')
+      const response = await fromTable('businesses')
         .insert({
           name: newBusiness.name,
           owner_id: user.id,
@@ -106,7 +108,9 @@ export const useBusinessManagement = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (!isDataResponse(response)) {
+        throw new Error(response.error?.message || 'Failed to add business');
+      }
       
       toast.success('Business added successfully');
       fetchBusinesses();
@@ -118,11 +122,13 @@ export const useBusinessManagement = () => {
 
   const handleDeleteBusiness = useCallback(async (businessId: string) => {
     try {
-      const { error } = await fromTable('businesses')
+      const response = await fromTable('businesses')
         .delete()
         .eq('id', businessId);
       
-      if (error) throw error;
+      if (!isDataResponse(response)) {
+        throw new Error(response.error?.message || 'Failed to delete business');
+      }
       
       setBusinesses(prev => prev.filter(business => business.id !== businessId));
       toast.success('Business deleted successfully');
@@ -134,11 +140,13 @@ export const useBusinessManagement = () => {
 
   const handleToggleBusinessStatus = useCallback(async (businessId: string, isActive: boolean) => {
     try {
-      const { error } = await fromTable('businesses')
+      const response = await fromTable('businesses')
         .update({ active: isActive })
         .eq('id', businessId);
       
-      if (error) throw error;
+      if (!isDataResponse(response)) {
+        throw new Error(response.error?.message || 'Failed to update business status');
+      }
       
       setBusinesses(prev => 
         prev.map(business => 

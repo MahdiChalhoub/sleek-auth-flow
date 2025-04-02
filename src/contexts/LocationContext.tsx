@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, useEffect, useCallback } fr
 import { Branch } from '@/types/location';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { fromTable } from '@/utils/supabaseServiceHelper';
+import { fromTable, isDataResponse, safeDataTransform } from '@/utils/supabaseServiceHelper';
 
 // Define the location context type
 interface LocationContextType {
@@ -47,17 +47,19 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       setIsLoadingLocations(true);
       
-      const { data, error } = await fromTable('locations')
+      const response = await fromTable('locations')
         .select('*')
         .eq('business_id', currentBusiness.id)
         .order('is_default', { ascending: false });
       
-      if (error) throw error;
+      if (!isDataResponse(response)) {
+        throw new Error(response.error?.message || 'Failed to load locations');
+      }
 
       // Use type assertion to map the locations safely
-      const locationsData = data || [];
+      const locationsData = response.data || [];
       
-      const mappedLocations: Branch[] = locationsData.map(loc => ({
+      const mappedLocations: Branch[] = safeDataTransform(locationsData, loc => ({
         id: loc.id || '',
         name: loc.name || '',
         address: loc.address || '',

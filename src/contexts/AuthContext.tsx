@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, useEffect, useCallback } fr
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/auth';
 import { Business } from '@/models/interfaces/businessInterfaces';
-import { fromTable } from '@/utils/supabaseServiceHelper';
+import { fromTable, isDataResponse, safeDataTransform } from '@/utils/supabaseServiceHelper';
 
 interface AuthContextType {
   user: User | null;
@@ -37,43 +37,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userBusinesses, setUserBusinesses] = useState<Business[]>([]);
 
   // Load user's businesses
-  const loadUserBusinesses = useCallback(async (userId: string) => {
+  const loadUserBusinesses = useCallback(async (userId: string): Promise<Business[]> => {
     try {
       // Fetch businesses where user is the owner
-      const { data: ownedBusinesses, error: ownedError } = await fromTable('businesses')
+      const ownedResponse = await fromTable('businesses')
         .select('*')
         .eq('owner_id', userId);
       
-      if (ownedError) throw ownedError;
-      
       // Fetch businesses where user is a member
-      const { data: memberBusinesses, error: memberError } = await fromTable('business_users')
+      const memberResponse = await fromTable('business_users')
         .select('business:businesses(*)')
-        .eq('user_id', userId)
-        .eq('is_active', true);
+        .eq('user_id', userId);
       
-      if (memberError) throw memberError;
+      if (!isDataResponse(ownedResponse) || !isDataResponse(memberResponse)) {
+        console.error('Error fetching businesses:', ownedResponse.error || memberResponse.error);
+        return [];
+      }
       
       // Combine and deduplicate businesses
-      const memberBusinessesData = memberBusinesses
-        // Use type assertion to safely access business property
-        .map(item => (item as any).business)
-        .filter(Boolean);
+      const memberBusinessesData = safeDataTransform(memberResponse.data, item => {
+        if (item && typeof item === 'object' && 'business' in item) {
+          return item.business;
+        }
+        return null;
+      });
       
-      const allBusinesses = [...(ownedBusinesses || []), ...memberBusinessesData];
+      const allBusinesses = [...(ownedResponse.data || []), ...memberBusinessesData];
       
       // Remove duplicates based on business ID
-      const uniqueBusinesses = allBusinesses.reduce((acc, current) => {
-        const x = acc.find(item => item.id === current.id);
-        if (!x) {
-          return acc.concat([current]);
-        } else {
-          return acc;
+      const uniqueBusinessMap = new Map<string, any>();
+      allBusinesses.forEach(business => {
+        if (business && business.id) {
+          uniqueBusinessMap.set(business.id, business);
         }
-      }, [] as any[]);
+      });
       
       // Map to our Business interface
-      const mappedBusinesses: Business[] = uniqueBusinesses.map(business => ({
+      const mappedBusinesses: Business[] = Array.from(uniqueBusinessMap.values()).map(business => ({
         id: business.id,
         name: business.name,
         address: business.address,
@@ -105,6 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (userError) {
         console.error('Error fetching user:', userError);
+        setIsLoading(false);
         return;
       }
       

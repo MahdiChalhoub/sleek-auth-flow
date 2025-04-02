@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, AuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { User, UserRole, UserStatus } from "@/types/auth";
 import { useBusinessSelection } from "@/hooks/useBusinessSelection";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
 import { Business } from "@/models/interfaces/businessInterfaces";
-import { fromTable } from "@/utils/supabaseServiceHelper";
+import { fromTable, isDataResponse, safeDataTransform } from "@/utils/supabaseServiceHelper";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);

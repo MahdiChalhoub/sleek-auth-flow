@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Branch } from '@/types/location';
 import { useAuth } from '@/contexts/AuthContext';
-import { fromTable } from '@/utils/supabaseServiceHelper';
+import { fromTable, isDataResponse, safeDataTransform } from '@/utils/supabaseServiceHelper';
 
 export const useLocationManagement = () => {
   const [locations, setLocations] = useState<Branch[]>([]);
@@ -16,17 +16,19 @@ export const useLocationManagement = () => {
     try {
       setIsLoading(true);
       
-      const { data, error } = await fromTable('locations')
+      const response = await fromTable('locations')
         .select('*')
         .eq('business_id', currentBusiness.id)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (!isDataResponse(response)) {
+        throw new Error(response.error?.message || 'Failed to load locations');
+      }
       
       // Type guard to ensure data is available
-      const locationsData = data || [];
+      const locationsData = response.data || [];
       
-      const mappedLocations: Branch[] = locationsData.map(location => ({
+      const mappedLocations: Branch[] = safeDataTransform(locationsData, location => ({
         id: location.id || '',
         name: location.name || '',
         address: location.address || '',
@@ -62,7 +64,7 @@ export const useLocationManagement = () => {
     }
     
     try {
-      const { data, error } = await fromTable('locations')
+      const response = await fromTable('locations')
         .insert({
           name: newLocation.name,
           business_id: currentBusiness.id,
@@ -78,7 +80,9 @@ export const useLocationManagement = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (!isDataResponse(response)) {
+        throw new Error(response.error?.message || 'Failed to add location');
+      }
       
       toast.success('Location added successfully');
       fetchLocations();
@@ -90,11 +94,13 @@ export const useLocationManagement = () => {
 
   const handleDeleteLocation = useCallback(async (locationId: string) => {
     try {
-      const { error } = await fromTable('locations')
+      const response = await fromTable('locations')
         .delete()
         .eq('id', locationId);
       
-      if (error) throw error;
+      if (!isDataResponse(response)) {
+        throw new Error(response.error?.message || 'Failed to delete location');
+      }
       
       setLocations(prev => prev.filter(loc => loc.id !== locationId));
       toast.success('Location deleted successfully');
@@ -108,11 +114,13 @@ export const useLocationManagement = () => {
     try {
       const newStatus = isActive ? 'active' : 'inactive';
       
-      const { error } = await fromTable('locations')
+      const response = await fromTable('locations')
         .update({ status: newStatus })
         .eq('id', locationId);
       
-      if (error) throw error;
+      if (!isDataResponse(response)) {
+        throw new Error(response.error?.message || 'Failed to update location status');
+      }
       
       setLocations(prev => 
         prev.map(loc => 

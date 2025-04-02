@@ -1,41 +1,57 @@
 
 import React from 'react';
+import { BusinessCard } from '@/components/settings/business/BusinessCard';
 import { Business } from '@/models/interfaces/businessInterfaces';
-import { BusinessCard } from './BusinessCard';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface BusinessListProps {
   businesses: Business[];
+  isLoading: boolean;
   expandedBusinessId: string | null;
-  toggleExpand: (id: string) => void;
-  handleDeleteBusiness: (id: string) => void;
-  handleToggleBusinessStatus: (id: string, isActive: boolean) => void;
+  onToggleExpand: (businessId: string) => void;
+  onDeleteBusiness: (businessId: string) => Promise<void>;
+  onToggleBusinessStatus: (businessId: string, isActive: boolean) => Promise<void>;
 }
 
 export const BusinessList: React.FC<BusinessListProps> = ({
   businesses,
+  isLoading,
   expandedBusinessId,
-  toggleExpand,
-  handleDeleteBusiness,
-  handleToggleBusinessStatus
+  onToggleExpand,
+  onDeleteBusiness,
+  onToggleBusinessStatus
 }) => {
+  if (isLoading) {
+    return (
+      <div className="p-4 space-y-4">
+        {[1, 2, 3].map((_, index) => (
+          <div key={index} className="space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   if (businesses.length === 0) {
     return (
-      <div className="p-6 text-center text-muted-foreground">
-        No businesses found. Click "Add Business" to create one.
+      <div className="p-8 text-center text-muted-foreground">
+        No businesses found. Add your first business to get started.
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="divide-y">
       {businesses.map((business) => (
         <BusinessCard
           key={business.id}
           business={business}
           isExpanded={expandedBusinessId === business.id}
-          onToggleExpand={() => toggleExpand(business.id)}
-          onDeleteBusiness={() => handleDeleteBusiness(business.id)}
-          onToggleStatus={(isActive) => handleToggleBusinessStatus(business.id, isActive)}
+          onToggleExpand={() => onToggleExpand(business.id)}
+          onToggleStatus={isActive => onToggleBusinessStatus(business.id, isActive)}
+          onDeleteBusiness={() => onDeleteBusiness(business.id)}
         />
       ))}
     </div>
