@@ -1,5 +1,5 @@
 
-import { Register, DiscrepancyResolution } from '@/models/register';
+import { Register, DiscrepancyResolution } from '@/models/interfaces/registerInterfaces';
 import { PaymentMethod } from '@/models/transaction';
 import { updateRegister } from './registerService';
 

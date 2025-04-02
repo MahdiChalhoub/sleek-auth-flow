@@ -3,7 +3,13 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Transaction, TransactionType } from "@/models/transaction";
 import { useToast } from "@/hooks/use-toast";
-import { TransactionFormValues } from "@/components/transactions/TransactionFormDialog";
+
+export interface TransactionFormValues {
+  description?: string;
+  amount?: number;
+  paymentMethod?: 'cash' | 'card' | 'bank' | 'wave' | 'mobile' | 'not_specified';
+  branchId?: string;
+}
 
 export function useTransactionOperations(initialTransactions: Transaction[] = []) {
   const { toast: toastUI } = useToast();

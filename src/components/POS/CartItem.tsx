@@ -63,8 +63,8 @@ const CartItem = ({
     });
   };
   
-  // Use imageUrl or image property, depending on what's available
-  const imageSource = item.product.imageUrl || item.product.image || "";
+  // Use the most appropriate image property
+  const imageSource = item.product.image_url || item.product.image || "";
   
   return (
     <div className="border-b p-2 animate-fade-in">

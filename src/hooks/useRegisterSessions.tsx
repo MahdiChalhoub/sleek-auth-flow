@@ -1,8 +1,9 @@
 
 import { useState, useEffect } from 'react';
-import { Register } from '@/models/interfaces/registerInterfaces';
+import { Register, DiscrepancyResolution } from '@/models/interfaces/registerInterfaces';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { typeCast } from '@/utils/supabaseTypes';
 
 export const useRegisterSessions = () => {
   const [registers, setRegisters] = useState<Register[]>([]);
@@ -34,7 +35,7 @@ export const useRegisterSessions = () => {
         closedBy: register.closed_by,
         discrepancyApprovedAt: register.discrepancy_approved_at,
         discrepancyApprovedBy: register.discrepancy_approved_by,
-        discrepancyResolution: register.discrepancy_resolution,
+        discrepancyResolution: register.discrepancy_resolution as DiscrepancyResolution,
         discrepancyNotes: register.discrepancy_notes,
         discrepancies: register.discrepancies,
         openingBalance: register.opening_balance,

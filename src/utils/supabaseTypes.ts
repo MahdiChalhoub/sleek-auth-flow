@@ -18,9 +18,8 @@ export function rpcParams<T>(params: T): any {
 }
 
 /**
- * Helper function to safely cast between related types
- * Use this when TypeScript complains about types not being compatible
- * even though they have similar structure
+ * Helper function to cast types
+ * Use this to safely cast types when TypeScript is being too strict
  */
 export function typeCast<T>(value: any): T {
   return value as T;

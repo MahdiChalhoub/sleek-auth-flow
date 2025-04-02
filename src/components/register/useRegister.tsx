@@ -1,22 +1,21 @@
 
 import { useEffect, useState } from "react";
 import { useRegisterSessions } from "@/hooks/useRegisterSessions";
-import { Register, DiscrepancyResolution } from "@/models/register";
+import { Register, DiscrepancyResolution } from "@/models/interfaces/registerInterfaces";
 import { PaymentMethod } from "@/models/transaction";
+import { openRegister, closeRegister, resolveDiscrepancy } from "@/hooks/register/registerOperations";
 
 export function useRegister(id: string) {
-  const { 
-    getRegisterById, 
-    refresh, 
-    openRegister,
-    closeRegister,
-    resolveDiscrepancy,
-    isLoading: isLoadingAll 
-  } = useRegisterSessions();
+  const { registers, refresh: refreshAll, isLoading: isLoadingAll } = useRegisterSessions();
   
   const [register, setRegister] = useState<Register | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  const getRegisterById = async (registerId: string): Promise<Register | null> => {
+    const foundRegister = registers.find(reg => reg.id === registerId) || null;
+    return foundRegister;
+  };
 
   const loadRegister = async () => {
     setIsLoading(true);
@@ -34,7 +33,7 @@ export function useRegister(id: string) {
 
   useEffect(() => {
     loadRegister();
-  }, [id]);
+  }, [id, registers]);
 
   const handleOpenRegister = async (openingBalance: Record<PaymentMethod, number>) => {
     try {
@@ -85,6 +84,7 @@ export function useRegister(id: string) {
     refresh: loadRegister,
     openRegister: handleOpenRegister,
     closeRegister: handleCloseRegister,
-    resolveDiscrepancy: handleResolveDiscrepancy
+    resolveDiscrepancy: handleResolveDiscrepancy,
+    getRegisterById
   };
 }

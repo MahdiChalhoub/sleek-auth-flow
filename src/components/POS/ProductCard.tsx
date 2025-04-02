@@ -12,8 +12,8 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
-  // Use imageUrl or image property, depending on what's available
-  const imageSource = product.imageUrl || product.image || "";
+  // Use the most appropriate image property
+  const imageSource = product.image_url || product.image || "";
   
   return (
     <Card className="overflow-hidden transition-all duration-200 hover:shadow-md glass-card animate-fade-in">

@@ -1,4 +1,3 @@
-
 // Updated product model with all required properties
 import { supabase } from '@/lib/supabase';
 import { typeCast, rpcParams } from '@/utils/supabaseTypes';
@@ -18,7 +17,8 @@ export interface Product {
   maxStockLevel?: number;
   comboComponents?: ComboComponent[];
   image?: string;
-  image_url?: string; // For backward compatibility
+  image_url?: string; // Database field name
+  imageUrl?: string; // For client-side consistency
   createdAt?: string;
   updatedAt?: string;
   locationStock?: LocationStock[];
@@ -79,6 +79,8 @@ export const mockProducts: Product[] = [
     minStockLevel: 5,
     maxStockLevel: 20,
     image: 'https://example.com/laptop.jpg',
+    image_url: 'https://example.com/laptop.jpg',
+    imageUrl: 'https://example.com/laptop.jpg',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -97,6 +99,8 @@ export const mockProducts: Product[] = [
     minStockLevel: 8,
     maxStockLevel: 30,
     image: 'https://example.com/phone.jpg',
+    image_url: 'https://example.com/phone.jpg',
+    imageUrl: 'https://example.com/phone.jpg',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -115,6 +119,8 @@ export const mockProducts: Product[] = [
     minStockLevel: 3,
     maxStockLevel: 15,
     image: 'https://example.com/desk.jpg',
+    image_url: 'https://example.com/desk.jpg',
+    imageUrl: 'https://example.com/desk.jpg',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   },
@@ -133,6 +139,8 @@ export const mockProducts: Product[] = [
     minStockLevel: 2,
     maxStockLevel: 10,
     image: 'https://example.com/computer.jpg',
+    image_url: 'https://example.com/computer.jpg',
+    imageUrl: 'https://example.com/computer.jpg',
     comboComponents: [
       {
         productId: 'prod-4',
@@ -179,7 +187,11 @@ export const productsService = {
         categoryId: item.category_id,
         isCombo: item.is_combo,
         hasStock: item.has_stock,
+        minStockLevel: item.min_stock_level,
+        maxStockLevel: item.max_stock_level,
         image: item.image_url,
+        image_url: item.image_url,
+        imageUrl: item.image_url,
         createdAt: item.created_at,
         updatedAt: item.updated_at,
         category: item.category
@@ -211,7 +223,11 @@ export const productsService = {
         categoryId: data.category_id,
         isCombo: data.is_combo,
         hasStock: data.has_stock,
+        minStockLevel: data.min_stock_level,
+        maxStockLevel: data.max_stock_level,
         image: data.image_url,
+        image_url: data.image_url,
+        imageUrl: data.image_url,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         category: data.category
@@ -225,7 +241,7 @@ export const productsService = {
   getProductBatches: async (productId: string): Promise<ProductBatch[]> => {
     try {
       const { data, error } = await supabase
-        .rpc('get_product_batches', rpcParams({ product_id: productId }));
+        .rpc('get_product_batches', typeCast({ product_id: productId }));
       
       if (error) throw error;
       

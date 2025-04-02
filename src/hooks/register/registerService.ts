@@ -1,9 +1,12 @@
+
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Register } from '@/models/interfaces/registerInterfaces';
 import { PaymentMethod } from '@/models/transaction';
-import { DiscrepancyResolution } from '@/models/transaction';
+import { DiscrepancyResolution } from '@/models/interfaces/registerInterfaces';
 import { typeCast, rpcParams } from '@/utils/supabaseTypes';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Interface for register service return type
 export interface RegisterServiceReturn {
@@ -15,6 +18,58 @@ export interface RegisterServiceReturn {
   closeRegister: (closingBalance: Record<PaymentMethod, number>, expectedBalance: Record<PaymentMethod, number>) => Promise<void>;
   resolveDiscrepancy: (resolution: DiscrepancyResolution, notes: string) => Promise<void>;
 }
+
+// Function to update register properties
+export const updateRegister = async (id: string, updates: Partial<Register>): Promise<Register> => {
+  try {
+    const { data, error } = await supabase
+      .from('register_sessions')
+      .update({
+        ...updates,
+        is_open: updates.isOpen,
+        opened_at: updates.openedAt,
+        closed_at: updates.closedAt,
+        opened_by: updates.openedBy,
+        closed_by: updates.closedBy,
+        discrepancy_approved_at: updates.discrepancyApprovedAt,
+        discrepancy_approved_by: updates.discrepancyApprovedBy,
+        discrepancy_resolution: updates.discrepancyResolution,
+        discrepancy_notes: updates.discrepancyNotes,
+        discrepancies: updates.discrepancies,
+        opening_balance: updates.openingBalance,
+        current_balance: updates.currentBalance,
+        expected_balance: updates.expectedBalance,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    // Transform the data back to our Register model
+    return {
+      id: data.id,
+      name: data.name,
+      isOpen: data.is_open,
+      openedAt: data.opened_at,
+      closedAt: data.closed_at,
+      openedBy: data.opened_by,
+      closedBy: data.closed_by,
+      discrepancyApprovedAt: data.discrepancy_approved_at,
+      discrepancyApprovedBy: data.discrepancy_approved_by,
+      discrepancyResolution: data.discrepancy_resolution as DiscrepancyResolution,
+      discrepancyNotes: data.discrepancy_notes,
+      discrepancies: data.discrepancies,
+      openingBalance: data.opening_balance,
+      currentBalance: data.current_balance,
+      expectedBalance: data.expected_balance
+    };
+  } catch (error) {
+    console.error('Error updating register:', error);
+    throw error;
+  }
+};
 
 export function useRegisterService(registerId?: string): RegisterServiceReturn {
   const [register, setRegister] = useState<Register | null>(null);
@@ -34,7 +89,7 @@ export function useRegisterService(registerId?: string): RegisterServiceReturn {
 
     try {
       const { data, error } = await supabase
-        .from('registers')
+        .from('register_sessions')
         .select('*')
         .eq('id', registerId)
         .single();
@@ -82,7 +137,7 @@ export function useRegisterService(registerId?: string): RegisterServiceReturn {
 
     try {
       const { data, error } = await supabase
-        .rpc('open_register', rpcParams({
+        .rpc('open_register', typeCast({
           register_id: registerId,
           user_id: user.id,
           opening_balance: openingBalance
@@ -115,7 +170,7 @@ export function useRegisterService(registerId?: string): RegisterServiceReturn {
 
     try {
       const { data, error } = await supabase
-        .rpc('close_register', rpcParams({
+        .rpc('close_register', typeCast({
           register_id: registerId,
           user_id: user.id,
           closing_balance: closingBalance,
@@ -146,7 +201,7 @@ export function useRegisterService(registerId?: string): RegisterServiceReturn {
 
     try {
       const { data, error } = await supabase
-        .rpc('resolve_register_discrepancy', rpcParams({
+        .rpc('resolve_register_discrepancy', typeCast({
           register_id: registerId,
           user_id: user.id,
           resolution: resolution,

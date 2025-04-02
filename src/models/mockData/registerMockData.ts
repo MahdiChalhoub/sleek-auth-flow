@@ -1,6 +1,6 @@
 
 import { PaymentMethod } from '@/models/transaction';
-import { Register, RegisterSession } from '../interfaces/registerInterfaces';
+import { Register } from '../interfaces/registerInterfaces';
 
 // Sample data for testing registers
 export const mockRegisters: Register[] = [
