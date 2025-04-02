@@ -31,12 +31,13 @@ export const useLocationManagement = () => {
         phone: location.phone || '',
         email: location.email || '',
         businessId: location.business_id,
-        status: location.status,
+        status: location.status || 'active',
         type: location.type || 'retail',
         isDefault: location.is_default || false,
         locationCode: location.location_code || '',
         createdAt: location.created_at,
-        updatedAt: location.updated_at
+        updatedAt: location.updated_at,
+        openingHours: location.opening_hours || {}
       }));
       
       setLocations(mappedLocations);
@@ -68,7 +69,7 @@ export const useLocationManagement = () => {
           phone: newLocation.phone,
           email: newLocation.email,
           type: newLocation.type,
-          status: 'active',
+          status: newLocation.status || 'active',
           is_default: newLocation.isDefault || false,
           location_code: newLocation.locationCode,
           opening_hours: newLocation.openingHours || {}

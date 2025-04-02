@@ -58,12 +58,13 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         phone: location.phone || '',
         email: location.email || '',
         businessId: location.business_id,
-        status: location.status,
+        status: location.status || 'active',
         type: location.type || 'retail',
         isDefault: location.is_default || false,
         locationCode: location.location_code || '',
         createdAt: location.created_at,
-        updatedAt: location.updated_at
+        updatedAt: location.updated_at,
+        openingHours: location.opening_hours || {}
       }));
       
       setAvailableLocations(mappedLocations);

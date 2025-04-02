@@ -68,7 +68,7 @@ export const BusinessManagementTab: React.FC = () => {
           expandedBusinessId={expandedBusinessId}
           toggleExpand={toggleExpand}
           handleDeleteBusiness={handleDeleteBusiness}
-          handleToggleBusinessStatus={handleToggleBusinessStatus}
+          handleToggleBusinessStatus={(id, isActive) => handleToggleBusinessStatus(id, isActive)}
         />
       </CardContent>
       

@@ -1,20 +1,22 @@
 
-import React from "react";
-import { Building, MapPin } from "lucide-react";
+import React from 'react';
+import { Store, Warehouse, Building2, Building } from 'lucide-react';
 
 interface LocationTypeIconProps {
-  type: string;
+  type: 'retail' | 'warehouse' | 'office' | 'other';
 }
 
 export const LocationTypeIcon: React.FC<LocationTypeIconProps> = ({ type }) => {
   switch (type) {
-    case "store":
-      return <Building className="h-4 w-4 text-primary" />;
-    case "warehouse":
-      return <Building className="h-4 w-4 text-violet-500" />;
-    case "pickup":
-      return <MapPin className="h-4 w-4 text-amber-500" />;
+    case 'retail':
+      return <Store className="h-5 w-5 text-primary" />;
+    case 'warehouse':
+      return <Warehouse className="h-5 w-5 text-amber-500" />;
+    case 'office':
+      return <Building2 className="h-5 w-5 text-blue-500" />;
+    case 'other':
+      return <Building className="h-5 w-5 text-gray-500" />;
     default:
-      return <Building className="h-4 w-4" />;
+      return <Store className="h-5 w-5 text-primary" />;
   }
 };

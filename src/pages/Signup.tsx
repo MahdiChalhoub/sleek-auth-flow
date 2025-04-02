@@ -105,7 +105,7 @@ const Signup: React.FC = () => {
             <AuthLinks 
               showForgotPassword={false}
               showSignup={false}
-              loginMessage="Already have an account?"
+              loginText="Already have an account?"
             />
           </CardFooter>
         </Card>

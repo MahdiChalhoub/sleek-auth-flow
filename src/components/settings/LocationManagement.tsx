@@ -54,7 +54,7 @@ export const LocationManagement: React.FC<LocationManagementProps> = ({ business
         <LocationList 
           locations={locations}
           onDeleteLocation={handleDeleteLocation}
-          onToggleLocationStatus={handleToggleLocationStatus}
+          onToggleLocationStatus={(id, isActive) => handleToggleLocationStatus(id, isActive)}
         />
       </CardContent>
       

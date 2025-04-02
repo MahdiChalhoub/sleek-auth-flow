@@ -1,30 +1,36 @@
 
-import React from "react";
-import { Badge } from "@/components/ui/badge";
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { CircleCheck, CircleX, CircleDashed } from 'lucide-react';
 
 interface LocationStatusBadgeProps {
-  status: string;
+  status: 'active' | 'inactive' | 'pending';
 }
 
 export const LocationStatusBadge: React.FC<LocationStatusBadgeProps> = ({ status }) => {
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-500/20 text-green-600 hover:bg-green-500/30";
-      case "maintenance":
-        return "bg-amber-500/20 text-amber-600 hover:bg-amber-500/30";
-      case "inactive":
-        return "bg-red-500/20 text-red-600 hover:bg-red-500/30";
-      default:
-        return "";
-    }
-  };
-
-  return (
-    <Badge 
-      className={`capitalize ${getStatusBadgeVariant(status)}`}
-    >
-      {status}
-    </Badge>
-  );
+  switch (status) {
+    case 'active':
+      return (
+        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1">
+          <CircleCheck className="h-3 w-3" />
+          Active
+        </Badge>
+      );
+    case 'inactive':
+      return (
+        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 flex items-center gap-1">
+          <CircleX className="h-3 w-3" />
+          Inactive
+        </Badge>
+      );
+    case 'pending':
+      return (
+        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1">
+          <CircleDashed className="h-3 w-3" />
+          Pending
+        </Badge>
+      );
+    default:
+      return null;
+  }
 };
