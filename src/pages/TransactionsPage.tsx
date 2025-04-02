@@ -1,19 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Tab, 
-  TabContent, 
-  TabList, 
-  TabPanel, 
-  TabPanels, 
-  Tabs 
+  Tabs, 
+  TabsList, 
+  TabsTrigger, 
+  TabsContent 
 } from '@/components/ui/tabs-redesigned';
 import { 
   Transaction,
   TransactionType,
   TransactionStatus
 } from '@/models/transaction';
-import { transactionsMock } from '@/models/mockData/transactionMockData';
 import { format } from 'date-fns';
 import TransactionHeader from '@/components/transactions/TransactionHeader';
 import TransactionsList from '@/components/transactions/TransactionsList';
@@ -22,6 +19,49 @@ import TransactionLedgerDialog from '@/components/transactions/TransactionLedger
 import BackupDialog from '@/components/transactions/BackupDialog';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Mock transaction data for development
+const transactionsMock: Transaction[] = [
+  {
+    id: 'tx1',
+    amount: 250.00,
+    description: 'Office supplies purchase',
+    paymentMethod: 'card',
+    branchId: 'branch-1',
+    status: 'open',
+    type: 'expense',
+    createdAt: '2023-06-15T10:30:00Z',
+    updatedAt: '2023-06-15T10:30:00Z',
+    createdBy: 'John Doe',
+    journalEntries: []
+  },
+  {
+    id: 'tx2',
+    amount: 1250.50,
+    description: 'Client payment - Invoice #4502',
+    paymentMethod: 'bank',
+    branchId: 'branch-2',
+    status: 'verified',
+    type: 'sale',
+    createdAt: '2023-06-14T09:15:00Z',
+    updatedAt: '2023-06-14T15:45:00Z',
+    createdBy: 'Jane Smith',
+    journalEntries: []
+  },
+  {
+    id: 'tx3',
+    amount: 300.00,
+    description: 'Cash transfer to main branch',
+    paymentMethod: 'cash',
+    branchId: 'branch-3',
+    status: 'locked',
+    type: 'transfer',
+    createdAt: '2023-06-13T16:20:00Z',
+    updatedAt: '2023-06-13T16:20:00Z',
+    createdBy: 'Mike Johnson',
+    journalEntries: []
+  }
+];
 
 interface Business {
   id: string;
@@ -40,7 +80,7 @@ const TransactionsPage = () => {
   const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   
-  const { permissions } = useAuth();
+  const { hasPermission } = useAuth();
   
   // Simulate loading transactions
   useEffect(() => {
@@ -143,106 +183,100 @@ const TransactionsPage = () => {
       />
       
       <Tabs defaultValue="all">
-        <TabList className="mb-6">
-          <Tab value="all">All Transactions</Tab>
-          <Tab value="sales">Sales</Tab>
-          <Tab value="expenses">Expenses</Tab>
-          <Tab value="transfers">Transfers</Tab>
-        </TabList>
+        <TabsList className="mb-6">
+          <TabsTrigger value="all">All Transactions</TabsTrigger>
+          <TabsTrigger value="sales">Sales</TabsTrigger>
+          <TabsTrigger value="expenses">Expenses</TabsTrigger>
+          <TabsTrigger value="transfers">Transfers</TabsTrigger>
+        </TabsList>
         
-        <TabPanels>
-          {/* All Transactions */}
-          <TabPanel value="all">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <p className="text-muted-foreground">Loading transactions...</p>
-              </div>
-            ) : transactions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-center">
-                <p className="text-muted-foreground mb-2">No transactions found</p>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  Create your first transaction by clicking the "New Transaction" button above.
-                </p>
-              </div>
-            ) : (
-              <TransactionsList 
-                transactions={transactions}
-                onChangeStatus={handleStatusChange}
-                onDeleteTransaction={handleDeleteTransaction}
-                onViewLedger={handleViewLedger}
-              />
-            )}
-          </TabPanel>
-          
-          {/* Sales Transactions */}
-          <TabPanel value="sales">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <p className="text-muted-foreground">Loading transactions...</p>
-              </div>
-            ) : getTransactionsByType('sale').length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-center">
-                <p className="text-muted-foreground mb-2">No sales transactions found</p>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  Create your first sales transaction by clicking the "New Transaction" button above.
-                </p>
-              </div>
-            ) : (
-              <TransactionsList 
-                transactions={getTransactionsByType('sale')}
-                onChangeStatus={handleStatusChange}
-                onDeleteTransaction={handleDeleteTransaction}
-                onViewLedger={handleViewLedger}
-              />
-            )}
-          </TabPanel>
-          
-          {/* Expenses Transactions */}
-          <TabPanel value="expenses">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <p className="text-muted-foreground">Loading transactions...</p>
-              </div>
-            ) : getTransactionsByType('expense').length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-center">
-                <p className="text-muted-foreground mb-2">No expense transactions found</p>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  Create your first expense transaction by clicking the "New Transaction" button above.
-                </p>
-              </div>
-            ) : (
-              <TransactionsList 
-                transactions={getTransactionsByType('expense')}
-                onChangeStatus={handleStatusChange}
-                onDeleteTransaction={handleDeleteTransaction}
-                onViewLedger={handleViewLedger}
-              />
-            )}
-          </TabPanel>
-          
-          {/* Transfers Transactions */}
-          <TabPanel value="transfers">
-            {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <p className="text-muted-foreground">Loading transactions...</p>
-              </div>
-            ) : getTransactionsByType('transfer').length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 text-center">
-                <p className="text-muted-foreground mb-2">No transfer transactions found</p>
-                <p className="text-sm text-muted-foreground max-w-md">
-                  Create your first transfer transaction by clicking the "New Transaction" button above.
-                </p>
-              </div>
-            ) : (
-              <TransactionsList 
-                transactions={getTransactionsByType('transfer')}
-                onChangeStatus={handleStatusChange}
-                onDeleteTransaction={handleDeleteTransaction}
-                onViewLedger={handleViewLedger}
-              />
-            )}
-          </TabPanel>
-        </TabPanels>
+        <TabsContent value="all">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <p className="text-muted-foreground">Loading transactions...</p>
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+              <p className="text-muted-foreground mb-2">No transactions found</p>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Create your first transaction by clicking the "New Transaction" button above.
+              </p>
+            </div>
+          ) : (
+            <TransactionsList 
+              transactions={transactions}
+              onChangeStatus={handleStatusChange}
+              onDeleteTransaction={handleDeleteTransaction}
+              onViewLedger={handleViewLedger}
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="sales">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <p className="text-muted-foreground">Loading transactions...</p>
+            </div>
+          ) : getTransactionsByType('sale').length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+              <p className="text-muted-foreground mb-2">No sales transactions found</p>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Create your first sales transaction by clicking the "New Transaction" button above.
+              </p>
+            </div>
+          ) : (
+            <TransactionsList 
+              transactions={getTransactionsByType('sale')}
+              onChangeStatus={handleStatusChange}
+              onDeleteTransaction={handleDeleteTransaction}
+              onViewLedger={handleViewLedger}
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="expenses">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <p className="text-muted-foreground">Loading transactions...</p>
+            </div>
+          ) : getTransactionsByType('expense').length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+              <p className="text-muted-foreground mb-2">No expense transactions found</p>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Create your first expense transaction by clicking the "New Transaction" button above.
+              </p>
+            </div>
+          ) : (
+            <TransactionsList 
+              transactions={getTransactionsByType('expense')}
+              onChangeStatus={handleStatusChange}
+              onDeleteTransaction={handleDeleteTransaction}
+              onViewLedger={handleViewLedger}
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="transfers">
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <p className="text-muted-foreground">Loading transactions...</p>
+            </div>
+          ) : getTransactionsByType('transfer').length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+              <p className="text-muted-foreground mb-2">No transfer transactions found</p>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Create your first transfer transaction by clicking the "New Transaction" button above.
+              </p>
+            </div>
+          ) : (
+            <TransactionsList 
+              transactions={getTransactionsByType('transfer')}
+              onChangeStatus={handleStatusChange}
+              onDeleteTransaction={handleDeleteTransaction}
+              onViewLedger={handleViewLedger}
+            />
+          )}
+        </TabsContent>
       </Tabs>
       
       {/* Transaction Form Dialog */}
@@ -258,7 +292,7 @@ const TransactionsPage = () => {
       {/* Transaction Ledger Dialog */}
       {isLedgerDialogOpen && selectedTransaction && (
         <TransactionLedgerDialog 
-          open={isLedgerDialogOpen}
+          isOpen={isLedgerDialogOpen}
           onOpenChange={setIsLedgerDialogOpen}
           transaction={selectedTransaction}
         />

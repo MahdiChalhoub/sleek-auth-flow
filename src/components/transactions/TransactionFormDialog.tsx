@@ -1,4 +1,12 @@
-import React from 'react';
+
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from 'sonner';
+import { Business } from "@/models/interfaces/businessInterfaces";
 import { PaymentMethod } from '@/models/transaction';
 
 interface TransactionFormData {
@@ -9,26 +17,32 @@ interface TransactionFormData {
 }
 
 export interface TransactionFormDialogProps {
-  isOpen: boolean;
+  open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: TransactionFormData) => Promise<void>;
+  onSubmit: (data: TransactionFormData) => Promise<boolean>;
   businesses: Business[];
-  transaction?: Transaction;
+  transaction?: {
+    id: string;
+    description: string;
+    amount: number;
+    paymentMethod: PaymentMethod;
+    branchId?: string;
+  };
 }
 
 const TransactionFormDialog: React.FC<TransactionFormDialogProps> = ({
-  isOpen,
+  open,
   onOpenChange,
   onSubmit,
   businesses,
   transaction
 }) => {
   // Form state
-  const [description, setDescription] = React.useState(transaction?.description || "");
-  const [amount, setAmount] = React.useState(transaction?.amount.toString() || "");
-  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>(transaction?.paymentMethod || "cash");
-  const [branchId, setBranchId] = React.useState(transaction?.branchId || "");
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [description, setDescription] = useState(transaction?.description || "");
+  const [amount, setAmount] = useState(transaction?.amount?.toString() || "");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(transaction?.paymentMethod || "cash");
+  const [branchId, setBranchId] = useState(transaction?.branchId || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form validation
   const isValid = description.trim() !== "" && amount !== "" && parseFloat(amount) > 0;
@@ -69,7 +83,7 @@ const TransactionFormDialog: React.FC<TransactionFormDialogProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
