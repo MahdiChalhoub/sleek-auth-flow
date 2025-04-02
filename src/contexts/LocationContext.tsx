@@ -25,18 +25,21 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [availableLocations, setAvailableLocations] = useState<Branch[]>([]);
 
   useEffect(() => {
-    // In a real app, this would fetch the locations from an API
-    // For now, we'll use mock data
-    setAvailableLocations(mockBranches.filter(branch => branch.status === 'active'));
+    console.log('LocationProvider mounted');
+    // Filter active branches
+    const activeBranches = mockBranches.filter(branch => branch.status === 'active');
+    setAvailableLocations(activeBranches);
     
     // Set the default location if none is selected
-    if (!currentLocation && mockBranches.length > 0) {
-      const defaultLocation = mockBranches.find(branch => branch.isDefault) || mockBranches[0];
+    if (!currentLocation && activeBranches.length > 0) {
+      const defaultLocation = activeBranches.find(branch => branch.isDefault) || activeBranches[0];
+      console.log('Setting default location:', defaultLocation);
       setCurrentLocation(defaultLocation);
     }
-  }, [currentLocation]);
+  }, []);
 
   const switchLocation = (locationId: string) => {
+    console.log('Switching location to:', locationId);
     const location = mockBranches.find(branch => branch.id === locationId);
     if (location) {
       setCurrentLocation(location);
@@ -49,14 +52,18 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return true;
   };
 
+  const contextValue = {
+    currentLocation, 
+    setCurrentLocation, 
+    availableLocations, 
+    switchLocation,
+    userHasAccessToLocation
+  };
+
+  console.log('LocationContext value:', contextValue);
+
   return (
-    <LocationContext.Provider value={{ 
-      currentLocation, 
-      setCurrentLocation, 
-      availableLocations, 
-      switchLocation,
-      userHasAccessToLocation 
-    }}>
+    <LocationContext.Provider value={contextValue}>
       {children}
     </LocationContext.Provider>
   );

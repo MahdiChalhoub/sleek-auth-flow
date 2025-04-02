@@ -11,8 +11,8 @@ export function adaptTypeRoleToModelRole(typeRole: TypeRole): ModelRole {
     name: typeRole.name,
     description: typeRole.description || '',
     permissions: typeRole.permissions || [],
-    createdAt: typeRole.createdAt,
-    updatedAt: typeRole.updatedAt,
+    createdAt: typeRole.createdAt || '',
+    updatedAt: typeRole.updatedAt || '',
     created_at: typeRole.createdAt || '',
     updated_at: typeRole.updatedAt || ''
   };

@@ -40,4 +40,6 @@ export interface ProductLocationStock {
   minStockLevel?: number;
   maxStockLevel?: number;
   productId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
