@@ -14,9 +14,10 @@ export const mockProducts: Product[] = [
     stock: 15,
     barcode: "123456789012",
     image_url: "/images/laptop.jpg",
-    category_id: "cat-001",
+    image: "/images/laptop.jpg", // For compatibility
+    categoryId: "cat-001",
     hasStock: true,
-    is_combo: false,
+    isCombo: false,
     min_stock_level: 5,
     max_stock_level: 30,
     category: { id: "cat-001", name: "Electronics" }
@@ -30,9 +31,10 @@ export const mockProducts: Product[] = [
     stock: 25,
     barcode: "223456789012",
     image_url: "/images/smartphone.jpg",
-    category_id: "cat-001",
+    image: "/images/smartphone.jpg", // For compatibility
+    categoryId: "cat-001",
     hasStock: true,
-    is_combo: false,
+    isCombo: false,
     min_stock_level: 10,
     max_stock_level: 50,
     category: { id: "cat-001", name: "Electronics" }
@@ -46,9 +48,10 @@ export const mockProducts: Product[] = [
     stock: 8,
     barcode: "323456789012",
     image_url: "/images/coffeemaker.jpg",
-    category_id: "cat-002",
+    image: "/images/coffeemaker.jpg", // For compatibility
+    categoryId: "cat-002",
     hasStock: true,
-    is_combo: false,
+    isCombo: false,
     min_stock_level: 3,
     max_stock_level: 15,
     category: { id: "cat-002", name: "Home Appliances" }
@@ -62,9 +65,10 @@ export const mockProducts: Product[] = [
     stock: 12,
     barcode: "423456789012",
     image_url: "/images/chair.jpg",
-    category_id: "cat-003",
+    image: "/images/chair.jpg", // For compatibility
+    categoryId: "cat-003",
     hasStock: true,
-    is_combo: false,
+    isCombo: false,
     min_stock_level: 5,
     max_stock_level: 20,
     category: { id: "cat-003", name: "Furniture" }
@@ -78,9 +82,10 @@ export const mockProducts: Product[] = [
     stock: 20,
     barcode: "523456789012",
     image_url: "/images/lamp.jpg",
-    category_id: "cat-003",
+    image: "/images/lamp.jpg", // For compatibility
+    categoryId: "cat-003",
     hasStock: true,
-    is_combo: false,
+    isCombo: false,
     min_stock_level: 8,
     max_stock_level: 30,
     category: { id: "cat-003", name: "Furniture" }

@@ -108,7 +108,7 @@ const Suppliers = () => {
     }
   };
 
-  const handleDeleteSupplier = async (id: string) => {
+  const handleDeleteSupplier = async (id: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from('suppliers')
@@ -231,14 +231,14 @@ const Suppliers = () => {
       <SupplierFormDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
-        onSubmit={handleAddSupplier}
+        onSubmit={(data) => voidPromise(handleAddSupplier(data))}
       />
 
       {selectedSupplier && (
         <SupplierFormDialog
           open={showEditDialog}
           onOpenChange={setShowEditDialog}
-          onSubmit={(data) => handleUpdateSupplier(selectedSupplier.id, data)}
+          onSubmit={(data) => voidPromise(handleUpdateSupplier(selectedSupplier.id, data))}
           supplier={selectedSupplier}
         />
       )}
@@ -255,7 +255,7 @@ const Suppliers = () => {
         <SupplierDeleteDialog
           open={showDeleteDialog}
           onOpenChange={setShowDeleteDialog}
-          onConfirm={handleDeleteSupplier}
+          onConfirm={() => handleDeleteSupplier(selectedSupplier.id)}
           supplier={selectedSupplier}
         />
       )}

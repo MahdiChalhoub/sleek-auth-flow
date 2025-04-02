@@ -1,51 +1,44 @@
 
-import { format, parseISO, isValid } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 
-/**
- * Format a date string to a human-readable format
- * @param dateString - The date string to format
- * @param formatString - The format string to use (default: 'PPP')
- * @returns Formatted date string or 'N/A' if invalid
- */
-export function formatDate(dateString?: string, formatString: string = 'PPP'): string {
+export const formatDate = (dateString?: string | null): string => {
   if (!dateString) return 'N/A';
   
   try {
-    const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
+    const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
     if (!isValid(date)) return 'Invalid date';
-    return format(date, formatString);
+    
+    return format(date, 'MMM d, yyyy');
   } catch (error) {
     console.error('Error formatting date:', error);
-    return 'N/A';
+    return 'Invalid date';
   }
-}
+};
 
-/**
- * Format a currency value
- * @param amount - The amount to format
- * @param currency - The currency code (default: 'USD')
- * @returns Formatted currency string
- */
-export function formatCurrency(amount?: number, currency: string = 'USD'): string {
-  if (amount === undefined || amount === null) return '-';
+export const formatDateTime = (dateString?: string | null): string => {
+  if (!dateString) return 'N/A';
   
-  return new Intl.NumberFormat('en-US', { 
-    style: 'currency', 
-    currency 
-  }).format(amount);
-}
+  try {
+    const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
+    if (!isValid(date)) return 'Invalid date';
+    
+    return format(date, 'MMM d, yyyy h:mm a');
+  } catch (error) {
+    console.error('Error formatting date and time:', error);
+    return 'Invalid date';
+  }
+};
 
-/**
- * Format a number with thousands separators
- * @param value - The number to format
- * @param decimals - Number of decimal places (default: 0)
- * @returns Formatted number string
- */
-export function formatNumber(value?: number, decimals: number = 0): string {
-  if (value === undefined || value === null) return '-';
+export const formatCurrency = (amount?: number | null, currency: string = 'USD'): string => {
+  if (amount === undefined || amount === null) return 'N/A';
   
-  return new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  }).format(value);
-}
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency
+    }).format(amount);
+  } catch (error) {
+    console.error('Error formatting currency:', error);
+    return `${amount}`;
+  }
+};

@@ -11,10 +11,10 @@ export function adaptRole(role: AuthRole | ModelRole): ModelRole {
     name: role.name,
     description: role.description || '',
     permissions: role.permissions || [],
-    createdAt: role.createdAt || role.created_at,
-    updatedAt: role.updatedAt || role.updated_at,
-    created_at: role.created_at || role.createdAt,
-    updated_at: role.updated_at || role.updatedAt
+    createdAt: role.createdAt || (role as any).created_at,
+    updatedAt: role.updatedAt || (role as any).updated_at,
+    created_at: (role as any).created_at || role.createdAt,
+    updated_at: (role as any).updated_at || role.updatedAt
   };
 }
 

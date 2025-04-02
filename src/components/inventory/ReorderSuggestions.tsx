@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -37,7 +36,7 @@ const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({
             *,
             products:product_id(
               id, name, barcode, price, cost, description, image_url, 
-              category_id, categories:category_id(name), has_stock
+              categoryId, categories:categoryId(name), hasStock
             )
           `)
           .eq('location_id', locationId)
@@ -53,17 +52,16 @@ const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({
             name: item.products.name,
             description: item.products.description,
             barcode: item.products.barcode,
-            category_id: item.products.category_id,
+            categoryId: item.products.categoryId,
             category: item.products.categories,
             price: item.products.price,
             cost: item.products.cost,
             stock: item.stock,
             image_url: item.products.image_url,
-            hasStock: item.products.has_stock,
+            hasStock: item.products.hasStock,
             min_stock_level: item.min_stock_level,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            // Create locationStock array with this location's stock info
             locationStock: [{
               id: item.id,
               productId: item.product_id,

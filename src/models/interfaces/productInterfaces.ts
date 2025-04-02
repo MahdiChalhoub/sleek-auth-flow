@@ -23,6 +23,7 @@ export interface Product {
   hasStock: boolean;
   isCombo?: boolean;
   categoryId?: string;
+  category_id?: string; // For backward compatibility
   image?: string;
   image_url?: string;
   createdAt?: string;
@@ -33,6 +34,7 @@ export interface Product {
   min_stock_level?: number;
   max_stock_level?: number;
   locationStock?: ProductLocationStock[];
+  is_combo?: boolean; // For backward compatibility
 }
 
 export interface ProductFormData {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -67,9 +66,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
         price: product.price,
         cost: product.cost || 0,
         stock: product.stock,
-        categoryId: product.category_id || '',
+        categoryId: product.categoryId || '',
         hasStock: product.hasStock,
-        isCombo: product.is_combo
+        isCombo: product.isCombo
       });
     } else {
       // Reset form for new product

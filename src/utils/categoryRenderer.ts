@@ -1,7 +1,7 @@
 
 import { Category } from '@/models/category';
 
-export function renderCategory(category: Category | string | { id: string, name: string } | undefined | null): string {
+export const renderCategory = (category: Category | undefined | string): string => {
   if (!category) return 'Uncategorized';
   
   if (typeof category === 'string') {
@@ -9,9 +9,9 @@ export function renderCategory(category: Category | string | { id: string, name:
   }
   
   return category.name || 'Uncategorized';
-}
+};
 
-export function getCategoryId(category: Category | string | { id: string, name: string } | undefined): string {
+export const getCategoryId = (category: Category | undefined | string): string => {
   if (!category) return '';
   
   if (typeof category === 'string') {
@@ -19,16 +19,17 @@ export function getCategoryId(category: Category | string | { id: string, name: 
   }
   
   return category.id || '';
-}
+};
 
-export function categoriesMatch(
-  cat1: Category | string | { id: string, name: string } | undefined | null,
-  cat2: Category | string | { id: string, name: string } | undefined | null
-): boolean {
-  if (!cat1 || !cat2) return false;
+export const categoriesMatch = (
+  category1: Category | undefined | string,
+  category2: Category | undefined | string
+): boolean => {
+  if (!category1 && !category2) return true;
+  if (!category1 || !category2) return false;
   
-  const id1 = getCategoryId(cat1 as any);
-  const id2 = getCategoryId(cat2 as any);
+  const id1 = getCategoryId(category1);
+  const id2 = getCategoryId(category2);
   
   return id1 === id2;
-}
+};

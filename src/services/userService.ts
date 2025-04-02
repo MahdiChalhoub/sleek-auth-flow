@@ -21,8 +21,8 @@ export const getAllUsers = async (): Promise<User[]> => {
     const users = (extendedUsers || []).map(user => {
       return {
         id: user.id,
-        fullName: user.profiles?.full_name || '',
-        avatarUrl: user.profiles?.avatar_url || '',
+        fullName: user.profiles && typeof user.profiles === 'object' ? user.profiles.full_name : '',
+        avatarUrl: user.profiles && typeof user.profiles === 'object' ? user.profiles.avatar_url : '',
         status: user.status,
         lastLogin: user.last_login,
         createdAt: user.created_at,
@@ -59,8 +59,8 @@ export const getUserById = async (id: string): Promise<User | null> => {
     
     return {
       id: data.id,
-      fullName: data.profiles?.full_name || '',
-      avatarUrl: data.profiles?.avatar_url || '',
+      fullName: data.profiles && typeof data.profiles === 'object' ? data.profiles.full_name : '',
+      avatarUrl: data.profiles && typeof data.profiles === 'object' ? data.profiles.avatar_url : '',
       status: data.status,
       lastLogin: data.last_login,
       createdAt: data.created_at,
@@ -148,16 +148,21 @@ export const getUsersByRole = async (roleId: string): Promise<User[]> => {
     
     if (error) throw error;
     
-    return (data || []).map(item => ({
-      id: item.user_id,
-      email: '', // This will be filled in from auth.users if needed
-      fullName: item.users?.profiles?.full_name || '',
-      avatarUrl: item.users?.profiles?.avatar_url || '',
-      status: item.users?.status || 'inactive',
-      role: 'cashier', // Default role
-      lastLogin: item.users?.last_login,
-      createdAt: item.users?.created_at
-    }));
+    return (data || []).map(item => {
+      const userData = item.users || {};
+      const profileData = userData.profiles || {};
+      
+      return {
+        id: item.user_id,
+        email: '', // This will be filled in from auth.users if needed
+        fullName: typeof profileData === 'object' ? profileData.full_name || '' : '',
+        avatarUrl: typeof profileData === 'object' ? profileData.avatar_url || '' : '',
+        status: typeof userData === 'object' ? userData.status || 'inactive' : 'inactive',
+        role: 'cashier', // Default role
+        lastLogin: typeof userData === 'object' ? userData.last_login : null,
+        createdAt: typeof userData === 'object' ? userData.created_at : null
+      };
+    });
   } catch (error) {
     console.error(`Error fetching users by role ${roleId}:`, error);
     return [];
