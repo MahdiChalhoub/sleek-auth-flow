@@ -1,257 +1,318 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Plus } from 'lucide-react';
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Spinner } from '@/components/ui/spinner';
-import { Plus, Search, Trash, Edit, Eye, MoreHorizontal } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { toast } from 'sonner';
-import { SupplierFormDialog, SupplierFormData } from '@/components/suppliers/SupplierFormDialog';
-import { formatDate } from '@/utils/formatters';
-import { supabase } from '@/lib/supabase';
 
-interface Supplier {
-  id: string;
-  name: string;
+// Update to ensure name is required in SupplierFormData
+interface SupplierFormData {
+  name: string; // Making name required
   address?: string;
-  email?: string;
-  notes?: string;
   phone?: string;
+  email?: string;
   contact_person?: string;
-  created_at?: string;
-  updated_at?: string;
+  notes?: string;
 }
 
-const Suppliers: React.FC = () => {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [filteredSuppliers, setFilteredSuppliers] = useState<Supplier[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+const Suppliers = () => {
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [supplierToDelete, setSupplierToDelete] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSuppliers = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('suppliers')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
-        setSuppliers(data || []);
-      } catch (error) {
-        console.error('Error fetching suppliers:', error);
-        toast.error('Failed to load suppliers');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchSuppliers();
   }, []);
 
-  useEffect(() => {
-    let filtered = [...suppliers];
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(supplier =>
-        (supplier.name && supplier.name.toLowerCase().includes(term)) ||
-        (supplier.email && supplier.email.toLowerCase().includes(term)) ||
-        (supplier.phone && supplier.phone.toLowerCase().includes(term))
-      );
-    }
-
-    setFilteredSuppliers(filtered);
-  }, [suppliers, searchTerm]);
-
-  const addSupplier = async (supplierData: SupplierFormData) => {
+  const fetchSuppliers = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('suppliers')
-        .insert([supplierData])
         .select('*')
-        .single();
+        .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      setSuppliers(prev => [data, ...prev]);
-      toast.success('Supplier added successfully');
-      setShowAddDialog(false);
+      setSuppliers(data);
     } catch (error) {
-      console.error('Error adding supplier:', error);
-      toast.error('Failed to add supplier');
+      console.error('Error fetching suppliers:', error);
+      toast.error('Failed to load suppliers');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const updateSupplier = async (supplierData: SupplierFormData) => {
-    if (!selectedSupplier) return;
+  const handleCreate = async (data: SupplierFormData) => {
+    try {
+      setIsCreating(true);
+      const { data: supplier, error } = await supabase
+        .from('suppliers')
+        .insert({
+          name: data.name,
+          address: data.address,
+          phone: data.phone,
+          email: data.email,
+          contact_person: data.contact_person,
+          notes: data.notes
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
     
-    try {
-      const { data, error } = await supabase
-        .from('suppliers')
-        .update(supplierData)
-        .eq('id', selectedSupplier.id)
-        .select('*')
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      setSuppliers(prev =>
-        prev.map(supplier => (supplier.id === selectedSupplier.id ? data : supplier))
-      );
-      toast.success('Supplier updated successfully');
-      setShowEditDialog(false);
+      setSuppliers(prev => [...prev, supplier]);
+      toast.success('Supplier created successfully');
+      setIsOpen(false);
     } catch (error) {
-      console.error('Error updating supplier:', error);
-      toast.error('Failed to update supplier');
+      console.error('Error creating supplier:', error);
+      toast.error('Failed to create supplier');
+    } finally {
+      setIsCreating(false);
     }
   };
 
-  const deleteSupplier = async (id: string) => {
+  const handleDelete = async (id: string) => {
+    setSupplierToDelete(id);
+    setIsDeleting(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!supplierToDelete) return;
+
     try {
+      setIsDeleting(true);
       const { error } = await supabase
         .from('suppliers')
         .delete()
-        .eq('id', id);
+        .eq('id', supplierToDelete);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      setSuppliers(prev => prev.filter(supplier => supplier.id !== id));
+      setSuppliers(prev => prev.filter(supplier => supplier.id !== supplierToDelete));
       toast.success('Supplier deleted successfully');
     } catch (error) {
       console.error('Error deleting supplier:', error);
       toast.error('Failed to delete supplier');
+    } finally {
+      setIsDeleting(false);
+      setSupplierToDelete(null);
     }
   };
 
-  return (
-    <div className="container mx-auto p-4 space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Suppliers</h1>
-          <p className="text-muted-foreground">Manage your suppliers</p>
-        </div>
+  const cancelDelete = () => {
+    setSupplierToDelete(null);
+    setIsDeleting(false);
+  };
 
-        <Button onClick={() => setShowAddDialog(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Supplier
-        </Button>
+  return (
+    <div className="container mx-auto p-4">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">Suppliers</h1>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Supplier
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add Supplier</DialogTitle>
+              <DialogDescription>
+                Create a new supplier to manage your supply chain.
+              </DialogDescription>
+            </DialogHeader>
+            <SupplierForm onCreate={handleCreate} isLoading={isCreating} onClose={() => setIsOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle>Suppliers List</CardTitle>
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search suppliers..."
-              className="pl-8 w-[250px]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex justify-center items-center py-8">
-              <Spinner size="lg" />
-            </div>
-          ) : filteredSuppliers.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchTerm ? 'No suppliers match your search criteria' : 'No suppliers found'}
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Contact Person</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSuppliers.map(supplier => (
-                    <TableRow key={supplier.id}>
-                      <TableCell>{supplier.name}</TableCell>
-                      <TableCell>{supplier.email}</TableCell>
-                      <TableCell>{supplier.phone}</TableCell>
-                      <TableCell>{supplier.contact_person}</TableCell>
-                      <TableCell>{formatDate(supplier.created_at)}</TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => {
-                              setSelectedSupplier(supplier);
-                              setShowEditDialog(true);
-                            }}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit Supplier
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => deleteSupplier(supplier.id)} className="text-destructive focus:text-destructive">
-                              <Trash className="mr-2 h-4 w-4" />
-                              Delete Supplier
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <SupplierFormDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        onSubmit={addSupplier}
-      />
-
-      {selectedSupplier && (
-        <SupplierFormDialog
-          open={showEditDialog}
-          onOpenChange={setShowEditDialog}
-          onSubmit={updateSupplier}
-          supplier={selectedSupplier}
-          title="Edit Supplier"
-        />
+      {isLoading ? (
+        <div className="flex justify-center py-8">
+          <Spinner size="lg" />
+        </div>
+      ) : (
+        <ScrollArea>
+          <Table>
+            <TableCaption>A list of your suppliers.</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[100px]">Name</TableHead>
+                <TableHead>Address</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Contact Person</TableHead>
+                <TableHead>Notes</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {suppliers.map((supplier) => (
+                <TableRow key={supplier.id}>
+                  <TableCell className="font-medium">{supplier.name}</TableCell>
+                  <TableCell>{supplier.address}</TableCell>
+                  <TableCell>{supplier.phone}</TableCell>
+                  <TableCell>{supplier.email}</TableCell>
+                  <TableCell>{supplier.contact_person}</TableCell>
+                  <TableCell>{supplier.notes}</TableCell>
+                  <TableCell className="text-right">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">Delete</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. Are you sure you want to delete <span className="font-semibold">{supplier.name}</span>?
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+                          <AlertDialogAction disabled={isDeleting} onClick={() => confirmDelete()}>
+                            {isDeleting ? <Spinner size="sm" className="mr-2" /> : null}
+                            Continue
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={6}>
+                  Total Suppliers: {suppliers.length}
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+        </ScrollArea>
       )}
     </div>
+  );
+};
+
+interface SupplierFormProps {
+  onCreate: (data: SupplierFormData) => Promise<void>;
+  isLoading: boolean;
+  onClose: () => void;
+}
+
+const SupplierForm: React.FC<SupplierFormProps> = ({ onCreate, isLoading, onClose }) => {
+  const [data, setData] = useState<SupplierFormData>({ name: '' });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setData({ ...data, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!data.name) {
+      toast.error('Name is required');
+      return;
+    }
+    await onCreate(data);
+    onClose();
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="grid gap-4">
+      <div className="grid gap-2">
+        <Label htmlFor="name">Name</Label>
+        <Input
+          type="text"
+          id="name"
+          name="name"
+          value={data.name}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="address">Address</Label>
+        <Input
+          type="text"
+          id="address"
+          name="address"
+          value={data.address}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="phone">Phone</Label>
+        <Input
+          type="text"
+          id="phone"
+          name="phone"
+          value={data.phone}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          type="email"
+          id="email"
+          name="email"
+          value={data.email}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="contact_person">Contact Person</Label>
+        <Input
+          type="text"
+          id="contact_person"
+          name="contact_person"
+          value={data.contact_person}
+          onChange={handleChange}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="notes">Notes</Label>
+        <Input
+          id="notes"
+          name="notes"
+          value={data.notes}
+          onChange={handleChange}
+        />
+      </div>
+      <Button type="submit" disabled={isLoading}>
+        {isLoading ? <Spinner size="sm" className="mr-2" /> : null}
+        Create
+      </Button>
+    </form>
   );
 };
 

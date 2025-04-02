@@ -9,7 +9,10 @@ export type RPCFunctions =
   | "insert_product_batch"
   | "update_product_batch"
   | "delete_product_batch"
-  | "can_delete_user"; // Include all your RPC functions here
+  | "can_delete_user"
+  | "open_register"
+  | "close_register"
+  | "resolve_register_discrepancy"; // Including all RPC functions
 
 /**
  * Call a Supabase RPC function with typed parameters and return type
@@ -26,6 +29,9 @@ export async function callRPC<T>(functionName: RPCFunctions, params: Record<stri
     throw error;
   }
 }
+
+// Add alias for backward compatibility
+export const callRpc = callRPC;
 
 /**
  * Helper to create RPC parameters

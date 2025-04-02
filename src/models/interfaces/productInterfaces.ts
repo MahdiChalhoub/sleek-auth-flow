@@ -16,6 +16,8 @@ export interface Product {
   isCombo?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  locationStock?: ProductLocationStock[];
+  min_stock_level?: number;
 }
 
 export interface ProductFormData {
@@ -28,4 +30,12 @@ export interface ProductFormData {
   hasStock?: boolean;
   stock?: number;
   imageUrl?: string;
+  isCombo?: boolean;
+}
+
+export interface ProductLocationStock {
+  locationId: string;
+  stock: number;
+  minStockLevel?: number;
+  maxStockLevel?: number;
 }

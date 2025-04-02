@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Register } from '@/models/interfaces/registerInterfaces';
 import { PaymentMethod } from '@/models/transaction';
 import { DiscrepancyResolution } from '@/models/interfaces/registerInterfaces';
-import { callRpc } from '@/utils/rpcUtils';
+import { callRPC } from '@/utils/rpcUtils';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Interface for register service return type
@@ -136,7 +136,7 @@ export function useRegisterService(registerId?: string): RegisterServiceReturn {
     setError(null);
 
     try {
-      const result = await callRpc('open_register', {
+      const result = await callRPC('open_register', {
         register_id: registerId,
         user_id: user.id,
         opening_balance: openingBalance
@@ -166,7 +166,7 @@ export function useRegisterService(registerId?: string): RegisterServiceReturn {
     setError(null);
 
     try {
-      const result = await callRpc('close_register', {
+      const result = await callRPC('close_register', {
         register_id: registerId,
         user_id: user.id,
         closing_balance: closingBalance,
@@ -194,7 +194,7 @@ export function useRegisterService(registerId?: string): RegisterServiceReturn {
     setError(null);
 
     try {
-      const result = await callRpc('resolve_register_discrepancy', {
+      const result = await callRPC('resolve_register_discrepancy', {
         register_id: registerId,
         user_id: user.id,
         resolution: resolution,

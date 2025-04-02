@@ -13,8 +13,8 @@ export function adaptTypeRoleToModelRole(typeRole: TypeRole): ModelRole {
     permissions: typeRole.permissions || [],
     createdAt: typeRole.createdAt,
     updatedAt: typeRole.updatedAt,
-    created_at: typeRole.createdAt || typeRole.created_at,
-    updated_at: typeRole.updatedAt || typeRole.updated_at
+    created_at: typeRole.createdAt || '',
+    updated_at: typeRole.updatedAt || ''
   };
 }
 
