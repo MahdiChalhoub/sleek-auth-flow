@@ -1,19 +1,21 @@
 
 /**
- * Convert a Promise<boolean> to a Promise<void> by ignoring the result
+ * Utility function to convert a Promise<boolean> to a Promise<void>
+ * Useful for type compatibility when functions need to return void promises
  */
-export function voidPromise<T>(promise: Promise<T>): Promise<void> {
-  return promise.then(() => {});
-}
+export const voidPromise = async <T>(promise: Promise<T>): Promise<void> => {
+  await promise;
+  return;
+};
 
 /**
- * Ensure a function accepts a parameter and returns a Promise<boolean>
+ * Utility function to transform any function that returns Promise<T> to Promise<void>
  */
-export function ensureParameterFunction<T>(
-  fn: (...args: any[]) => Promise<boolean>,
-  defaultParam?: T
-): (param?: T) => Promise<boolean> {
-  return (param?: T) => {
-    return fn(param !== undefined ? param : defaultParam);
+export const makeVoidFunction = <T extends any[], R>(
+  fn: (...args: T) => Promise<R>
+): (...args: T) => Promise<void> => {
+  return async (...args: T): Promise<void> => {
+    await fn(...args);
+    return;
   };
-}
+};

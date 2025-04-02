@@ -1,9 +1,31 @@
 
 import { useState } from "react";
-import { Business, mockBusinesses } from "@/models/interfaces/businessInterfaces";
+import { Business } from "@/models/interfaces/businessInterfaces";
+
+// Define initial businesses
+const initialBusinesses: Business[] = [
+  {
+    id: 'business-1',
+    name: 'Main Business',
+    status: 'active',
+    ownerId: 'user-1',
+    active: true,
+    type: 'Retail',
+    description: 'Main retail store'
+  },
+  {
+    id: 'business-2',
+    name: 'Branch Business',
+    status: 'active',
+    ownerId: 'user-1',
+    active: false,
+    type: 'Wholesale',
+    description: 'Wholesale distribution center'
+  }
+];
 
 export const useBusinessManagement = () => {
-  const [businesses, setBusinesses] = useState<Business[]>(mockBusinesses);
+  const [businesses, setBusinesses] = useState<Business[]>(initialBusinesses);
   const [expandedBusinessId, setExpandedBusinessId] = useState<string | null>(null);
   const [isAddBusinessModalOpen, setIsAddBusinessModalOpen] = useState(false);
   

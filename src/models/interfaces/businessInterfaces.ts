@@ -17,6 +17,7 @@ export interface Business {
   country?: string;
   currency?: string;
   active?: boolean;
+  timezone?: string;
 }
 
 export interface Branch {
@@ -43,7 +44,46 @@ export interface Branch {
   };
   latitude?: number;
   longitude?: number;
+  locationCode?: string;
 }
+
+// Adding mock businesses data
+export const mockBusinesses: Business[] = [
+  {
+    id: 'business-1',
+    name: 'Main Business',
+    status: 'active',
+    ownerId: 'user-1',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    email: 'info@mainbusiness.com',
+    phone: '555-123-4567',
+    address: '123 Main St, New York, NY',
+    website: 'www.mainbusiness.com',
+    type: 'Retail',
+    country: 'United States',
+    currency: 'USD',
+    active: true,
+    description: 'Main retail business offering various products'
+  },
+  {
+    id: 'business-2',
+    name: 'Secondary Business',
+    status: 'active',
+    ownerId: 'user-1',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    email: 'info@secondarybusiness.com',
+    phone: '555-987-6543',
+    address: '456 Second Ave, Chicago, IL',
+    website: 'www.secondarybusiness.com',
+    type: 'Wholesale',
+    country: 'United States',
+    currency: 'USD',
+    active: true,
+    description: 'Wholesale business for bulk purchases'
+  }
+];
 
 export const mockBranches: Branch[] = [
   {
@@ -66,7 +106,10 @@ export const mockBranches: Branch[] = [
       friday: '9:00-18:00',
       saturday: '10:00-16:00',
       sunday: 'Closed'
-    }
+    },
+    latitude: 40.7128,
+    longitude: -74.0060,
+    locationCode: 'MAIN-01'
   },
   {
     id: 'branch-2',
@@ -79,6 +122,9 @@ export const mockBranches: Branch[] = [
     updatedAt: new Date().toISOString(),
     email: 'downtown@example.com',
     type: 'warehouse',
-    isDefault: false
+    isDefault: false,
+    latitude: 37.7749,
+    longitude: -122.4194,
+    locationCode: 'DT-01'
   }
 ];

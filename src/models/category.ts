@@ -3,38 +3,42 @@ export interface Category {
   id: string;
   name: string;
   description?: string;
+  parent_id?: string | null;
+  business_id?: string;
   created_at?: string;
   updated_at?: string;
+  color?: string;
+  icon?: string;
+  slug?: string;
 }
 
+// Mock categories for development purposes
 export const mockCategories: Category[] = [
   {
-    id: 'cat-1',
-    name: 'Electronics',
-    description: 'Electronic products and gadgets',
+    id: "cat-001",
+    name: "Electronics",
+    description: "Electronic devices and components",
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
+    color: "#4CAF50",
+    icon: "smartphone"
   },
   {
-    id: 'cat-2',
-    name: 'Clothing',
-    description: 'Apparel and fashion items',
+    id: "cat-002",
+    name: "Home Appliances",
+    description: "Kitchen and household appliances",
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
+    color: "#2196F3",
+    icon: "home"
   },
   {
-    id: 'cat-3',
-    name: 'Food & Beverage',
-    description: 'Consumable products',
+    id: "cat-003",
+    name: "Furniture",
+    description: "Home and office furniture",
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
+    color: "#9C27B0",
+    icon: "chair"
   }
 ];
-
-export const getCategoryById = (id: string): Category | undefined => {
-  return mockCategories.find(cat => cat.id === id);
-};
-
-export const getCategoryByName = (name: string): Category | undefined => {
-  return mockCategories.find(cat => cat.name.toLowerCase() === name.toLowerCase());
-};

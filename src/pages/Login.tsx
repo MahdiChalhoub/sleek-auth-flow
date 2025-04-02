@@ -4,15 +4,31 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockBusinesses } from "@/models/interfaces/businessInterfaces";
+import { Business } from "@/models/interfaces/businessInterfaces";
 import LoginForm, { LoginFormValues } from "@/components/auth/LoginForm";
 import DemoAccountsSection from "@/components/auth/DemoAccountsSection";
 import AuthLinks from "@/components/auth/AuthLinks";
 
+// Mock businesses for the login page
+const mockBusinesses: Business[] = [
+  {
+    id: 'business-1',
+    name: 'Main Business',
+    status: 'active',
+    ownerId: 'user-1'
+  },
+  {
+    id: 'business-2',
+    name: 'Secondary Business',
+    status: 'active',
+    ownerId: 'user-1'
+  }
+];
+
 const Login: React.FC = () => {
   const { user, login, isLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [availableBusinesses, setAvailableBusinesses] = useState(mockBusinesses);
+  const [availableBusinesses, setAvailableBusinesses] = useState<Business[]>(mockBusinesses);
   const location = useLocation();
   
   // Store the current path as the intended redirect if it's not a public route

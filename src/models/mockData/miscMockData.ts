@@ -1,5 +1,5 @@
 
-import { Branch } from '../interfaces/branchInterfaces';
+import { Branch } from '../interfaces/businessInterfaces';
 import { BackupSettings } from '../interfaces/backupInterfaces';
 
 export const mockBranches: Branch[] = [
@@ -9,10 +9,10 @@ export const mockBranches: Branch[] = [
     address: "123 Main Street, Anytown",
     phone: "+123456789",
     email: "main@example.com",
-    managerId: "user-manager", // Changed from manager to managerId
-    status: "active", // Added status field which is required
-    businessId: "bus-1", // Added businessId which is required
-    type: "store", // Added type which is required
+    managerId: "user-manager", 
+    status: "active", 
+    businessId: "bus-1", 
+    type: "store", 
     isDefault: true,
     openingHours: {
       monday: "9:00 AM - 9:00 PM",
@@ -25,8 +25,7 @@ export const mockBranches: Branch[] = [
     },
     latitude: 34.0522,
     longitude: -118.2437,
-    locationCode: "MAIN-01",
-    timezone: "America/Los_Angeles"
+    locationCode: "MAIN-01"
   },
   {
     id: "b2",
@@ -34,10 +33,10 @@ export const mockBranches: Branch[] = [
     address: "456 Commerce Ave, Downtown",
     phone: "+987654321",
     email: "downtown@example.com",
-    managerId: "user-manager", // Changed from manager to managerId
-    status: "active", // Added status field which is required
-    businessId: "bus-1", // Added businessId which is required
-    type: "store", // Added type which is required
+    managerId: "user-manager", 
+    status: "active", 
+    businessId: "bus-1", 
+    type: "store", 
     isDefault: false,
     openingHours: {
       monday: "8:00 AM - 8:00 PM",
@@ -50,8 +49,7 @@ export const mockBranches: Branch[] = [
     },
     latitude: 34.0407,
     longitude: -118.2468,
-    locationCode: "DOWN-02",
-    timezone: "America/Los_Angeles"
+    locationCode: "DOWN-02"
   },
   {
     id: "b3",
@@ -59,10 +57,10 @@ export const mockBranches: Branch[] = [
     address: "789 Ocean Blvd, Westside",
     phone: "+192837465",
     email: "westside@example.com",
-    managerId: "user-supervisor", // Changed from manager to managerId
-    status: "active", // Added status field which is required
-    businessId: "bus-2", // Added businessId which is required
-    type: "store", // Added type which is required
+    managerId: "user-supervisor", 
+    status: "active", 
+    businessId: "bus-2", 
+    type: "store", 
     isDefault: false,
     openingHours: {
       monday: "7:00 AM - 11:00 PM",
@@ -75,8 +73,7 @@ export const mockBranches: Branch[] = [
     },
     latitude: 34.0522,
     longitude: -118.4441,
-    locationCode: "WEST-03",
-    timezone: "America/Los_Angeles"
+    locationCode: "WEST-03"
   }
 ];
 

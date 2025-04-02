@@ -3,8 +3,37 @@ import { useState, useCallback } from 'react';
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { User } from '@/types/auth';
 import { toast } from 'sonner';
-import { mockBusinesses } from '@/models/interfaces/businessInterfaces';
 import { supabase } from '@/lib/supabase';
+
+// Mock businesses for development
+const initialBusinesses: Business[] = [
+  {
+    id: 'business-1',
+    name: 'Main Business',
+    status: 'active',
+    ownerId: 'user-1',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    email: 'info@mainbusiness.com',
+    phone: '555-123-4567',
+    address: '123 Main St, New York, NY',
+    active: true,
+    description: 'Main retail store'
+  },
+  {
+    id: 'business-2',
+    name: 'Secondary Business',
+    status: 'active',
+    ownerId: 'user-1',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    email: 'info@secondarybusiness.com',
+    phone: '555-987-6543',
+    address: '456 Second Ave, Chicago, IL',
+    active: true,
+    description: 'Wholesale distribution center'
+  }
+];
 
 export const useBusinessSelection = (user: User | null) => {
   const [currentBusiness, setCurrentBusiness] = useState<Business | null>(null);
@@ -21,7 +50,7 @@ export const useBusinessSelection = (user: User | null) => {
     try {
       // For now, we'll use the mock data, but in a full implementation
       // we would fetch this from Supabase based on the user's access
-      const availableBusinesses = mockBusinesses;
+      const availableBusinesses = initialBusinesses;
       
       setUserBusinesses(availableBusinesses);
       
