@@ -9,8 +9,8 @@ import { TransactionStatus } from "@/models/transaction";
 interface TransactionFiltersProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  statusFilter: TransactionStatus | "all";
-  setStatusFilter: (status: TransactionStatus | "all") => void;
+  statusFilter: string;
+  setStatusFilter: (status: string) => void;
   branchFilter: string;
   setBranchFilter: (branch: string) => void;
   sortDirection: "asc" | "desc";
@@ -44,7 +44,7 @@ const TransactionFilters: React.FC<TransactionFiltersProps> = ({
       <div className="flex flex-wrap gap-2">
         <Select
           value={statusFilter}
-          onValueChange={(value) => setStatusFilter(value as TransactionStatus | "all")}
+          onValueChange={(value) => setStatusFilter(value)}
         >
           <SelectTrigger className="w-[160px] glass-input">
             <div className="flex items-center gap-2">
