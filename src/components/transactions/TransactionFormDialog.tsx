@@ -36,7 +36,8 @@ const formSchema = z.object({
   description: z.string().min(3, 'Description must be at least 3 characters').max(100),
   amount: z.coerce.number().min(0.01, 'Amount must be greater than 0'),
   paymentMethod: z.enum(['cash', 'card', 'bank', 'wave', 'mobile', 'not_specified']),
-  branchId: z.string().optional()
+  branchId: z.string().optional(),
+  type: z.enum(['sale', 'expense', 'refund', 'transfer']).default('expense')
 });
 
 export function TransactionFormDialog({
@@ -53,14 +54,21 @@ export function TransactionFormDialog({
       description: '',
       amount: 0,
       paymentMethod: 'cash',
-      branchId: businesses[0]?.id
+      branchId: businesses[0]?.id,
+      type: 'expense'
     }
   });
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
     try {
-      const success = await onSubmit(values);
+      const success = await onSubmit({
+        description: values.description,
+        amount: values.amount,
+        paymentMethod: values.paymentMethod,
+        branchId: values.branchId,
+        type: values.type
+      });
       if (success) {
         form.reset();
         onOpenChange(false);
@@ -110,6 +118,33 @@ export function TransactionFormDialog({
                       {...field} 
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Transaction Type</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select transaction type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="expense">Expense</SelectItem>
+                      <SelectItem value="sale">Sale</SelectItem>
+                      <SelectItem value="refund">Refund</SelectItem>
+                      <SelectItem value="transfer">Transfer</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

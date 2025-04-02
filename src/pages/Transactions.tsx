@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,8 @@ import { Plus, Filter, Download } from 'lucide-react';
 import { TransactionFormDialog } from '@/components/transactions/TransactionFormDialog';
 import { TransactionLedgerDialog } from '@/components/transactions/TransactionLedgerDialog';
 import { toast } from 'sonner';
-import { Transaction, TransactionFormData, Business } from '@/models/interfaces/transactionInterfaces';
+import { Transaction, TransactionFormData } from '@/models/interfaces/transactionInterfaces';
+import { Business } from '@/models/interfaces/businessInterfaces';
 
 // Mock business data
 const mockBusinesses: Business[] = [
@@ -47,12 +47,12 @@ const Transactions: React.FC = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   
-  const handleCreateTransaction = async (data: TransactionFormData): Promise<void> => {
+  const handleCreateTransaction = async (data: TransactionFormData): Promise<boolean> => {
     try {
       // Simulate creating a transaction
       const newTransaction: Transaction = {
         id: `tr${Math.floor(Math.random() * 1000)}`,
-        type: 'sale',
+        type: data.type || 'sale',
         amount: data.amount || 0,
         status: 'open',
         notes: data.notes,
@@ -64,9 +64,12 @@ const Transactions: React.FC = () => {
       toast.success('Transaction created', {
         description: `Transaction of $${data.amount} has been recorded.`
       });
+      
+      return true;
     } catch (error) {
       console.error('Error creating transaction:', error);
       toast.error('Failed to create transaction');
+      return false;
     }
   };
   

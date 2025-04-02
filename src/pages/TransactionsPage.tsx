@@ -14,8 +14,8 @@ import {
 import { format } from 'date-fns';
 import TransactionHeader from '@/components/transactions/TransactionHeader';
 import TransactionsList from '@/components/transactions/TransactionsList';
-import TransactionFormDialog from '@/components/transactions/TransactionFormDialog';
-import TransactionLedgerDialog from '@/components/transactions/TransactionLedgerDialog';
+import { TransactionFormDialog } from '@/components/transactions/TransactionFormDialog';
+import { TransactionLedgerDialog } from '@/components/transactions/TransactionLedgerDialog';
 import BackupDialog from '@/components/transactions/BackupDialog';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';

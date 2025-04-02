@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import {
+import React from 'react';
+import { 
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -8,61 +8,45 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
 import { Supplier } from '@/models/interfaces/supplierInterfaces';
 
-interface SupplierDeleteDialogProps {
-  supplier: Supplier | null;
+export interface SupplierDeleteDialogProps {
   isOpen: boolean;
-  onClose: () => void;
-  onDelete: (id: string) => Promise<void>;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => Promise<boolean>;
+  supplier: Supplier;
 }
 
 const SupplierDeleteDialog: React.FC<SupplierDeleteDialogProps> = ({
-  supplier,
   isOpen,
-  onClose,
-  onDelete,
+  onOpenChange,
+  onConfirm,
+  supplier
 }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async () => {
-    if (!supplier) return;
-    
-    setIsDeleting(true);
-    try {
-      await onDelete(supplier.id);
-      onClose();
-    } catch (error) {
-      console.error('Error deleting supplier:', error);
-    } finally {
-      setIsDeleting(false);
-    }
+  const handleConfirm = async () => {
+    await onConfirm();
+    onOpenChange(false);
   };
 
-  if (!supplier) return null;
-
   return (
-    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>Delete Supplier</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete the supplier <strong>{supplier.name}</strong> and cannot be
-            undone. This may also affect related purchase orders and inventory records.
+            Are you sure you want to delete <strong>{supplier.name}</strong>? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-          <Button 
-            variant="destructive" 
-            onClick={handleDelete} 
-            disabled={isDeleting}
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={handleConfirm}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isDeleting ? 'Deleting...' : 'Delete Supplier'}
-          </Button>
+            Delete
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -1,25 +1,11 @@
 
 import { supabase } from '@/lib/supabase';
-import { User, UserStatus } from '@/types/auth';
+import { User } from '@/types/auth';
 
-// Type for user data returned from the database
-interface DbUser {
-  id: string;
-  email: string;
-  status: UserStatus;
-  role?: string;
-  full_name?: string;
-  avatar_url?: string;
-  last_login?: string;
-  created_at?: string;
-  is_deleted?: boolean;
-  is_global_admin?: boolean;
-}
-
-// Get all users from the database
+// Get all users
 export const getAllUsers = async (): Promise<User[]> => {
   try {
-    const { data: users, error } = await supabase
+    const { data: extendedUsers, error } = await supabase
       .from('extended_users')
       .select(`
         *,
@@ -27,55 +13,36 @@ export const getAllUsers = async (): Promise<User[]> => {
           full_name,
           avatar_url
         )
-      `)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching users:', error);
-      throw error;
-    }
-
-    return (users || []).map((user: any) => ({
-      id: user.id,
-      status: user.status,
-      email: user.email || '',
-      role: user.role || 'user',
-      fullName: user.profiles?.full_name || '',
-      avatarUrl: user.profiles?.avatar_url || '',
-      lastLogin: user.last_login,
-      createdAt: user.created_at,
-      isDeleted: user.is_deleted || false,
-      isGlobalAdmin: user.is_global_admin || false
-    }));
+      `);
+    
+    if (error) throw error;
+    
+    // Map the results to our User interface
+    const users = (extendedUsers || []).map(user => {
+      return {
+        id: user.id,
+        fullName: user.profiles?.full_name || '',
+        avatarUrl: user.profiles?.avatar_url || '',
+        status: user.status,
+        lastLogin: user.last_login,
+        createdAt: user.created_at,
+        email: '', // This will be filled in from auth.users if needed
+        role: 'cashier' as const // Default role
+      };
+    });
+    
+    return users;
   } catch (error) {
-    console.error('Error in getAllUsers:', error);
+    console.error('Error fetching users:', error);
     return [];
   }
 };
 
-// Create a new user
-export const createUser = async (userData: Partial<User>): Promise<User | null> => {
-  try {
-    // Handle user creation logic here
-    return null;
-  } catch (error) {
-    console.error('Error creating user:', error);
-    return null;
-  }
-};
-
-// Update a user's information
-export const updateUser = async (id: string, userData: Partial<User>): Promise<User | null> => {
+// Get a user by ID
+export const getUserById = async (id: string): Promise<User | null> => {
   try {
     const { data, error } = await supabase
       .from('extended_users')
-      .update({
-        status: userData.status,
-        role: userData.role,
-        is_deleted: userData.isDeleted,
-        is_global_admin: userData.isGlobalAdmin
-      })
-      .eq('id', id)
       .select(`
         *,
         profiles:id (
@@ -83,65 +50,116 @@ export const updateUser = async (id: string, userData: Partial<User>): Promise<U
           avatar_url
         )
       `)
+      .eq('id', id)
       .single();
-
-    if (error) {
-      console.error(`Error updating user ${id}:`, error);
-      throw error;
-    }
-
+    
+    if (error) throw error;
+    
+    if (!data) return null;
+    
     return {
       id: data.id,
-      status: data.status as UserStatus,
-      email: data.email || '',
-      role: data.role || 'user',
       fullName: data.profiles?.full_name || '',
       avatarUrl: data.profiles?.avatar_url || '',
+      status: data.status,
       lastLogin: data.last_login,
       createdAt: data.created_at,
-      isDeleted: data.is_deleted || false,
-      isGlobalAdmin: data.is_global_admin || false
+      email: '', // This will be filled in from auth.users if needed
+      role: 'cashier' as const, // Default role
+      isGlobalAdmin: false
     };
   } catch (error) {
-    console.error(`Error updating user ${id}:`, error);
+    console.error(`Error fetching user with ID ${id}:`, error);
     return null;
   }
 };
 
-// Delete a user
-export const deleteUser = async (id: string): Promise<boolean> => {
+// Update a user
+export const updateUser = async (id: string, userData: Partial<User>): Promise<User | null> => {
   try {
-    // First check if user can be deleted
-    const canDelete = await canDeleteUser(id);
+    // Update base user data in extended_users
+    const { error: updateError } = await supabase
+      .from('extended_users')
+      .update({
+        status: userData.status,
+      })
+      .eq('id', id);
     
-    if (!canDelete) {
-      throw new Error("User cannot be deleted because they have associated records");
+    if (updateError) throw updateError;
+    
+    // Update profile data
+    if (userData.fullName || userData.avatarUrl) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: userData.fullName,
+          avatar_url: userData.avatarUrl
+        })
+        .eq('id', id);
+      
+      if (profileError) throw profileError;
     }
     
+    // Fetch the updated user
+    return await getUserById(id);
+  } catch (error) {
+    console.error(`Error updating user with ID ${id}:`, error);
+    return null;
+  }
+};
+
+// Delete a user (soft delete)
+export const deleteUser = async (id: string): Promise<boolean> => {
+  try {
+    // Soft delete by updating the is_deleted flag
     const { error } = await supabase
       .from('extended_users')
       .update({ is_deleted: true })
       .eq('id', id);
-
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error(`Error deleting user ${id}:`, error);
-    return false;
-  }
-};
-
-// Check if a user can be deleted
-export const canDeleteUser = async (id: string): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase.rpc('can_delete_user', { user_id: id });
     
     if (error) throw error;
-    return data || false;
+    
+    return true;
   } catch (error) {
-    console.error(`Error checking if user ${id} can be deleted:`, error);
+    console.error(`Error deleting user with ID ${id}:`, error);
     return false;
   }
 };
 
-export type { User };
+// Get users by role
+export const getUsersByRole = async (roleId: string): Promise<User[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select(`
+        user_id,
+        users:user_id (
+          id,
+          status,
+          last_login,
+          created_at,
+          profiles:id (
+            full_name,
+            avatar_url
+          )
+        )
+      `)
+      .eq('role_id', roleId);
+    
+    if (error) throw error;
+    
+    return (data || []).map(item => ({
+      id: item.user_id,
+      email: '', // This will be filled in from auth.users if needed
+      fullName: item.users?.profiles?.full_name || '',
+      avatarUrl: item.users?.profiles?.avatar_url || '',
+      status: item.users?.status || 'inactive',
+      role: 'cashier', // Default role
+      lastLogin: item.users?.last_login,
+      createdAt: item.users?.created_at
+    }));
+  } catch (error) {
+    console.error(`Error fetching users by role ${roleId}:`, error);
+    return [];
+  }
+};

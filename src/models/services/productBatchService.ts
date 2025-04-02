@@ -56,10 +56,11 @@ export const productBatchService = {
   addBatch: async (batch: Omit<ProductBatch, "id" | "created_at" | "updated_at">): Promise<ProductBatch | null> => {
     try {
       const batchData = {
-        product_id: batch.product_id || batch.productId,
-        batch_number: batch.batch_number || batch.batchNumber,
+        product_id: batch.product_id,
+        batch_number: batch.batch_number,
         quantity: batch.quantity,
-        expiry_date: batch.expiry_date || batch.expiryDate
+        expiry_date: batch.expiry_date,
+        status: batch.status
       };
       
       const { data, error } = await callRpc<ProductBatch, { batch: any }>(
@@ -90,8 +91,8 @@ export const productBatchService = {
         rpcParams({
           batch_id: batch.id,
           new_quantity: batch.quantity,
-          new_expiry_date: batch.expiry_date || batch.expiryDate,
-          new_batch_number: batch.batch_number || batch.batchNumber
+          new_expiry_date: batch.expiry_date,
+          new_batch_number: batch.batch_number
         })
       );
       

@@ -43,21 +43,19 @@ const getById = async (id: string): Promise<Category | null> => {
 const createMany = async (categories: Category[]): Promise<Category[]> => {
   try {
     // Ensure all categories have the required name property
-    const validCategories = categories.filter(cat => cat.name);
-    
-    if (validCategories.length === 0) {
-      return [];
-    }
-    
-    const categoriesToCreate = validCategories.map(cat => ({
+    const validCategories = categories.filter(cat => cat.name).map(cat => ({
       name: cat.name,
       description: cat.description,
       id: cat.id
     }));
     
+    if (validCategories.length === 0) {
+      return [];
+    }
+    
     const { data, error } = await supabase
       .from('categories')
-      .insert(categoriesToCreate)
+      .insert(validCategories)
       .select();
     
     if (error) throw error;

@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,7 +14,7 @@ import { getAllRoles, getAllPermissions, updateRole, deleteRole, createRole } fr
 import { getAllUsers, updateUser } from '@/services/userService';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const RoleManagement = () => {
+const RoleManagement: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [permissionCategories, setPermissionCategories] = useState<string[]>([]);
@@ -26,7 +25,6 @@ const RoleManagement = () => {
 
   const selectedRole = selectedRoleId ? roles.find(role => role.id === selectedRoleId) : null;
 
-  // Load roles and permissions data
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -37,7 +35,6 @@ const RoleManagement = () => {
         const usersData = await getAllUsers();
         setUsers(usersData);
         
-        // Extract unique permission categories
         if (rolesData.length > 0) {
           const categories = rolesData[0].permissions
             .map(p => p.category || 'Other')
@@ -82,7 +79,6 @@ const RoleManagement = () => {
 
   const handleCreateRole = async (newRole: { name: string, description: string, permissions: UserPermission[] }) => {
     try {
-      // Format permissions for API
       const permissionsForApi = newRole.permissions.map(p => ({
         id: p.id,
         enabled: p.enabled
@@ -91,7 +87,6 @@ const RoleManagement = () => {
       const success = await createRole(newRole.name, newRole.description, permissionsForApi);
       
       if (success) {
-        // Refresh roles list
         const updatedRoles = await getAllRoles();
         setRoles(updatedRoles);
         
@@ -111,7 +106,6 @@ const RoleManagement = () => {
     setIsSaving(true);
     
     try {
-      // Format permissions for API
       const permissionsForApi = selectedRole.permissions.map(p => ({
         id: p.id,
         enabled: p.enabled
@@ -136,7 +130,6 @@ const RoleManagement = () => {
   };
 
   const handleDeleteRole = async (roleId: string) => {
-    // Check if any users have this role
     const hasUsers = users.some(user => {
       const role = roles.find(r => r.id === roleId);
       return role && user.role === role.name;
@@ -158,7 +151,6 @@ const RoleManagement = () => {
           setIsEditing(false);
         }
         
-        // Refresh roles list
         const updatedRoles = await getAllRoles();
         setRoles(updatedRoles);
       }
@@ -168,23 +160,25 @@ const RoleManagement = () => {
     }
   };
 
-  const handleChangeUserRole = async (userId: string, roleId: string) => {
+  const updateUserRole = async (userId: string, roleId: string) => {
     try {
-      const success = await updateUser(userId, { roleId });
+      const result = await updateUser(userId, { 
+        role: roleId as any
+      });
       
-      if (success) {
-        // Refresh users list
-        const updatedUsers = await getAllUsers();
-        setUsers(updatedUsers);
-        
-        const roleName = roles.find(r => r.id === roleId)?.name;
-        toast.success("Role assigned", {
-          description: `User has been assigned to ${roleName} role`,
-        });
+      if (result) {
+        toast.success('User role updated successfully');
+        setUsers(prevUsers => 
+          prevUsers.map(user => 
+            user.id === userId ? { ...user, role: roleId as any } : user
+          )
+        );
+      } else {
+        toast.error('Failed to update user role');
       }
     } catch (error) {
-      console.error("Error changing user role:", error);
-      toast.error("Failed to change user role");
+      console.error('Error updating user role:', error);
+      toast.error('An error occurred while updating user role');
     }
   };
 
@@ -287,7 +281,7 @@ const RoleManagement = () => {
                   roleId: roles.find(r => r.name === u.role)?.id || ''
                 }))} 
                 roles={roles} 
-                onRoleChange={handleChangeUserRole} 
+                onRoleChange={updateUserRole} 
               />
             </TabsContent>
           </Tabs>

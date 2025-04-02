@@ -106,10 +106,11 @@ const ExpirationManagement: React.FC = () => {
         'insert_product_batch', 
         {
           batch: {
-            product_id: newBatch.productId,
-            batch_number: newBatch.batchNumber,
+            product_id: newBatch.product_id,
+            batch_number: newBatch.batch_number,
             quantity: newBatch.quantity,
-            expiry_date: newBatch.expiryDate
+            expiry_date: newBatch.expiry_date,
+            status: newBatch.status || 'active'
           }
         }
       );
@@ -292,10 +293,10 @@ const ExpirationManagement: React.FC = () => {
                   batch={null}
                   onSave={async (batch) => {
                     await addBatch({
-                      productId: batch.productId,
-                      batchNumber: batch.batchNumber,
+                      product_id: batch.product_id,
+                      batch_number: batch.batch_number,
                       quantity: batch.quantity,
-                      expiryDate: batch.expiryDate,
+                      expiry_date: batch.expiry_date,
                       createdAt: new Date().toISOString(),
                       updatedAt: new Date().toISOString()
                     });

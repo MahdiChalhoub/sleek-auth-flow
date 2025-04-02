@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Printer, ListChecks, Barcode, QrCode, Scan, FileDown, Settings, Plus, Layers, 
@@ -176,6 +175,11 @@ const BarcodePrinting: React.FC = () => {
     // In a real app, we would generate and download the PDF here
   };
 
+  const renderCategoryName = (category: Category | null | undefined) => {
+    if (!category) return 'Uncategorized';
+    return category.name || 'Uncategorized';
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -252,7 +256,7 @@ const BarcodePrinting: React.FC = () => {
                           </TableCell>
                           <TableCell className="font-medium">{product.name}</TableCell>
                           <TableCell className="font-mono text-sm">{product.barcode}</TableCell>
-                          <TableCell>{product.category}</TableCell>
+                          <TableCell>{renderCategoryName(product.category)}</TableCell>
                           <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
                         </TableRow>
                       ))

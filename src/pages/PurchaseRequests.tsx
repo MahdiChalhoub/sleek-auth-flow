@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,7 +43,7 @@ import {
   ScanBarcode
 } from "lucide-react";
 import { PurchaseRequest, mockPurchaseRequests, createPurchaseRequest } from "@/models/purchaseRequest";
-import { assertType } from "@/utils/supabaseUtils";
+import { assertType } from "@/utils/typeUtils";
 
 const PurchaseRequests: React.FC = () => {
   const [requests, setRequests] = useState<PurchaseRequest[]>(mockPurchaseRequests);
@@ -58,11 +57,13 @@ const PurchaseRequests: React.FC = () => {
   const [showCreateTransferDialog, setShowCreateTransferDialog] = useState(false);
   const { toast } = useToast();
 
-  // Apply filters whenever filter criteria change
+  const canEditRequest = (status: string) => {
+    return status === 'draft' || status === 'pending';
+  };
+
   useEffect(() => {
     let filtered = [...requests];
     
-    // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter(req => 
         req.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -70,17 +71,14 @@ const PurchaseRequests: React.FC = () => {
       );
     }
     
-    // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter(req => req.status === statusFilter);
     }
     
-    // Apply method filter
     if (methodFilter !== "all") {
       filtered = filtered.filter(req => req.method === assertType<PurchaseRequest["method"]>(methodFilter));
     }
     
-    // Apply supplier filter
     if (supplierFilter !== "all") {
       filtered = filtered.filter(req => 
         req.suggestedSupplierId === supplierFilter || 
@@ -91,7 +89,6 @@ const PurchaseRequests: React.FC = () => {
     setFilteredRequests(filtered);
   }, [requests, searchQuery, statusFilter, methodFilter, supplierFilter]);
 
-  // Toggle selection of a request
   const toggleRequestSelection = (requestId: string) => {
     setSelectedRequests(prev => {
       if (prev.includes(requestId)) {
@@ -102,7 +99,6 @@ const PurchaseRequests: React.FC = () => {
     });
   };
 
-  // Select all visible requests
   const selectAllRequests = (checked: boolean) => {
     if (checked) {
       setSelectedRequests(filteredRequests.map(req => req.id));
@@ -111,7 +107,6 @@ const PurchaseRequests: React.FC = () => {
     }
   };
 
-  // Create purchase order from selected requests
   const createPurchaseOrder = () => {
     if (selectedRequests.length === 0) {
       toast({
@@ -122,7 +117,6 @@ const PurchaseRequests: React.FC = () => {
       return;
     }
     
-    // Group requests by supplier
     const requestsBySupplier: Record<string, PurchaseRequest[]> = {};
     
     selectedRequests.forEach(reqId => {
@@ -135,13 +129,11 @@ const PurchaseRequests: React.FC = () => {
       }
     });
     
-    // In a real app, we would create POs for each supplier
     toast({
       title: "Purchase Orders Created",
       description: `Created ${Object.keys(requestsBySupplier).length} purchase orders for selected requests.`
     });
     
-    // Update request status
     setRequests(prev => 
       prev.map(req => 
         selectedRequests.includes(req.id) 
@@ -154,9 +146,8 @@ const PurchaseRequests: React.FC = () => {
     setShowCreatePODialog(false);
   };
 
-  // Create stock transfer from selected requests
   const createStockTransfer = () => {
-    if (selectedRequests.length ===.0) {
+    if (selectedRequests.length === 0) {
       toast({
         title: "No requests selected",
         description: "Please select at least one request to create a stock transfer.",
@@ -165,13 +156,11 @@ const PurchaseRequests: React.FC = () => {
       return;
     }
     
-    // In a real app, we would create a stock transfer
     toast({
       title: "Stock Transfer Created",
       description: `Created stock transfer for ${selectedRequests.length} products.`
     });
     
-    // Update request status and action type
     setRequests(prev => 
       prev.map(req => 
         selectedRequests.includes(req.id) 
@@ -184,7 +173,6 @@ const PurchaseRequests: React.FC = () => {
     setShowCreateTransferDialog(false);
   };
 
-  // Get badge color based on status
   const getStatusBadge = (status: PurchaseRequest["status"]) => {
     switch (status) {
       case "requested":
@@ -204,7 +192,6 @@ const PurchaseRequests: React.FC = () => {
     }
   };
 
-  // Get icon for request method
   const getMethodIcon = (method: PurchaseRequest["method"]) => {
     switch (method) {
       case "scan":
@@ -224,7 +211,6 @@ const PurchaseRequests: React.FC = () => {
     }
   };
 
-  // Add a new manual request
   const addManualRequest = () => {
     const newRequest = createPurchaseRequest({
       productId: '10',
@@ -293,12 +279,9 @@ const PurchaseRequests: React.FC = () => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Main Content */}
         <TabsContent value="all" className="space-y-4">
           <div className="flex flex-wrap gap-4">
-            {/* Filters Section */}
             <div className="flex flex-col md:flex-row gap-4 w-full">
-              {/* Search */}
               <div className="relative flex-1">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -309,7 +292,6 @@ const PurchaseRequests: React.FC = () => {
                 />
               </div>
               
-              {/* Method Filter */}
               <div className="w-full md:w-[180px]">
                 <Select
                   value={methodFilter}
@@ -333,7 +315,6 @@ const PurchaseRequests: React.FC = () => {
                 </Select>
               </div>
               
-              {/* Status Filter */}
               <div className="w-full md:w-[180px]">
                 <Select
                   value={statusFilter}
@@ -357,7 +338,6 @@ const PurchaseRequests: React.FC = () => {
                 </Select>
               </div>
               
-              {/* Supplier Filter */}
               <div className="w-full md:w-[180px]">
                 <Select
                   value={supplierFilter}
@@ -380,7 +360,6 @@ const PurchaseRequests: React.FC = () => {
               </div>
             </div>
             
-            {/* Bulk Actions */}
             <div className="flex gap-2 w-full">
               <Button
                 variant="outline"
@@ -415,7 +394,6 @@ const PurchaseRequests: React.FC = () => {
             </div>
           </div>
           
-          {/* Main Table */}
           <Card>
             <CardContent className="p-0">
               <div className="rounded-md border">
@@ -552,7 +530,6 @@ const PurchaseRequests: React.FC = () => {
           </Card>
         </TabsContent>
         
-        {/* Status-specific tabs */}
         {["requested", "ordered", "delivered", "failed", "success"].map((status) => (
           <TabsContent key={status} value={status} className="space-y-4">
             <Card>
@@ -638,7 +615,6 @@ const PurchaseRequests: React.FC = () => {
         ))}
       </Tabs>
       
-      {/* Create Purchase Order Dialog */}
       <Dialog open={showCreatePODialog} onOpenChange={setShowCreatePODialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -682,7 +658,6 @@ const PurchaseRequests: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Create Stock Transfer Dialog */}
       <Dialog open={showCreateTransferDialog} onOpenChange={setShowCreateTransferDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

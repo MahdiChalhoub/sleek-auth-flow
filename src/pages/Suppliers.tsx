@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -64,7 +63,7 @@ const Suppliers = () => {
     }
   };
 
-  const handleAddSupplier = async (supplierData: any) => {
+  const handleAddSupplier = async (supplierData: any): Promise<boolean> => {
     try {
       const { data, error } = await supabase
         .from('suppliers')
@@ -86,7 +85,7 @@ const Suppliers = () => {
     }
   };
 
-  const handleUpdateSupplier = async (id: string, supplierData: any) => {
+  const handleUpdateSupplier = async (id: string, supplierData: any): Promise<boolean> => {
     try {
       const { data, error } = await supabase
         .from('suppliers')
@@ -229,14 +228,12 @@ const Suppliers = () => {
         </CardContent>
       </Card>
 
-      {/* Supplier Form Dialog for Adding */}
       <SupplierFormDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         onSubmit={handleAddSupplier}
       />
 
-      {/* Supplier Form Dialog for Editing */}
       {selectedSupplier && (
         <SupplierFormDialog
           open={showEditDialog}
@@ -246,7 +243,6 @@ const Suppliers = () => {
         />
       )}
 
-      {/* Supplier View Modal */}
       {selectedSupplier && (
         <SupplierViewModal
           supplier={selectedSupplier}
@@ -255,10 +251,9 @@ const Suppliers = () => {
         />
       )}
 
-      {/* Supplier Delete Confirmation */}
       {selectedSupplier && (
         <SupplierDeleteDialog
-          open={showDeleteDialog}
+          isOpen={showDeleteDialog}
           onOpenChange={setShowDeleteDialog}
           onConfirm={() => handleDeleteSupplier(selectedSupplier.id)}
           supplier={selectedSupplier}
