@@ -5,7 +5,7 @@ export interface Branch {
   address?: string;
   phone?: string;
   businessId: string;
-  status: 'active' | 'inactive';
+  status: 'active' | 'inactive' | 'pending';
   createdAt?: string;
   updatedAt?: string;
   email?: string;

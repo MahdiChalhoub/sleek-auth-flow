@@ -30,6 +30,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { adaptRole, adaptRoles } from '@/utils/roleAdapter';
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -77,7 +78,10 @@ const Users: React.FC = () => {
         
         if (error) throw error;
         
-        setRoles(data || []);
+        setRoles(data ? adaptRoles(data.map(role => ({
+          ...role,
+          permissions: []  // Add required permissions property
+        }))) : []);
       } catch (error) {
         console.error('Error fetching roles:', error);
       } finally {

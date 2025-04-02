@@ -1,60 +1,65 @@
 
-import { User, Role as AuthRole } from '@/types/auth';
+import { User, UserRole } from '@/types/auth';
 import { Role } from '@/models/role';
 
 /**
- * Type-safe access to object properties with defaults
+ * Safe mapper for user data
  */
-export const safeGet = <T>(obj: any, key: string, defaultValue: T): T => {
-  if (!obj || typeof obj !== 'object') return defaultValue;
-  return (obj[key] as T) ?? defaultValue;
-};
-
-/**
- * Safe mapping function for user data
- */
-export const mapUserData = (userData: any): User => {
-  const profiles = safeGet(userData, 'profiles', {});
-  
+export function mapUserData(userData: any): User {
   return {
-    id: safeGet(userData, 'id', ''),
-    email: safeGet(userData, 'email', ''),
-    role: safeGet(userData, 'role', 'employee'),
-    isGlobalAdmin: safeGet(userData, 'is_global_admin', false),
-    fullName: safeGet(profiles, 'full_name', '') || safeGet(userData, 'email', '').split('@')[0] || '',
-    avatarUrl: safeGet(profiles, 'avatar_url', ''),
-    status: safeGet(userData, 'status', 'inactive'),
-    lastLogin: safeGet(userData, 'last_login', null),
-    createdAt: safeGet(userData, 'created_at', null),
-    permissions: safeGet(userData, 'permissions', [])
+    id: userData.id || '',
+    email: userData.email || '',
+    fullName: userData.profiles?.full_name || userData.email?.split('@')[0] || '',
+    avatarUrl: userData.profiles?.avatar_url || '',
+    status: (userData.status as any) || 'active',
+    role: (userData.role as UserRole) || 'cashier',
+    isGlobalAdmin: userData.is_global_admin || false,
+    isDeleted: userData.is_deleted || false,
+    lastLogin: userData.last_login || null,
+    createdAt: userData.created_at || null,
+    permissions: userData.permissions || []
   };
-};
+}
 
 /**
- * Safe mapping function for role data
+ * Safe mapper for role data
  */
-export const mapRoleData = (roleData: any): Role => {
+export function mapRoleData(roleData: any): Role {
   return {
-    id: safeGet(roleData, 'id', ''),
-    name: safeGet(roleData, 'name', ''),
-    description: safeGet(roleData, 'description', ''),
-    permissions: safeGet(roleData, 'permissions', []),
-    createdAt: safeGet(roleData, 'created_at', null),
-    updatedAt: safeGet(roleData, 'updated_at', null),
-    created_at: safeGet(roleData, 'created_at', null),
-    updated_at: safeGet(roleData, 'updated_at', null)
+    id: roleData.id || '',
+    name: roleData.name || '',
+    description: roleData.description || '',
+    permissions: roleData.permissions || [],
+    createdAt: roleData.created_at || null,
+    updatedAt: roleData.updated_at || null,
+    created_at: roleData.created_at || null,
+    updated_at: roleData.updated_at || null
   };
-};
+}
 
 /**
- * Type adapter for user-related service methods
+ * Method adapters for safe data handling
  */
 export const methodAdapters = {
-  listUsers: (users: any[]): User[] => {
-    return users.map(mapUserData);
+  listUsers: (data: any[]): User[] => {
+    return data.map(mapUserData);
   },
   
-  getRoles: (roles: any[]): Role[] => {
-    return roles.map(mapRoleData);
+  mapUserRoles: (userData: any, roles: any[]): User & { roles: Role[] } => {
+    const user = mapUserData(userData);
+    const mappedRoles = roles.map(mapRoleData);
+    
+    return {
+      ...user,
+      roles: mappedRoles
+    };
   }
 };
+
+/**
+ * Helper for safe property access
+ */
+export function safeGet<T, K extends keyof T>(obj: T | null | undefined, key: K): T[K] | undefined {
+  if (!obj) return undefined;
+  return obj[key];
+}
