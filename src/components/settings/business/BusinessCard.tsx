@@ -1,149 +1,125 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Business } from '@/models/interfaces/businessInterfaces';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChevronDown, ChevronUp, Building2, MapPin, Phone, Mail, Calendar, Globe, Clock, Edit, Trash } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import {
-  ChevronDown,
-  ChevronUp,
-  Building,
-  Mail,
-  Phone,
-  MapPin,
-  Globe,
-  Trash2,
-  Power,
-  PowerOff
-} from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog';
+import { Switch } from '@/components/ui/switch';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface BusinessCardProps {
   business: Business;
   isExpanded: boolean;
   onToggleExpand: () => void;
-  onDeleteBusiness: () => void;
   onToggleStatus: (isActive: boolean) => void;
+  onDeleteBusiness: () => void;
 }
 
 export const BusinessCard: React.FC<BusinessCardProps> = ({
   business,
   isExpanded,
   onToggleExpand,
-  onDeleteBusiness,
-  onToggleStatus
+  onToggleStatus,
+  onDeleteBusiness
 }) => {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const { user } = useAuth();
+  const isOwner = user?.id === business.ownerId;
+  const [isActive, setIsActive] = useState(business.active ?? true);
 
-  const handleDelete = () => {
-    setIsDeleteDialogOpen(true);
+  const handleStatusToggle = () => {
+    const newStatus = !isActive;
+    setIsActive(newStatus);
+    onToggleStatus(newStatus);
   };
-
-  const confirmDelete = () => {
-    onDeleteBusiness();
-    setIsDeleteDialogOpen(false);
-  };
-
-  const isActive = business.status === 'active' || business.active;
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="p-4 pb-2">
-        <div className="flex justify-between items-center">
+    <Card className="w-full transition-all duration-200 overflow-hidden">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Building className="h-5 w-5 text-primary" />
-            <span className="font-medium">{business.name}</span>
-            <Badge variant={isActive ? "success" : "destructive"} className="ml-2">
-              {isActive ? 'Active' : 'Inactive'}
-            </Badge>
+            <Building2 className="h-5 w-5 text-muted-foreground" />
+            <CardTitle className="text-xl">{business.name}</CardTitle>
           </div>
           <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleDelete}
-              className="h-8 w-8 p-0 text-destructive hover:text-destructive/80"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => onToggleStatus(!isActive)}
-              className={`h-8 w-8 p-0 ${isActive ? 'text-destructive hover:text-destructive/80' : 'text-success hover:text-success/80'}`}
-            >
-              {isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Badge variant={business.active ? "success" : "destructive"}>
+              {business.active ? 'Active' : 'Inactive'}
+            </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={onToggleExpand}
-              className="h-8 w-8 p-0"
+              className="p-0 h-8 w-8"
             >
               {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
           </div>
         </div>
+        <CardDescription>{business.description || 'No description available'}</CardDescription>
       </CardHeader>
-
+      
       {isExpanded && (
-        <CardContent className="p-4 pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <>
+          <CardContent className="pb-2 grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span>{business.address || 'No address'}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Phone className="h-4 w-4 text-muted-foreground" />
+                <span>{business.phone || 'No phone'}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span>{business.email || 'No email'}</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <Globe className="h-4 w-4 text-muted-foreground" />
+                <span>Country: {business.country || 'Not specified'}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span>Timezone: {business.timezone || 'Not specified'}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>Created: {formatDate(business.createdAt) || 'Unknown'}</span>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="pt-2 flex justify-between">
             <div className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{business.email || 'No email'}</span>
+              <span className="text-sm">Active</span>
+              <Switch 
+                checked={isActive} 
+                onCheckedChange={handleStatusToggle}
+                disabled={!isOwner} 
+              />
             </div>
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{business.phone || 'No phone'}</span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="h-8 px-2">
+                <Edit className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+              {isOwner && (
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  className="h-8 px-2"
+                  onClick={onDeleteBusiness}
+                >
+                  <Trash className="h-4 w-4 mr-1" />
+                  Delete
+                </Button>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{business.address || 'No address'}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{business.country || 'No country'}</span>
-            </div>
-          </div>
-          {business.description && (
-            <div className="mt-4">
-              <h4 className="text-sm font-medium mb-1">Description</h4>
-              <p className="text-sm text-muted-foreground">{business.description}</p>
-            </div>
-          )}
-        </CardContent>
+          </CardFooter>
+        </>
       )}
-
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the business "{business.name}" and all its associated data.
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Card>
   );
 };

@@ -7,8 +7,6 @@ import { fromTable } from '@/utils/supabaseServiceHelper';
 
 export const useBusinessManagement = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [expandedBusinessId, setExpandedBusinessId] = useState<string | null>(null);
-  const [isAddBusinessModalOpen, setIsAddBusinessModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
@@ -28,17 +26,17 @@ export const useBusinessManagement = () => {
       // Fetch businesses where user is a member
       const { data: memberBusinesses, error: memberError } = await fromTable('business_users')
         .select('business:businesses(*)')
-        .eq('user_id', user.id)
-        .eq('is_active', true);
+        .eq('user_id', user.id);
       
       if (memberError) throw memberError;
       
       // Combine and deduplicate businesses
       const memberBusinessesData = memberBusinesses
-        .map(item => item.business)
+        // Use type assertion to safely access business property
+        .map(item => (item as any).business)
         .filter(Boolean);
       
-      const allBusinesses = [...ownedBusinesses, ...memberBusinessesData];
+      const allBusinesses = [...(ownedBusinesses || []), ...memberBusinessesData];
       
       // Remove duplicates based on business ID
       const uniqueBusinesses = allBusinesses.reduce((acc, current) => {
@@ -83,13 +81,9 @@ export const useBusinessManagement = () => {
     fetchBusinesses();
   }, [fetchBusinesses]);
 
-  const toggleExpand = useCallback((businessId: string) => {
-    setExpandedBusinessId(prev => prev === businessId ? null : businessId);
-  }, []);
-
   const handleAddBusiness = useCallback(async (newBusiness: Business) => {
     if (!user?.id) {
-      toast.error('You must be logged in to create a business');
+      toast.error('User not found');
       return;
     }
     
@@ -101,25 +95,24 @@ export const useBusinessManagement = () => {
           address: newBusiness.address,
           phone: newBusiness.phone,
           email: newBusiness.email,
+          status: newBusiness.status || 'active',
+          description: newBusiness.description,
           type: newBusiness.type,
           country: newBusiness.country,
           currency: newBusiness.currency,
-          description: newBusiness.description,
-          timezone: newBusiness.timezone,
-          status: 'active',
-          active: true
+          active: newBusiness.active !== undefined ? newBusiness.active : true,
+          timezone: newBusiness.timezone
         })
         .select()
         .single();
       
       if (error) throw error;
       
-      toast.success('Business created successfully');
-      setIsAddBusinessModalOpen(false);
+      toast.success('Business added successfully');
       fetchBusinesses();
     } catch (error) {
       console.error('Error adding business:', error);
-      toast.error('Failed to create business');
+      toast.error('Failed to add business');
     }
   }, [user?.id, fetchBusinesses]);
 
@@ -131,7 +124,7 @@ export const useBusinessManagement = () => {
       
       if (error) throw error;
       
-      setBusinesses(prev => prev.filter(b => b.id !== businessId));
+      setBusinesses(prev => prev.filter(business => business.id !== businessId));
       toast.success('Business deleted successfully');
     } catch (error) {
       console.error('Error deleting business:', error);
@@ -141,22 +134,17 @@ export const useBusinessManagement = () => {
 
   const handleToggleBusinessStatus = useCallback(async (businessId: string, isActive: boolean) => {
     try {
-      const newStatus = isActive ? 'active' : 'inactive';
-      
       const { error } = await fromTable('businesses')
-        .update({ 
-          status: newStatus,
-          active: isActive
-        })
+        .update({ active: isActive })
         .eq('id', businessId);
       
       if (error) throw error;
       
       setBusinesses(prev => 
-        prev.map(b => 
-          b.id === businessId 
-            ? { ...b, status: newStatus, active: isActive } 
-            : b
+        prev.map(business => 
+          business.id === businessId 
+            ? { ...business, active: isActive } 
+            : business
         )
       );
       
@@ -169,11 +157,7 @@ export const useBusinessManagement = () => {
 
   return {
     businesses,
-    expandedBusinessId,
-    isAddBusinessModalOpen,
     isLoading,
-    setIsAddBusinessModalOpen,
-    toggleExpand,
     handleAddBusiness,
     handleDeleteBusiness,
     handleToggleBusinessStatus,

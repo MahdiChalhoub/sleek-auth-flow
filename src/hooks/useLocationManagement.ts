@@ -23,19 +23,22 @@ export const useLocationManagement = () => {
       
       if (error) throw error;
       
-      const mappedLocations: Branch[] = data.map(location => ({
-        id: location.id,
-        name: location.name,
+      // Type guard to ensure data is available
+      const locationsData = data || [];
+      
+      const mappedLocations: Branch[] = locationsData.map(location => ({
+        id: location.id || '',
+        name: location.name || '',
         address: location.address || '',
         phone: location.phone || '',
         email: location.email || '',
-        businessId: location.business_id,
-        status: location.status || 'active',
-        type: location.type || 'retail',
+        businessId: location.business_id || '',
+        status: (location.status as 'active' | 'inactive' | 'pending') || 'active',
+        type: (location.type as 'retail' | 'warehouse' | 'office' | 'other') || 'retail',
         isDefault: location.is_default || false,
         locationCode: location.location_code || '',
-        createdAt: location.created_at,
-        updatedAt: location.updated_at,
+        createdAt: location.created_at || '',
+        updatedAt: location.updated_at || '',
         openingHours: location.opening_hours || {}
       }));
       

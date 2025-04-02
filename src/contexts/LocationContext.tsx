@@ -1,128 +1,146 @@
 
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
 import { Branch } from '@/types/location';
-import { useAuth } from './AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 import { fromTable } from '@/utils/supabaseServiceHelper';
 
+// Define the location context type
 interface LocationContextType {
   currentLocation: Branch | null;
   availableLocations: Branch[];
-  isLoading: boolean;
+  isLoadingLocations: boolean;
   switchLocation: (locationId: string) => void;
-  refreshLocations: () => Promise<void>;
   userHasAccessToLocation: (locationId: string) => boolean;
+  refreshLocations: () => Promise<void>;
 }
 
+// Create context with default values
 const LocationContext = createContext<LocationContextType>({
   currentLocation: null,
   availableLocations: [],
-  isLoading: true,
+  isLoadingLocations: true,
   switchLocation: () => {},
-  refreshLocations: async () => {},
   userHasAccessToLocation: () => false,
+  refreshLocations: async () => {}
 });
 
+// Export hook for using location context
 export const useLocationContext = () => useContext(LocationContext);
 
+// Location Provider component
 export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentLocation, setCurrentLocation] = useState<Branch | null>(null);
   const [availableLocations, setAvailableLocations] = useState<Branch[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { user, currentBusiness } = useAuth();
+  const [isLoadingLocations, setIsLoadingLocations] = useState(true);
+  const { currentBusiness, user } = useAuth();
 
-  const refreshLocations = useCallback(async () => {
-    if (!currentBusiness?.id || !user) {
+  // Fetch locations for the current business
+  const fetchLocations = useCallback(async () => {
+    if (!currentBusiness?.id) {
       setAvailableLocations([]);
       setCurrentLocation(null);
+      setIsLoadingLocations(false);
       return;
     }
 
     try {
-      setIsLoading(true);
+      setIsLoadingLocations(true);
       
-      // Fetch locations from Supabase
-      const { data: locations, error } = await fromTable('locations')
+      const { data, error } = await fromTable('locations')
         .select('*')
         .eq('business_id', currentBusiness.id)
-        .eq('status', 'active');
+        .order('is_default', { ascending: false });
       
       if (error) throw error;
+
+      // Use type assertion to map the locations safely
+      const locationsData = data || [];
       
-      // Map database locations to our Branch type
-      const mappedLocations: Branch[] = locations.map(location => ({
-        id: location.id,
-        name: location.name,
-        address: location.address || '',
-        phone: location.phone || '',
-        email: location.email || '',
-        businessId: location.business_id,
-        status: location.status || 'active',
-        type: location.type || 'retail',
-        isDefault: location.is_default || false,
-        locationCode: location.location_code || '',
-        createdAt: location.created_at,
-        updatedAt: location.updated_at,
-        openingHours: location.opening_hours || {}
+      const mappedLocations: Branch[] = locationsData.map(loc => ({
+        id: loc.id || '',
+        name: loc.name || '',
+        address: loc.address || '',
+        phone: loc.phone || '',
+        email: loc.email || '',
+        businessId: loc.business_id || '',
+        status: (loc.status as 'active' | 'inactive' | 'pending') || 'active',
+        type: (loc.type as 'retail' | 'warehouse' | 'office' | 'other') || 'retail',
+        isDefault: loc.is_default || false,
+        locationCode: loc.location_code || '',
+        createdAt: loc.created_at || '',
+        updatedAt: loc.updated_at || '',
+        openingHours: loc.opening_hours || {}
       }));
       
       setAvailableLocations(mappedLocations);
       
-      // Set current location
-      const savedLocationId = localStorage.getItem('pos_current_location');
+      // Check if there's a saved location ID in localStorage
+      const savedLocationId = localStorage.getItem("pos_current_location");
       
       if (savedLocationId) {
         const savedLocation = mappedLocations.find(loc => loc.id === savedLocationId);
         if (savedLocation) {
           setCurrentLocation(savedLocation);
         } else if (mappedLocations.length > 0) {
-          // If saved location not found, use the first available
-          setCurrentLocation(mappedLocations[0]);
-          localStorage.setItem('pos_current_location', mappedLocations[0].id);
+          // If saved location not found, use the default or first one
+          const defaultLocation = mappedLocations.find(loc => loc.isDefault) || mappedLocations[0];
+          setCurrentLocation(defaultLocation);
+          localStorage.setItem("pos_current_location", defaultLocation.id);
+        } else {
+          setCurrentLocation(null);
+          localStorage.removeItem("pos_current_location");
         }
       } else if (mappedLocations.length > 0) {
-        // Find default location or use first one
+        // If no saved location, use the default or first one
         const defaultLocation = mappedLocations.find(loc => loc.isDefault) || mappedLocations[0];
         setCurrentLocation(defaultLocation);
-        localStorage.setItem('pos_current_location', defaultLocation.id);
+        localStorage.setItem("pos_current_location", defaultLocation.id);
+      } else {
+        setCurrentLocation(null);
       }
     } catch (error) {
-      console.error('Error fetching locations:', error);
-      toast.error('Failed to load locations');
+      console.error("Error fetching locations:", error);
+      toast.error("Failed to load locations");
     } finally {
-      setIsLoading(false);
+      setIsLoadingLocations(false);
     }
-  }, [currentBusiness?.id, user]);
+  }, [currentBusiness?.id]);
 
+  // Fetch locations whenever currentBusiness changes
   useEffect(() => {
-    refreshLocations();
-  }, [refreshLocations]);
+    fetchLocations();
+  }, [fetchLocations, currentBusiness]);
 
-  const switchLocation = useCallback((locationId: string) => {
-    const location = availableLocations.find(loc => loc.id === locationId);
-    if (location) {
-      setCurrentLocation(location);
-      localStorage.setItem('pos_current_location', location.id);
-      toast.success(`Switched to ${location.name}`);
+  // Switch to a different location
+  const switchLocation = (locationId: string) => {
+    const newLocation = availableLocations.find(loc => loc.id === locationId);
+    
+    if (newLocation) {
+      setCurrentLocation(newLocation);
+      localStorage.setItem("pos_current_location", newLocation.id);
+      toast.success(`Switched to ${newLocation.name}`);
+    } else {
+      toast.error("Location not found");
     }
-  }, [availableLocations]);
+  };
 
-  const userHasAccessToLocation = useCallback((locationId: string) => {
-    // For now, assume users have access to all locations
-    // This can be enhanced later with proper permission checks
+  // Check if user has access to a location (to be expanded with role-based checks)
+  const userHasAccessToLocation = (locationId: string): boolean => {
+    // For now, simply check if the location exists in available locations
+    // This will be expanded with proper permission checking later
     return !!availableLocations.find(loc => loc.id === locationId);
-  }, [availableLocations]);
+  };
 
   return (
     <LocationContext.Provider
       value={{
         currentLocation,
         availableLocations,
-        isLoading,
+        isLoadingLocations,
         switchLocation,
-        refreshLocations,
-        userHasAccessToLocation
+        userHasAccessToLocation,
+        refreshLocations: fetchLocations
       }}
     >
       {children}

@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/auth';
@@ -15,7 +16,8 @@ interface AuthContextType {
   hasPermission: (permissionName: string) => boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({
+// Export the AuthContext so it can be imported in other files
+export const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
   currentBusiness: null,
@@ -54,10 +56,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Combine and deduplicate businesses
       const memberBusinessesData = memberBusinesses
-        .map(item => item.business)
+        // Use type assertion to safely access business property
+        .map(item => (item as any).business)
         .filter(Boolean);
       
-      const allBusinesses = [...ownedBusinesses, ...memberBusinessesData];
+      const allBusinesses = [...(ownedBusinesses || []), ...memberBusinessesData];
       
       // Remove duplicates based on business ID
       const uniqueBusinesses = allBusinesses.reduce((acc, current) => {
@@ -105,17 +108,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      if (userData) {
-        const { data: userBusinessesData, error: userBusinessesError } = await loadUserBusinesses(userData.user.id);
+      if (userData && userData.user) {
+        // Create a User object that matches our app's User type
+        const appUser: User = {
+          id: userData.user.id,
+          email: userData.user.email || '',
+          role: 'cashier', // Default role
+          status: 'active', // Default status
+          lastLogin: new Date().toISOString()
+        };
         
-        if (userBusinessesError) {
-          console.error('Error loading user businesses:', userBusinessesError);
-          return;
-        }
+        const userBusinessesData = await loadUserBusinesses(userData.user.id);
         
-        setUser(userData.user);
-        setCurrentBusiness(userBusinessesData[0]);
+        setUser(appUser);
         setUserBusinesses(userBusinessesData);
+        setCurrentBusiness(userBusinessesData[0] || null);
       }
       
       setIsLoading(false);
@@ -129,19 +136,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     if (userError) {
       console.error('Error logging in:', userError);
-      return;
+      throw userError;
     }
     
-    const { data: userBusinessesData, error: userBusinessesError } = await loadUserBusinesses(userData.user.id);
-    
-    if (userBusinessesError) {
-      console.error('Error loading user businesses:', userBusinessesError);
-      return;
+    if (userData && userData.user) {
+      // Create a User object that matches our app's User type
+      const appUser: User = {
+        id: userData.user.id,
+        email: userData.user.email || '',
+        role: 'cashier', // Default role
+        status: 'active', // Default status
+        lastLogin: new Date().toISOString()
+      };
+      
+      const userBusinessesData = await loadUserBusinesses(userData.user.id);
+      
+      setUser(appUser);
+      setCurrentBusiness(userBusinessesData[0] || null);
+      setUserBusinesses(userBusinessesData);
     }
-    
-    setUser(userData.user);
-    setCurrentBusiness(userBusinessesData[0]);
-    setUserBusinesses(userBusinessesData);
   };
 
   const logout = () => {
