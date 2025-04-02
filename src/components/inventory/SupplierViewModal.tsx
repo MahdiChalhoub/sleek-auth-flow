@@ -1,153 +1,173 @@
 
-import React, { useState } from "react";
-import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import React from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockProducts } from "@/models/product";
-import SupplierCreditLedger from "./supplier/SupplierCreditLedger";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Mail, Phone, MapPin, Tag, FileEdit, ShoppingCart } from "lucide-react";
 
+// Define the props for the SupplierViewModal component
 interface SupplierViewModalProps {
-  supplier: any;
+  supplier: {
+    id: string;
+    name: string;
+    contactPerson?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    notes?: string;
+    products?: any[]; // Product array, could be more specifically typed
+  } | null;
+  isOpen: boolean;
   onClose: () => void;
+  onEdit?: () => void;
 }
 
-const SupplierViewModal: React.FC<SupplierViewModalProps> = ({ supplier, onClose }) => {
-  const [activeTab, setActiveTab] = useState("details");
-  
+// Create the SupplierViewModal component
+const SupplierViewModal: React.FC<SupplierViewModalProps> = ({
+  supplier,
+  isOpen,
+  onClose,
+  onEdit
+}) => {
   if (!supplier) return null;
 
-  // Get products supplied by this supplier
-  const suppliedProducts = mockProducts.filter(product => 
-    supplier.products.includes(product.id)
-  );
-
   return (
-    <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-auto">
-      <DialogHeader>
-        <DialogTitle>Supplier Details</DialogTitle>
-        <DialogDescription>View detailed information about this supplier.</DialogDescription>
-      </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl">{supplier.name}</DialogTitle>
+          <DialogDescription>
+            Supplier details and purchase history
+          </DialogDescription>
+        </DialogHeader>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="purchases">Purchase History</TabsTrigger>
-          <TabsTrigger value="ledger">Credit Ledger</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="details">
-          <div className="grid gap-6 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium">Supplier Name</p>
-                <p className="text-base">{supplier.name}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Contact Person</p>
-                <p className="text-base">{supplier.contactPerson}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Email</p>
-                <p className="text-base">{supplier.email}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Phone</p>
-                <p className="text-base">{supplier.phone}</p>
-              </div>
-              <div className="sm:col-span-2">
-                <p className="text-sm font-medium">Address</p>
-                <p className="text-base">{supplier.address}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Tax ID / VAT Number</p>
-                <p className="text-base">{supplier.taxId || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Payment Terms</p>
-                <p className="text-base">{supplier.paymentTerms || "N/A"}</p>
-              </div>
-              {supplier.notes && (
-                <div className="sm:col-span-2">
-                  <p className="text-sm font-medium">Notes</p>
-                  <p className="text-base">{supplier.notes}</p>
-                </div>
-              )}
+        <Tabs defaultValue="details">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="purchases">Purchase History</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="space-y-4 py-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Contact Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {supplier.contactPerson && (
+                    <div className="flex items-start">
+                      <Tag className="h-5 w-5 mr-2 text-muted-foreground" />
+                      <div>
+                        <Label className="text-sm font-medium">Contact Person</Label>
+                        <p>{supplier.contactPerson}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {supplier.email && (
+                    <div className="flex items-start">
+                      <Mail className="h-5 w-5 mr-2 text-muted-foreground" />
+                      <div>
+                        <Label className="text-sm font-medium">Email</Label>
+                        <p>{supplier.email}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {supplier.phone && (
+                    <div className="flex items-start">
+                      <Phone className="h-5 w-5 mr-2 text-muted-foreground" />
+                      <div>
+                        <Label className="text-sm font-medium">Phone</Label>
+                        <p>{supplier.phone}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {supplier.address && (
+                    <div className="flex items-start">
+                      <MapPin className="h-5 w-5 mr-2 text-muted-foreground" />
+                      <div>
+                        <Label className="text-sm font-medium">Address</Label>
+                        <p>{supplier.address}</p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">{supplier.notes || "No notes available."}</p>
+                </CardContent>
+              </Card>
             </div>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="products">
-          <div className="rounded-md border overflow-hidden max-h-96 overflow-y-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="h-10 px-4 text-left font-medium">Product</th>
-                  <th className="h-10 px-4 text-left font-medium">Category</th>
-                  <th className="h-10 px-4 text-right font-medium">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {suppliedProducts.map(product => (
-                  <tr key={product.id} className="border-t">
-                    <td className="p-2 pl-4 font-medium">{product.name}</td>
-                    <td className="p-2">{product.categoryId || product.category}</td>
-                    <td className="p-2 pr-4 text-right">${product.price.toFixed(2)}</td>
-                  </tr>
-                ))}
-                {suppliedProducts.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="p-4 text-center text-muted-foreground">No products associated with this supplier</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="purchases">
-          <div className="rounded-md border overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-muted">
-                <tr>
-                  <th className="h-10 px-4 text-left font-medium">PO Number</th>
-                  <th className="h-10 px-4 text-left font-medium">Date</th>
-                  <th className="h-10 px-4 text-right font-medium">Value</th>
-                  <th className="h-10 px-4 text-center font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-t">
-                  <td className="p-2 pl-4 font-medium">PO-2023-001</td>
-                  <td className="p-2">2023-11-10</td>
-                  <td className="p-2 text-right">$14,299.83</td>
-                  <td className="p-2 pr-4 text-center">
-                    <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Completed</span>
-                  </td>
-                </tr>
-                <tr className="border-t">
-                  <td className="p-2 pl-4 font-medium">PO-2022-089</td>
-                  <td className="p-2">2022-09-15</td>
-                  <td className="p-2 text-right">$8,754.50</td>
-                  <td className="p-2 pr-4 text-center">
-                    <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Completed</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="ledger">
-          <SupplierCreditLedger supplierId={supplier.id} supplierName={supplier.name} />
-        </TabsContent>
-      </Tabs>
 
-      <DialogFooter className="mt-6">
-        <Button variant="outline" onClick={onClose}>Close</Button>
-      </DialogFooter>
-    </DialogContent>
+            {supplier.products && supplier.products.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Products</CardTitle>
+                  <CardDescription>Products supplied by {supplier.name}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    {supplier.products.map((product) => (
+                      <div key={typeof product === 'string' ? product : product.id} className="border rounded p-3">
+                        <p className="font-medium">{typeof product === 'string' ? product : product.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="flex justify-end space-x-2 pt-4">
+              {onEdit && (
+                <Button onClick={onEdit} variant="outline">
+                  <FileEdit className="h-4 w-4 mr-2" />
+                  Edit Supplier
+                </Button>
+              )}
+              <Button onClick={onClose} variant="outline">
+                Close
+              </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="purchases" className="py-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Purchase Orders</CardTitle>
+                <CardDescription>
+                  History of purchase orders from this supplier
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium">No purchase orders found</h3>
+                  <p className="text-muted-foreground mt-1">
+                    You haven't made any purchases from this supplier yet.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
   );
 };
 

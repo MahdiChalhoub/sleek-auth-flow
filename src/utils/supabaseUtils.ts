@@ -1,7 +1,6 @@
 
 import { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { TableName } from './typeUtils';
 
 /**
  * Helper function to safely get an array from a Supabase query
@@ -39,9 +38,10 @@ export function rpcParams<T extends Record<string, any>>(params: T): T {
 
 /**
  * Generate a Supabase table source with proper typing
+ * Modified to accept string literals directly
  */
-export function tableSource<T extends TableName>(tableName: T) {
-  return supabase.from(tableName);
+export function tableSource(tableName: string) {
+  return tableName;
 }
 
 /**
@@ -98,4 +98,17 @@ export async function safeTransaction<T>(
     console.error(`${errorMessage}:`, error);
     throw error;
   }
+}
+
+/**
+ * Valid types for use with assertType
+ */
+export type ValidTable = any;
+
+/**
+ * Assert that a value is of a specific type
+ * This is a runtime no-op but helps TypeScript narrow types
+ */
+export function assertType<T>(value: any): T {
+  return value as T;
 }

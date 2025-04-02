@@ -1,6 +1,6 @@
 
 // Re-export the Category type from useCategoryTree
-import { Category } from '@/hooks/useCategoryTree';
+import type { Category } from '@/hooks/useCategoryTree';
 export type { Category };
 
 export interface CategoryWithProducts extends Category {

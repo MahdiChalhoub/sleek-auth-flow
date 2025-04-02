@@ -5,19 +5,43 @@ import {
   JournalEntry, 
   TransactionStatus, 
   PaymentMethod,
-  DBTransaction,
-  DBJournalEntry,
   TransactionType
 } from '@/models/transaction';
-import { typeCast } from '@/utils/supabaseTypes';
-import { tableSource } from '@/utils/supabaseUtils';
+import { assertType } from '@/utils/typeUtils';
+
+// Define database transaction type
+export interface DBTransaction {
+  id: string;
+  amount: number;
+  status: string;
+  type: string;
+  notes: string | null;
+  location_id: string | null;
+  reference_id: string | null;
+  reference_type: string | null;
+  financial_year_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DBJournalEntry {
+  id: string;
+  transaction_id: string;
+  account: string;
+  amount: number;
+  type: 'debit' | 'credit';
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 // Define a proper database to model mapping function
 const mapDbToTransaction = (
-  dbTransaction: DBTransaction & { journal_entries?: any[] }
+  dbTransaction: DBTransaction, 
+  journalEntries: DBJournalEntry[] = []
 ): Transaction => {
   // Map journal entries if they exist
-  const journalEntries: JournalEntry[] = (dbTransaction.journal_entries || []).map(entry => ({
+  const mappedJournalEntries: JournalEntry[] = journalEntries.map(entry => ({
     id: entry.id,
     transactionId: entry.transaction_id,
     account: entry.account,
@@ -44,7 +68,7 @@ const mapDbToTransaction = (
     referenceId: dbTransaction.reference_id || undefined,
     referenceType: dbTransaction.reference_type || undefined,
     financialYearId: dbTransaction.financial_year_id || undefined,
-    journalEntries
+    journalEntries: mappedJournalEntries
   };
 };
 
@@ -52,7 +76,7 @@ const mapDbToTransaction = (
 export const transactionsAPI = {
   getAll: async (): Promise<Transaction[]> => {
     const { data, error } = await supabase
-      .from(tableSource('transactions'))
+      .from('transactions')
       .select('*, journal_entries(*)');
     
     if (error) {
@@ -61,13 +85,14 @@ export const transactionsAPI = {
     }
     
     return data.map(transaction => {
-      return mapDbToTransaction(typeCast<DBTransaction & { journal_entries?: any[] }>(transaction));
+      const dbTransaction = transaction as unknown as DBTransaction & { journal_entries?: DBJournalEntry[] };
+      return mapDbToTransaction(dbTransaction, dbTransaction.journal_entries || []);
     });
   },
   
   getById: async (id: string): Promise<Transaction | null> => {
     const { data, error } = await supabase
-      .from(tableSource('transactions'))
+      .from('transactions')
       .select('*, journal_entries(*)')
       .eq('id', id)
       .single();
@@ -77,7 +102,8 @@ export const transactionsAPI = {
       throw error;
     }
     
-    return mapDbToTransaction(typeCast<DBTransaction & { journal_entries?: any[] }>(data));
+    const dbTransaction = data as unknown as DBTransaction & { journal_entries?: DBJournalEntry[] };
+    return mapDbToTransaction(dbTransaction, dbTransaction.journal_entries || []);
   },
   
   create: async (transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<Transaction> => {
@@ -94,7 +120,7 @@ export const transactionsAPI = {
     };
     
     const { data, error } = await supabase
-      .from(tableSource('transactions'))
+      .from('transactions')
       .insert([dbTransaction])
       .select()
       .single();
@@ -115,7 +141,7 @@ export const transactionsAPI = {
       }));
       
       const { error: entriesError } = await supabase
-        .from(tableSource('journal_entries'))
+        .from('journal_entries')
         .insert(entries);
       
       if (entriesError) {
@@ -124,25 +150,25 @@ export const transactionsAPI = {
       }
     }
     
+    // Create temporary journal entries for return value
+    const tempJournalEntries: DBJournalEntry[] = transaction.journalEntries?.map(entry => ({
+      id: 'temp-' + Math.random().toString(36).substring(2, 9),
+      transaction_id: data.id,
+      account: entry.account,
+      amount: entry.amount,
+      type: entry.type,
+      description: entry.description || '',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })) || [];
+    
     // Return the created transaction with all the proper mappings
-    return mapDbToTransaction({
-      ...data,
-      journal_entries: transaction.journalEntries.map(entry => ({
-        id: 'temp-' + Math.random().toString(36).substring(2, 9),
-        transaction_id: data.id,
-        account: entry.account,
-        amount: entry.amount,
-        type: entry.type,
-        description: entry.description || '',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }))
-    });
+    return mapDbToTransaction(data as unknown as DBTransaction, tempJournalEntries);
   },
   
   updateStatus: async (id: string, status: TransactionStatus): Promise<Transaction> => {
     const { data, error } = await supabase
-      .from(tableSource('transactions'))
+      .from('transactions')
       .update({ 
         status, 
         updated_at: new Date().toISOString() 
@@ -156,15 +182,12 @@ export const transactionsAPI = {
       throw error;
     }
     
-    return mapDbToTransaction({
-      ...data,
-      journal_entries: []
-    });
+    return mapDbToTransaction(data as unknown as DBTransaction, []);
   },
   
   delete: async (id: string): Promise<void> => {
     const { error } = await supabase
-      .from(tableSource('transactions'))
+      .from('transactions')
       .delete()
       .eq('id', id);
     

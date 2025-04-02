@@ -1,10 +1,10 @@
 
-import { User, UserRole } from '@/types/auth';
+import { User, UserRole, UserStatus } from '@/types/auth';
 
 /**
  * Convert a Supabase auth user to our internal User type
  */
-export function mapAuthUserToUser(authUser: any, additionalData: { role?: UserRole, status?: string } = {}): User {
+export function mapAuthUserToUser(authUser: any, additionalData: { role?: UserRole, status?: UserStatus } = {}): User {
   if (!authUser) return null as unknown as User;
   
   const email = authUser.email || '';
@@ -16,11 +16,13 @@ export function mapAuthUserToUser(authUser: any, additionalData: { role?: UserRo
     id: authUser.id,
     email,
     fullName: displayName,
+    name: displayName, // Add name property for backward compatibility
     avatarUrl: authUser.user_metadata?.avatar_url,
-    status: additionalData.status || 'active',
+    status: additionalData.status || 'active' as UserStatus,
     role: additionalData.role || 'cashier',
     lastLogin: authUser.last_sign_in_at,
-    createdAt: authUser.created_at
+    createdAt: authUser.created_at,
+    isGlobalAdmin: false // Default value
   };
 }
 

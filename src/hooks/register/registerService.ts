@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Register } from '@/models/interfaces/registerInterfaces';
 import { PaymentMethod } from '@/models/transaction';
 import { DiscrepancyResolution } from '@/models/interfaces/registerInterfaces';
-import { typeCast, rpcParams } from '@/utils/supabaseTypes';
+import { callRpc } from '@/utils/rpcUtils';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Interface for register service return type
@@ -60,10 +60,10 @@ export const updateRegister = async (id: string, updates: Partial<Register>): Pr
       discrepancyApprovedBy: data.discrepancy_approved_by,
       discrepancyResolution: data.discrepancy_resolution as DiscrepancyResolution,
       discrepancyNotes: data.discrepancy_notes,
-      discrepancies: data.discrepancies,
-      openingBalance: data.opening_balance,
-      currentBalance: data.current_balance,
-      expectedBalance: data.expected_balance
+      discrepancies: data.discrepancies as Record<PaymentMethod, number>,
+      openingBalance: data.opening_balance as Record<PaymentMethod, number>,
+      currentBalance: data.current_balance as Record<PaymentMethod, number>,
+      expectedBalance: data.expected_balance as Record<PaymentMethod, number>
     };
   } catch (error) {
     console.error('Error updating register:', error);
@@ -108,10 +108,10 @@ export function useRegisterService(registerId?: string): RegisterServiceReturn {
         discrepancyApprovedBy: data.discrepancy_approved_by,
         discrepancyResolution: data.discrepancy_resolution as DiscrepancyResolution,
         discrepancyNotes: data.discrepancy_notes,
-        discrepancies: data.discrepancies,
-        openingBalance: data.opening_balance,
-        currentBalance: data.current_balance,
-        expectedBalance: data.expected_balance
+        discrepancies: data.discrepancies as Record<PaymentMethod, number>,
+        openingBalance: data.opening_balance as Record<PaymentMethod, number>,
+        currentBalance: data.current_balance as Record<PaymentMethod, number>,
+        expectedBalance: data.expected_balance as Record<PaymentMethod, number>
       });
     } catch (err) {
       console.error('Error fetching register:', err);
@@ -136,14 +136,11 @@ export function useRegisterService(registerId?: string): RegisterServiceReturn {
     setError(null);
 
     try {
-      const { data, error } = await supabase
-        .rpc('open_register', typeCast({
-          register_id: registerId,
-          user_id: user.id,
-          opening_balance: openingBalance
-        }));
-
-      if (error) throw error;
+      const result = await callRpc('open_register', {
+        register_id: registerId,
+        user_id: user.id,
+        opening_balance: openingBalance
+      });
 
       toast.success('Register opened successfully');
       await fetchRegister();
@@ -169,15 +166,12 @@ export function useRegisterService(registerId?: string): RegisterServiceReturn {
     setError(null);
 
     try {
-      const { data, error } = await supabase
-        .rpc('close_register', typeCast({
-          register_id: registerId,
-          user_id: user.id,
-          closing_balance: closingBalance,
-          expected_balance: expectedBalance
-        }));
-
-      if (error) throw error;
+      const result = await callRpc('close_register', {
+        register_id: registerId,
+        user_id: user.id,
+        closing_balance: closingBalance,
+        expected_balance: expectedBalance
+      });
 
       toast.success('Register closed successfully');
       await fetchRegister();
@@ -200,15 +194,12 @@ export function useRegisterService(registerId?: string): RegisterServiceReturn {
     setError(null);
 
     try {
-      const { data, error } = await supabase
-        .rpc('resolve_register_discrepancy', typeCast({
-          register_id: registerId,
-          user_id: user.id,
-          resolution: resolution,
-          notes: notes
-        }));
-
-      if (error) throw error;
+      const result = await callRpc('resolve_register_discrepancy', {
+        register_id: registerId,
+        user_id: user.id,
+        resolution: resolution,
+        notes: notes
+      });
 
       toast.success('Discrepancy resolved successfully');
       await fetchRegister();

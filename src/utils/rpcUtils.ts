@@ -8,6 +8,7 @@ type RpcParams<T extends Record<string, any>> = T;
 
 /**
  * Call an RPC function with the given parameters
+ * Modified to accept any function name as string
  * @param functionName The name of the RPC function to call
  * @param params The parameters to pass to the function
  * @returns The result of the RPC call

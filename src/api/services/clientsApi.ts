@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Client, createClient } from '@/models/client';
-import { tableSource } from '@/utils/supabaseUtils';
 import { assertType } from '@/utils/typeUtils';
 
 type DbClient = {
@@ -19,7 +18,7 @@ type DbClient = {
 export const clientsApi = {
   getAll: async (): Promise<Client[]> => {
     const { data, error } = await supabase
-      .from(tableSource('clients'))
+      .from('clients')
       .select('*');
     
     if (error) {
@@ -49,7 +48,7 @@ export const clientsApi = {
   
   getById: async (id: string): Promise<Client | null> => {
     const { data, error } = await supabase
-      .from(tableSource('clients'))
+      .from('clients')
       .select('*')
       .eq('id', id)
       .single();
@@ -81,7 +80,7 @@ export const clientsApi = {
   
   create: async (client: Omit<Client, 'id'>): Promise<Client> => {
     const { data, error } = await supabase
-      .from(tableSource('clients'))
+      .from('clients')
       .insert([{
         name: client.name,
         email: client.email,
@@ -126,7 +125,7 @@ export const clientsApi = {
     }
     
     const { data, error } = await supabase
-      .from(tableSource('clients'))
+      .from('clients')
       .update(dbUpdates)
       .eq('id', id)
       .select()
@@ -157,7 +156,7 @@ export const clientsApi = {
   
   delete: async (id: string): Promise<void> => {
     const { error } = await supabase
-      .from(tableSource('clients'))
+      .from('clients')
       .delete()
       .eq('id', id);
     

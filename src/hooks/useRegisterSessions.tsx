@@ -1,11 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { Register, DiscrepancyResolution } from '@/models/interfaces/registerInterfaces';
 import { supabase } from '@/lib/supabase';
-import { toast } from 'sonner';
-import { typeCast } from '@/utils/supabaseTypes';
+import { Register, DiscrepancyResolution } from '@/models/interfaces/registerInterfaces';
+import { PaymentMethod } from '@/models/transaction';
 
-export const useRegisterSessions = () => {
+export function useRegisterSessions() {
   const [registers, setRegisters] = useState<Register[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -17,37 +16,38 @@ export const useRegisterSessions = () => {
   const fetchRegisters = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const { data, error } = await supabase
         .from('register_sessions')
-        .select('*');
-      
+        .select('*')
+        .order('created_at', { ascending: false });
+
       if (error) throw error;
-      
-      const formattedRegisters: Register[] = data.map(register => ({
-        id: register.id,
-        name: register.name,
-        isOpen: register.is_open,
-        openedAt: register.opened_at,
-        closedAt: register.closed_at,
-        openedBy: register.opened_by,
-        closedBy: register.closed_by,
-        discrepancyApprovedAt: register.discrepancy_approved_at,
-        discrepancyApprovedBy: register.discrepancy_approved_by,
-        discrepancyResolution: register.discrepancy_resolution as DiscrepancyResolution,
-        discrepancyNotes: register.discrepancy_notes,
-        discrepancies: register.discrepancies,
-        openingBalance: register.opening_balance,
-        currentBalance: register.current_balance,
-        expectedBalance: register.expected_balance
+
+      // Transform the data to our Register model
+      const transformedRegisters: Register[] = (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        isOpen: item.is_open,
+        openedAt: item.opened_at,
+        closedAt: item.closed_at,
+        openedBy: item.opened_by,
+        closedBy: item.closed_by,
+        discrepancyApprovedAt: item.discrepancy_approved_at,
+        discrepancyApprovedBy: item.discrepancy_approved_by,
+        discrepancyResolution: item.discrepancy_resolution as DiscrepancyResolution,
+        discrepancyNotes: item.discrepancy_notes,
+        discrepancies: item.discrepancies as unknown as Record<PaymentMethod, number>,
+        openingBalance: item.opening_balance as unknown as Record<PaymentMethod, number>,
+        currentBalance: item.current_balance as unknown as Record<PaymentMethod, number>,
+        expectedBalance: item.expected_balance as unknown as Record<PaymentMethod, number>
       }));
-      
-      setRegisters(formattedRegisters);
+
+      setRegisters(transformedRegisters);
     } catch (err) {
       console.error('Error fetching registers:', err);
       setError(err as Error);
-      toast.error('Failed to load registers');
     } finally {
       setIsLoading(false);
     }
@@ -59,4 +59,4 @@ export const useRegisterSessions = () => {
     error,
     refresh: fetchRegisters
   };
-};
+}
