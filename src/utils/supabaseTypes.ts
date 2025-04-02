@@ -7,7 +7,7 @@
  * Helper type to allow string parameters in Supabase RPC calls
  * This addresses the "string is not assignable to parameter of type 'never'" error
  */
-export type RPCParam = any;
+export type RPCParam = string | number | boolean | object | null;
 
 /**
  * Helper function to cast parameters for RPC calls

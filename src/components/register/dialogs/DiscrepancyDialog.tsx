@@ -11,14 +11,15 @@ import {
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertTriangle } from "lucide-react";
+import { DiscrepancyResolution } from "@/models/register";
 
 interface DiscrepancyDialogProps {
   isOpen: boolean;
   onClose: () => void;
   totalDiscrepancy: number;
-  discrepancyResolution: string;
+  discrepancyResolution: DiscrepancyResolution;
   discrepancyNotes: string;
-  handleResolutionChange: (value: string) => void;
+  handleResolutionChange: (value: DiscrepancyResolution) => void;
   setDiscrepancyNotes: (notes: string) => void;
   onApproveResolution: () => void;
 }
