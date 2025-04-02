@@ -7,9 +7,11 @@ import { Product } from '@/models/interfaces/productInterfaces';
 import { Category } from '@/models/interfaces/categoryInterfaces';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
-import ProductCard from '@/components/ProductCard';
+import ProductCardPOS from '@/components/POS/ProductCardPOS';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea } from "@/components/ui/scroll-area";
+import CategorySidebar from '@/components/POS/CategorySidebar';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const POSSales = () => {
   // Add fullscreen state
@@ -20,7 +22,7 @@ const POSSales = () => {
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(err => {
-        toast.error("Error attempting to enable fullscreen mode:", err.message);
+        toast.error("Error attempting to enable fullscreen mode:", err.toString());
       });
       setIsFullscreen(true);
     } else {
@@ -64,7 +66,7 @@ const POSSales = () => {
       setFilteredProducts(products);
     } else {
       const filtered = products.filter(product => 
-        product.category && product.category.id === category
+        product.category_id === category
       );
       setFilteredProducts(filtered);
     }
@@ -80,7 +82,7 @@ const POSSales = () => {
     // Apply category filter if selected
     if (selectedCategory) {
       filtered = filtered.filter(product => 
-        product.category && product.category.id === selectedCategory
+        product.category_id === selectedCategory
       );
     }
     
@@ -94,6 +96,11 @@ const POSSales = () => {
     }
     
     setFilteredProducts(filtered);
+  };
+
+  // Mock handler for adding products to cart - this would be implemented with a proper cart state
+  const handleAddToCart = (product: Product) => {
+    toast.success(`Added ${product.name} to cart`);
   };
 
   return (
@@ -139,6 +146,7 @@ const POSSales = () => {
               placeholder="Search products..."
               value={searchQuery}
               onChange={handleSearchChange}
+              className="max-w-md"
             />
             
             {/* Category Selection */}
@@ -160,10 +168,14 @@ const POSSales = () => {
               {isLoadingProducts ? (
                 <p>Loading products...</p>
               ) : productsError ? (
-                <p>Error loading products: {productsError.message}</p>
+                <p>Error loading products: {productsError.toString()}</p>
               ) : filteredProducts.length > 0 ? (
                 filteredProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCardPOS 
+                    key={product.id} 
+                    product={product} 
+                    onAddToCart={() => handleAddToCart(product)}
+                  />
                 ))
               ) : (
                 <p>No products found.</p>
