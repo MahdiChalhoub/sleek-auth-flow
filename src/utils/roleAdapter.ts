@@ -9,7 +9,7 @@ export function adaptTypeRoleToModelRole(typeRole: TypeRole): ModelRole {
   return {
     id: typeRole.id,
     name: typeRole.name,
-    description: typeRole.description || '',
+    description: typeRole.description || '', // Ensure description is never undefined
     permissions: typeRole.permissions || [],
     createdAt: typeRole.createdAt || '',
     updatedAt: typeRole.updatedAt || '',

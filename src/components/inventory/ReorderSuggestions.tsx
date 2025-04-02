@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -57,11 +58,12 @@ const ReorderSuggestions: React.FC<ReorderSuggestionsProps> = ({
             price: item.products.price,
             cost: item.products.cost,
             stock: item.stock,
-            image_url: item.products.image_url,
+            imageUrl: item.products.image_url,
+            image_url: item.products.image_url, // Keep for compatibility
             hasStock: item.products.hasStock,
             min_stock_level: item.min_stock_level,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
             locationStock: [{
               id: item.id,
               productId: item.product_id,

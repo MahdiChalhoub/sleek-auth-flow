@@ -605,7 +605,7 @@ const Users: React.FC = () => {
           open={showAddDialog}
           onOpenChange={setShowAddDialog}
           onSubmit={handleAddUser}
-          roles={roles}
+          roles={adaptRoles(roles)}
         />
       )}
       
@@ -615,7 +615,7 @@ const Users: React.FC = () => {
           onOpenChange={setShowEditDialog}
           onSubmit={(data) => handleUpdateUser(selectedUser.id, data)}
           user={selectedUser}
-          roles={roles}
+          roles={adaptRoles(roles)}
         />
       )}
       
@@ -642,7 +642,7 @@ const Users: React.FC = () => {
           onOpenChange={setShowRoleDialog}
           onSubmit={(roleId) => updateUserRole(selectedUser.id, roleId)}
           user={selectedUser}
-          roles={roles}
+          roles={adaptRoles(roles)}
         />
       )}
     </div>
