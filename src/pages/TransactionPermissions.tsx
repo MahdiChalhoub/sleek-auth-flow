@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Role, mockRoles } from '@/models/role';
-import { TransactionPermission } from '@/models/interfaces/transactionInterfaces';
+import { TransactionPermission } from '@/types/transaction';
 
 const TransactionPermissions = () => {
   // Define default transaction permissions
@@ -17,12 +16,16 @@ const TransactionPermissions = () => {
       id: 'perm-sales-create',
       name: 'Create Sales',
       description: 'Ability to create new sales transactions',
+      defaultRoles: [],
       roleId: '',
       canCreate: true,
       canEdit: false,
       canLock: false,
       canDelete: false,
       canApprove: false,
+      canReject: false,
+      canView: true,
+      canReport: false,
       canReconcile: false,
       canViewSensitive: false,
       maxAmount: 1000
@@ -31,12 +34,16 @@ const TransactionPermissions = () => {
       id: 'perm-expenses-create',
       name: 'Create Expenses',
       description: 'Ability to create expense transactions',
+      defaultRoles: [],
       roleId: '',
       canCreate: true,
       canEdit: false,
       canLock: false,
       canDelete: false,
       canApprove: false,
+      canReject: false,
+      canView: true,
+      canReport: false,
       canReconcile: false,
       canViewSensitive: false,
       maxAmount: 500
@@ -45,12 +52,16 @@ const TransactionPermissions = () => {
       id: 'perm-refunds-process',
       name: 'Process Refunds',
       description: 'Ability to process refund transactions',
+      defaultRoles: [],
       roleId: '',
       canCreate: true,
       canEdit: false,
       canLock: false,
       canDelete: false,
       canApprove: false,
+      canReject: false,
+      canView: true,
+      canReport: false,
       canReconcile: false,
       canViewSensitive: false,
       maxAmount: 200
@@ -90,7 +101,9 @@ const TransactionPermissions = () => {
                     <TableHead>Edit</TableHead>
                     <TableHead>Delete</TableHead>
                     <TableHead>Approve</TableHead>
-                    <TableHead>Reconcile</TableHead>
+                    <TableHead>Reject</TableHead>
+                    <TableHead>View</TableHead>
+                    <TableHead>Report</TableHead>
                     <TableHead>Max Amount</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -135,9 +148,25 @@ const TransactionPermissions = () => {
                       </TableCell>
                       <TableCell>
                         <Checkbox 
-                          checked={permission.canReconcile}
+                          checked={permission.canReject}
                           onCheckedChange={(checked) => 
-                            handlePermissionChange(index, 'canReconcile', !!checked)
+                            handlePermissionChange(index, 'canReject', !!checked)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Checkbox 
+                          checked={permission.canView}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange(index, 'canView', !!checked)
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Checkbox 
+                          checked={permission.canReport}
+                          onCheckedChange={(checked) => 
+                            handlePermissionChange(index, 'canReport', !!checked)
                           }
                         />
                       </TableCell>

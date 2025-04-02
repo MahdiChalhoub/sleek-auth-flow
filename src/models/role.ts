@@ -43,14 +43,24 @@ export const mockRoles: Role[] = [
 
 // Utility to convert between role formats
 export function adaptRole(role: any): Role {
-  return {
+  // Handle both auth.Role and models.Role formats
+  const converted: Role = {
     id: role.id,
     name: role.name,
+    // Ensure description is a string (required in models.Role)
     description: role.description || '',
+    // Ensure permissions is an array
     permissions: role.permissions || [],
     createdAt: role.createdAt || role.created_at,
     updatedAt: role.updatedAt || role.updated_at,
     created_at: role.created_at || role.createdAt,
     updated_at: role.updated_at || role.updatedAt
   };
+  
+  return converted;
+}
+
+// Utility function to convert array of roles
+export function adaptRoles(roles: any[]): Role[] {
+  return roles.map(role => adaptRole(role));
 }

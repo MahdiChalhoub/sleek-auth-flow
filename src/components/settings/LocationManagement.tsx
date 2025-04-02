@@ -14,7 +14,7 @@ import { LocationList } from "./location/LocationList";
 import { useLocationManagement } from "@/hooks/useLocationManagement";
 
 interface LocationManagementProps {
-  businessId: string;
+  businessId?: string;
 }
 
 export const LocationManagement: React.FC<LocationManagementProps> = ({ businessId }) => {
@@ -23,7 +23,7 @@ export const LocationManagement: React.FC<LocationManagementProps> = ({ business
     handleAddLocation,
     handleDeleteLocation,
     handleToggleLocationStatus
-  } = useLocationManagement(businessId);
+  } = useLocationManagement();
   
   const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false);
   

@@ -24,6 +24,7 @@ export interface Product {
   category?: Category;
   min_stock_level?: number;
   max_stock_level?: number;
+  locationStock?: ProductLocationStock[];
 }
 
 export interface ProductFormData {
@@ -36,6 +37,19 @@ export interface ProductFormData {
   hasStock: boolean;
   categoryId?: string;
   image?: string;
+  isCombo?: boolean;
   min_stock_level?: number;
   max_stock_level?: number;
+}
+
+// Define the ProductLocationStock interface which was missing
+export interface ProductLocationStock {
+  id: string;
+  productId: string;
+  locationId: string;
+  stock: number;
+  minStockLevel?: number;
+  maxStockLevel?: number;
+  createdAt: string;
+  updatedAt: string;
 }
