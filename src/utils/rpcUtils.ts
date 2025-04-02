@@ -17,7 +17,9 @@ export async function callRpc<T, P extends Record<string, any>>(
   params: RpcParams<P>
 ): Promise<{ data: T | null; error: any | null }> {
   try {
-    const { data, error } = await supabase.rpc(functionName as any, params);
+    // @ts-ignore - We're using a string for the function name, which TypeScript doesn't like
+    // but this is necessary for dynamic RPC calls
+    const { data, error } = await supabase.rpc(functionName, params);
     
     if (error) {
       console.error(`Error calling RPC function ${functionName}:`, error);

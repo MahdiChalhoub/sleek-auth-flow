@@ -1,137 +1,204 @@
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Product } from '@/models/product';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { ProductFormData } from '@/models/interfaces/productInterfaces';
+import { categoriesService } from '@/services/categoryService';
+import { Category } from '@/models/interfaces/categoryInterfaces';
 import { Branch } from '@/types/location';
+import { toast } from 'sonner';
 
 export interface ProductFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   product?: Product | null;
-  onSave?: (product: Product) => void;
-  currentLocation?: Branch;
+  currentLocation: Branch | null;
 }
 
-// Define the form schema with Zod
-const productSchema = z.object({
-  name: z.string().min(3, { message: 'Product name must be at least 3 characters long' }),
-  description: z.string().optional(),
-  barcode: z.string().optional(),
-  price: z.coerce.number().positive({ message: 'Price must be a positive number' }),
-  cost: z.coerce.number().positive({ message: 'Cost must be a positive number' }).optional(),
-  stock: z.coerce.number().int().optional(),
-  categoryId: z.string().optional(),
-  hasStock: z.boolean().default(true),
-  isCombo: z.boolean().default(false),
-});
-
-type ProductFormValues = z.infer<typeof productSchema>;
-
-export const ProductFormModal = ({ isOpen, onClose, product, onSave, currentLocation }: ProductFormModalProps) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const isEditing = !!product;
-
-  const { 
-    register, 
-    handleSubmit, 
-    reset, 
-    formState: { errors }, 
-    setValue, 
-    watch 
-  } = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema),
-    defaultValues: {
-      name: product?.name || '',
-      description: product?.description || '',
-      barcode: product?.barcode || '',
-      price: product?.price || 0,
-      cost: product?.cost || 0,
-      stock: product?.stock || 0,
-      categoryId: product?.category?.id || '',
-      hasStock: product?.hasStock ?? true,
-      isCombo: product?.isCombo ?? false,
-    }
+export const ProductFormModal: React.FC<ProductFormModalProps> = ({
+  isOpen,
+  onClose,
+  product,
+  currentLocation
+}) => {
+  const [formData, setFormData] = useState<ProductFormData>({
+    name: '',
+    description: '',
+    barcode: '',
+    price: 0,
+    cost: 0,
+    stock: 0,
+    categoryId: '',
+    hasStock: true,
+    isCombo: false
   });
-
-  const hasStock = watch('hasStock');
-  const isCombo = watch('isCombo');
-
-  const onSubmit = async (data: ProductFormValues) => {
-    setIsSubmitting(true);
-    try {
-      // In a real implementation, this would save to the backend
-      console.log('Saving product data:', data);
-      if (onSave) {
-        const savedProduct = {
-          id: product?.id || `new-${Date.now()}`,
-          name: data.name,
-          description: data.description || '',
-          barcode: data.barcode || '',
-          price: data.price,
-          cost: data.cost || 0,
-          stock: hasStock ? (data.stock || 0) : 0,
-          hasStock: data.hasStock,
-          isCombo: data.isCombo,
-          category: data.categoryId ? { id: data.categoryId, name: '' } : undefined,
-        } as Product;
-        
-        onSave(savedProduct);
+  
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await categoriesService.getAll();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error loading categories:', error);
+        toast.error('Failed to load categories');
       }
-      reset();
+    };
+    
+    loadCategories();
+  }, []);
+  
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        name: product.name,
+        description: product.description || '',
+        barcode: product.barcode || '',
+        price: product.price,
+        cost: product.cost || 0,
+        stock: product.stock,
+        categoryId: product.category_id || '',
+        hasStock: product.hasStock,
+        isCombo: product.isCombo || false
+      });
+    } else {
+      // Reset form for new product
+      setFormData({
+        name: '',
+        description: '',
+        barcode: '',
+        price: 0,
+        cost: 0,
+        stock: 0,
+        categoryId: '',
+        hasStock: true,
+        isCombo: false
+      });
+    }
+  }, [product]);
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: parseFloat(value) || 0 }));
+  };
+  
+  const handleCategoryChange = (value: string) => {
+    setFormData(prev => ({ ...prev, categoryId: value }));
+  };
+  
+  const handleCheckboxChange = (name: string, checked: boolean) => {
+    setFormData(prev => ({ ...prev, [name]: checked }));
+  };
+  
+  const handleSubmit = async () => {
+    if (!formData.name) {
+      toast.error('Product name is required');
+      return;
+    }
+    
+    setIsSaving(true);
+    
+    try {
+      // This would be replaced with an actual API call
+      console.log('Saving product:', formData);
+      toast.success(`Product ${product ? 'updated' : 'created'} successfully`);
       onClose();
     } catch (error) {
       console.error('Error saving product:', error);
+      toast.error(`Failed to ${product ? 'update' : 'create'} product`);
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
   };
-
+  
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+          <DialogTitle>{product ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+          <DialogDescription>
+            {product ? 'Update product details below.' : 'Enter product details below to add a new product.'}
+            {currentLocation && <span className="font-medium"> - {currentLocation.name}</span>}
+          </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
+        <div className="grid grid-cols-1 gap-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Product Name *</Label>
-              <Input id="name" {...register('name')} />
-              {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+              <Label htmlFor="name">Product Name</Label>
+              <Input
+                id="name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Product name"
+              />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="barcode">Barcode / SKU</Label>
-              <Input id="barcode" {...register('barcode')} />
+              <Label htmlFor="barcode">Barcode</Label>
+              <Input
+                id="barcode"
+                name="barcode"
+                value={formData.barcode}
+                onChange={handleInputChange}
+                placeholder="Barcode"
+              />
             </div>
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea id="description" {...register('description')} />
+            <Textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="Product description"
+              className="min-h-[80px]"
+            />
           </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="price">Price *</Label>
-              <Input id="price" type="number" step="0.01" {...register('price')} />
-              {errors.price && <p className="text-sm text-red-500">{errors.price.message}</p>}
+              <Label htmlFor="price">Price</Label>
+              <Input
+                id="price"
+                name="price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.price}
+                onChange={handleNumberChange}
+              />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="cost">Cost</Label>
-              <Input id="cost" type="number" step="0.01" {...register('cost')} />
-              {errors.cost && <p className="text-sm text-red-500">{errors.cost.message}</p>}
+              <Input
+                id="cost"
+                name="cost"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.cost}
+                onChange={handleNumberChange}
+              />
             </div>
           </div>
           
@@ -139,69 +206,70 @@ export const ProductFormModal = ({ isOpen, onClose, product, onSave, currentLoca
             <div className="space-y-2">
               <Label htmlFor="categoryId">Category</Label>
               <Select 
-                value={watch('categoryId') || ''} 
-                onValueChange={(value) => setValue('categoryId', value)}
+                value={formData.categoryId} 
+                onValueChange={handleCategoryChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Uncategorized</SelectItem>
-                  {/* Categories would be loaded from API */}
-                  <SelectItem value="cat1">Beverages</SelectItem>
-                  <SelectItem value="cat2">Food</SelectItem>
-                  <SelectItem value="cat3">Electronics</SelectItem>
+                  {categories.map(category => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             
-            {hasStock && (
-              <div className="space-y-2">
-                <Label htmlFor="stock">Stock Quantity</Label>
-                <Input id="stock" type="number" {...register('stock')} />
-                {errors.stock && <p className="text-sm text-red-500">{errors.stock.message}</p>}
-              </div>
-            )}
+            <div className="space-y-2">
+              <Label htmlFor="stock">Stock Quantity</Label>
+              <Input
+                id="stock"
+                name="stock"
+                type="number"
+                min="0"
+                step="1"
+                value={formData.stock}
+                onChange={handleNumberChange}
+                disabled={!formData.hasStock}
+              />
+            </div>
           </div>
           
-          <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
-              <Switch 
-                id="hasStock" 
-                checked={hasStock}
-                onCheckedChange={(checked) => setValue('hasStock', checked)}
+              <Checkbox
+                id="hasStock"
+                checked={formData.hasStock}
+                onCheckedChange={(checked) => 
+                  handleCheckboxChange('hasStock', checked as boolean)
+                }
               />
-              <Label htmlFor="hasStock">Track Inventory</Label>
+              <Label htmlFor="hasStock">Track Stock</Label>
             </div>
             
             <div className="flex items-center space-x-2">
-              <Switch 
-                id="isCombo" 
-                checked={isCombo}
-                onCheckedChange={(checked) => setValue('isCombo', checked)}
+              <Checkbox
+                id="isCombo"
+                checked={formData.isCombo}
+                onCheckedChange={(checked) => 
+                  handleCheckboxChange('isCombo', checked as boolean)
+                }
               />
-              <Label htmlFor="isCombo">This is a combo/bundle product</Label>
+              <Label htmlFor="isCombo">Is Combo Product</Label>
             </div>
           </div>
-          
-          {currentLocation && (
-            <div className="bg-muted p-3 rounded-md">
-              <p className="text-sm">Adding product to: <strong>{currentLocation.name}</strong></p>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : isEditing ? 'Save Changes' : 'Create Product'}
-            </Button>
-          </DialogFooter>
-        </form>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={isSaving}>
+            {isSaving ? 'Saving...' : product ? 'Update Product' : 'Add Product'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
-
-export default ProductFormModal;
