@@ -20,7 +20,7 @@ import useProducts from '@/hooks/useProducts';
 import { toast } from 'sonner';
 import { safeArray } from '@/utils/supabaseUtils';
 import { mapDbProductBatchToModel } from '@/models/productBatch';
-import { callRpc } from '@/utils/rpcUtils';
+import { callRPC } from '@/utils/rpcUtils';
 
 const ExpirationManagement: React.FC = () => {
   const { products } = useProducts();
@@ -35,16 +35,7 @@ const ExpirationManagement: React.FC = () => {
     const loadBatches = async () => {
       setIsLoading(true);
       try {
-        const { data: tableExists, error: tableCheckError } = await callRpc<boolean, {table_name: string}>(
-          'check_table_exists',
-          { table_name: 'product_batches' }
-        );
-        
-        if (tableCheckError) {
-          console.error('Error checking if table exists:', tableCheckError);
-          setIsLoading(false);
-          return;
-        }
+        const tableExists = await callRPC<boolean>('check_table_exists', { table_name: 'product_batches' });
         
         if (!tableExists) {
           console.log('product_batches table does not exist yet');
@@ -53,14 +44,7 @@ const ExpirationManagement: React.FC = () => {
           return;
         }
         
-        const { data: batchesData, error } = await callRpc<any[], {}>(
-          'get_all_product_batches', 
-          {}
-        );
-        
-        if (error) {
-          throw error;
-        }
+        const batchesData = await callRPC<any[]>('get_all_product_batches', {});
         
         const fetchedBatches = safeArray(batchesData || [], mapDbProductBatchToModel);
         setBatches(fetchedBatches);
@@ -76,16 +60,16 @@ const ExpirationManagement: React.FC = () => {
   }, []);
   
   const productsWithBatches = products.filter(product => 
-    batches.some(batch => batch.productId === product.id)
+    batches.some(batch => batch.product_id === product.id)
   );
   
   const filteredBatches = batches.filter(batch => {
-    if (hideExpired && getBatchStatus(batch.expiryDate) === 'expired') {
+    if (hideExpired && getBatchStatus(batch.expiry_date) === 'expired') {
       return false;
     }
     
     if (filterStatus !== 'all') {
-      return getBatchStatus(batch.expiryDate) === filterStatus;
+      return getBatchStatus(batch.expiry_date) === filterStatus;
     }
     
     return true;
@@ -95,34 +79,29 @@ const ExpirationManagement: React.FC = () => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          (product.barcode && product.barcode.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const hasMatchingBatches = filteredBatches.some(batch => batch.productId === product.id);
+    const hasMatchingBatches = filteredBatches.some(batch => batch.product_id === product.id);
     
     return matchesSearch && hasMatchingBatches;
   });
 
   const addBatch = async (batch: Omit<ProductBatch, "id">) => {
     try {
-      const { data, error } = await callRpc<any, { batch: any }>(
-        'insert_product_batch', 
-        {
-          batch: {
-            product_id: batch.product_id,
-            batch_number: batch.batch_number,
-            quantity: batch.quantity,
-            expiry_date: batch.expiry_date,
-            purchase_date: batch.purchase_date,
-            cost_per_unit: batch.cost_per_unit,
-            status: batch.status || 'active',
-            created_at: batch.created_at,
-            updated_at: batch.updated_at
-          }
+      const newBatch = await callRPC<ProductBatch>('insert_product_batch', {
+        batch: {
+          product_id: batch.product_id,
+          batch_number: batch.batch_number,
+          quantity: batch.quantity,
+          expiry_date: batch.expiry_date,
+          purchase_date: batch.purchase_date,
+          cost_per_unit: batch.cost_per_unit,
+          status: batch.status || 'active',
+          created_at: batch.created_at,
+          updated_at: batch.updated_at
         }
-      );
+      });
       
-      if (error) throw error;
-      
-      if (data) {
-        const addedBatch = mapDbProductBatchToModel(data);
+      if (newBatch) {
+        const addedBatch = mapDbProductBatchToModel(newBatch);
         setBatches(prev => [...prev, addedBatch]);
         toast.success('Batch added successfully');
       }
@@ -136,12 +115,7 @@ const ExpirationManagement: React.FC = () => {
 
   const deleteBatch = async (batchId: string) => {
     try {
-      const { error } = await callRpc<any, { batch_id: string }>(
-        'delete_product_batch', 
-        { batch_id: batchId }
-      );
-      
-      if (error) throw error;
+      await callRPC<any>('delete_product_batch', { batch_id: batchId });
       
       setBatches(prev => prev.filter(batch => batch.id !== batchId));
       toast.success('Batch deleted successfully');
@@ -241,7 +215,7 @@ const ExpirationManagement: React.FC = () => {
               ) : (
                 <div className="space-y-6">
                   {filteredProducts.map(product => {
-                    const productBatches = filteredBatches.filter(batch => batch.productId === product.id);
+                    const productBatches = filteredBatches.filter(batch => batch.product_id === product.id);
                     
                     return (
                       <Card key={product.id} className="overflow-hidden">

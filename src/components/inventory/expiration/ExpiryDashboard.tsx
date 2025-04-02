@@ -8,11 +8,10 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { ProductBatch, mapDbProductBatchToModel } from '@/models/productBatch';
 import { safeArray } from '@/utils/supabaseUtils';
-import { rpcParams } from '@/utils/rpcUtils';
 import { formatDaysUntilExpiry } from '@/utils/expirationUtils';
 import { productsService } from '@/models/product';
 import { Spinner } from '@/components/ui/spinner';
-import { callRpc } from '@/utils/rpcUtils';
+import { callRPC } from '@/utils/rpcUtils';
 
 interface ExpiryDashboardProps {
   // Define any props here
@@ -26,16 +25,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
     const loadBatches = async () => {
       setIsLoading(true);
       try {
-        const { data: tableExists, error: tableCheckError } = await callRpc<boolean, { table_name: string }>(
-          'check_table_exists', 
-          { table_name: 'product_batches' }
-        );
-        
-        if (tableCheckError) {
-          console.error('Error checking if table exists:', tableCheckError);
-          setIsLoading(false);
-          return;
-        }
+        const tableExists = await callRPC<boolean>('check_table_exists', { table_name: 'product_batches' });
         
         if (!tableExists) {
           console.log('product_batches table does not exist yet');
@@ -43,14 +33,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
           return;
         }
         
-        const { data: batchesData, error } = await callRpc<any[], {}>(
-          'get_all_product_batches',
-          {}
-        );
-        
-        if (error) {
-          throw error;
-        }
+        const batchesData = await callRPC<any[]>('get_all_product_batches', {});
         
         // Add explicit check for array before mapping
         const fetchedBatches = safeArray(batchesData || [], mapDbProductBatchToModel);
@@ -81,16 +64,9 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
   // Update the fetchBatches function with proper typing
   const fetchBatches = async (): Promise<ProductBatch[]> => {
     try {
-      const { data, error } = await callRpc<any[], {}>(
-        'get_all_product_batches',
-        {}
-      );
+      const batchesData = await callRPC<any[]>('get_all_product_batches', {});
       
-      if (error) {
-        throw error;
-      }
-      
-      return safeArray(data || [], mapDbProductBatchToModel);
+      return safeArray(batchesData || [], mapDbProductBatchToModel);
     } catch (error) {
       console.error('Error fetching product batches:', error);
       toast.error('Failed to load product batches');

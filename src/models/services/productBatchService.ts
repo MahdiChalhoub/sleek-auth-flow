@@ -1,36 +1,29 @@
 
 import { supabase } from '@/lib/supabase';
 import { ProductBatch, mapDbProductBatchToModel, mapModelProductBatchToDb } from '@/models/productBatch';
-import { callRpc } from '@/utils/rpcUtils';
-import { rpcParams } from '@/utils/supabaseUtils';
+import { callRPC } from '@/utils/rpcUtils';
+import { rpcParams } from '@/utils/rpcUtils';
 
 export const productBatchService = {
   getAllBatches: async (): Promise<ProductBatch[]> => {
     try {
       // Check if the table exists first
-      const { data: tableExists, error: tableCheckError } = await callRpc<boolean, { table_name: string }>(
+      const tableExists = await callRPC<boolean>(
         'check_table_exists',
-        rpcParams({ table_name: 'product_batches' })
+        { table_name: 'product_batches' }
       );
-      
-      if (tableCheckError) {
-        console.error('Error checking if table exists:', tableCheckError);
-        return [];
-      }
       
       if (!tableExists) {
         console.log('product_batches table does not exist yet');
         return [];
       }
       
-      const { data, error } = await callRpc<ProductBatch[], {}>(
+      const batches = await callRPC<ProductBatch[]>(
         'get_all_product_batches', 
-        rpcParams({})
+        {}
       );
       
-      if (error) throw error;
-      
-      return data || [];
+      return batches || [];
     } catch (error) {
       console.error('Error fetching all product batches:', error);
       return [];
@@ -39,14 +32,12 @@ export const productBatchService = {
   
   getProductBatches: async (productId: string): Promise<ProductBatch[]> => {
     try {
-      const { data, error } = await callRpc<ProductBatch[], { product_id: string }>(
+      const batches = await callRPC<ProductBatch[]>(
         'get_product_batches',
-        rpcParams({ product_id: productId })
+        { product_id: productId }
       );
       
-      if (error) throw error;
-      
-      return data || [];
+      return batches || [];
     } catch (error) {
       console.error(`Error fetching batches for product ${productId}:`, error);
       return [];
@@ -63,16 +54,14 @@ export const productBatchService = {
         status: batch.status
       };
       
-      const { data, error } = await callRpc<ProductBatch, { batch: any }>(
+      const newBatch = await callRPC<ProductBatch>(
         'insert_product_batch',
-        rpcParams({
+        {
           batch: batchData
-        })
+        }
       );
       
-      if (error) throw error;
-      
-      return data;
+      return newBatch;
     } catch (error) {
       console.error('Error adding product batch:', error);
       return null;
@@ -81,24 +70,17 @@ export const productBatchService = {
   
   updateBatch: async (batch: Partial<ProductBatch> & { id: string }): Promise<ProductBatch | null> => {
     try {
-      const { data, error } = await callRpc<ProductBatch, { 
-        batch_id: string;
-        new_quantity?: number; 
-        new_expiry_date?: string; 
-        new_batch_number?: string; 
-      }>(
+      const updatedBatch = await callRPC<ProductBatch>(
         'update_product_batch',
-        rpcParams({
+        {
           batch_id: batch.id,
           new_quantity: batch.quantity,
           new_expiry_date: batch.expiry_date,
           new_batch_number: batch.batch_number
-        })
+        }
       );
       
-      if (error) throw error;
-      
-      return data;
+      return updatedBatch;
     } catch (error) {
       console.error(`Error updating batch ${batch.id}:`, error);
       return null;
@@ -107,12 +89,10 @@ export const productBatchService = {
   
   deleteBatch: async (batchId: string): Promise<boolean> => {
     try {
-      const { error } = await callRpc<any, { batch_id: string }>(
+      await callRPC<any>(
         'delete_product_batch',
-        rpcParams({ batch_id: batchId })
+        { batch_id: batchId }
       );
-      
-      if (error) throw error;
       
       return true;
     } catch (error) {
