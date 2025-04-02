@@ -15,10 +15,9 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { SupplierFormDialog } from '@/components/suppliers/SupplierFormDialog';
+import { SupplierFormDialog, SupplierFormData } from '@/components/suppliers/SupplierFormDialog';
 import { formatDate } from '@/utils/formatters';
 import { supabase } from '@/lib/supabase';
-import { voidPromise } from '@/utils/promiseUtils';
 
 interface Supplier {
   id: string;
@@ -81,7 +80,7 @@ const Suppliers: React.FC = () => {
     setFilteredSuppliers(filtered);
   }, [suppliers, searchTerm]);
 
-  const addSupplier = async (supplierData: Omit<Supplier, 'id' | 'created_at' | 'updated_at'>) => {
+  const addSupplier = async (supplierData: SupplierFormData) => {
     try {
       const { data, error } = await supabase
         .from('suppliers')
@@ -102,12 +101,14 @@ const Suppliers: React.FC = () => {
     }
   };
 
-  const updateSupplier = async (id: string, supplierData: Partial<Supplier>) => {
+  const updateSupplier = async (supplierData: SupplierFormData) => {
+    if (!selectedSupplier) return;
+    
     try {
       const { data, error } = await supabase
         .from('suppliers')
         .update(supplierData)
-        .eq('id', id)
+        .eq('id', selectedSupplier.id)
         .select('*')
         .single();
 
@@ -116,7 +117,7 @@ const Suppliers: React.FC = () => {
       }
 
       setSuppliers(prev =>
-        prev.map(supplier => (supplier.id === id ? data : supplier))
+        prev.map(supplier => (supplier.id === selectedSupplier.id ? data : supplier))
       );
       toast.success('Supplier updated successfully');
       setShowEditDialog(false);
@@ -236,17 +237,18 @@ const Suppliers: React.FC = () => {
       </Card>
 
       <SupplierFormDialog
-        isOpen={showAddDialog}
+        open={showAddDialog}
         onOpenChange={setShowAddDialog}
-        onSubmit={addSupplier || voidPromise}
+        onSubmit={addSupplier}
       />
 
       {selectedSupplier && (
         <SupplierFormDialog
-          isOpen={showEditDialog}
+          open={showEditDialog}
           onOpenChange={setShowEditDialog}
-          onSubmit={updateSupplier || voidPromise}
+          onSubmit={updateSupplier}
           supplier={selectedSupplier}
+          title="Edit Supplier"
         />
       )}
     </div>

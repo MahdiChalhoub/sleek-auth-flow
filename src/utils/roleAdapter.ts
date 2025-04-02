@@ -13,8 +13,8 @@ export function adaptTypeRoleToModelRole(typeRole: TypeRole): ModelRole {
     permissions: typeRole.permissions || [],
     createdAt: typeRole.createdAt,
     updatedAt: typeRole.updatedAt,
-    created_at: typeRole.created_at,
-    updated_at: typeRole.updated_at
+    created_at: typeRole.createdAt || typeRole.created_at,
+    updated_at: typeRole.updatedAt || typeRole.updated_at
   };
 }
 
@@ -24,3 +24,7 @@ export function adaptTypeRoleToModelRole(typeRole: TypeRole): ModelRole {
 export function adaptTypeRolesToModelRoles(typeRoles: TypeRole[]): ModelRole[] {
   return typeRoles.map(adaptTypeRoleToModelRole);
 }
+
+// Add aliases for backward compatibility
+export const adaptRole = adaptTypeRoleToModelRole;
+export const adaptRoles = adaptTypeRolesToModelRoles;

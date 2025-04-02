@@ -12,11 +12,13 @@ export interface FinancialYear {
   updatedAt?: string;
 }
 
+export type FinancialYearStatus = 'active' | 'closed' | 'pending';
+
 export interface FinancialYearFormData {
   name: string;
   startDate: string;
   endDate: string;
-  status: 'active' | 'closed' | 'pending';
+  status: FinancialYearStatus;
   createdBy?: string;
 }
 

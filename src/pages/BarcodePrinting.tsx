@@ -31,6 +31,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import BarcodeScannerModal from "@/components/inventory/BarcodeScannerModal";
 import { mockProducts } from "@/models/product";
+import { Category } from '@/types/category';
 
 interface PrintTemplate {
   id: string;

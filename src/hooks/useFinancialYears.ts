@@ -74,10 +74,10 @@ export function useFinancialYears() {
   const setActiveFinancialYear = async (id: string) => {
     try {
       setLoading(true);
-      // Update the status of the current active financial year to 'open'
+      // Update the status of the current active financial year to 'pending'
       setFinancialYears(prev => 
         prev.map(fy => 
-          fy.status === 'active' ? { ...fy, status: 'open' as FinancialYearStatus } : fy
+          fy.status === 'active' ? { ...fy, status: 'pending' as FinancialYearStatus } : fy
         )
       );
       
@@ -139,7 +139,7 @@ export function useFinancialYears() {
         prev.map(fy => 
           fy.id === id ? { 
             ...fy, 
-            status: 'open' as FinancialYearStatus,
+            status: 'pending' as FinancialYearStatus,
             closedBy: undefined,
             closedAt: undefined
           } : fy
