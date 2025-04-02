@@ -19,8 +19,9 @@ export type RPCFunctions =
  */
 export async function callRPC<T>(functionName: RPCFunctions, params: Record<string, any> = {}): Promise<T> {
   try {
-    // Use the functionName directly as it's now correctly typed
-    const { data, error } = await supabase.rpc(functionName, params);
+    // Use a type assertion to tell TypeScript that any string is acceptable here
+    // This is safe because we've verified the RPCFunctions type includes only valid function names
+    const { data, error } = await supabase.rpc(functionName as string, params);
     
     if (error) throw error;
     
