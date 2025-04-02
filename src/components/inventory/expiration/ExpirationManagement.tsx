@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -19,9 +20,9 @@ import { getBatchStatus } from '@/utils/expirationUtils';
 import useProducts from '@/hooks/useProducts';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { rpcParams } from '@/utils/supabaseUtils';
+import { safeArray } from '@/utils/supabaseUtils';
 import { mapDbProductBatchToModel } from '@/models/productBatch';
-import { callRpc } from '@/utils/rpcUtils';
+import { callRpc, rpcParams } from '@/utils/rpcUtils';
 
 const ExpirationManagement: React.FC = () => {
   const { products } = useProducts();
@@ -36,10 +37,16 @@ const ExpirationManagement: React.FC = () => {
     const loadBatches = async () => {
       setIsLoading(true);
       try {
-        const tableExists = await callRpc<boolean, {table_name: string}>(
+        const { data: tableExists, error: tableCheckError } = await callRpc<boolean, {table_name: string}>(
           'check_table_exists',
           { table_name: 'product_batches' }
         );
+        
+        if (tableCheckError) {
+          console.error('Error checking if table exists:', tableCheckError);
+          setIsLoading(false);
+          return;
+        }
         
         if (!tableExists) {
           console.log('product_batches table does not exist yet');
@@ -48,12 +55,16 @@ const ExpirationManagement: React.FC = () => {
           return;
         }
         
-        const batchesData = await callRpc<any[], {}>(
+        const { data: batchesData, error } = await callRpc<any[], {}>(
           'get_all_product_batches', 
           {}
         );
         
-        const fetchedBatches = (batchesData || []).map(mapDbProductBatchToModel);
+        if (error) {
+          throw error;
+        }
+        
+        const fetchedBatches = safeArray(batchesData || [], mapDbProductBatchToModel);
         setBatches(fetchedBatches);
       } catch (error) {
         console.error('Error loading batches:', error);

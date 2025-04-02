@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,11 +11,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Product } from '@/models/product';
 
 const POSSales = () => {
-  // Add fullscreen state
   const [isFullscreen, setIsFullscreen] = useState(false);
   const navigate = useNavigate();
 
-  // Handle fullscreen toggle
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch((err) => {
@@ -31,7 +28,6 @@ const POSSales = () => {
     }
   };
 
-  // Listen for fullscreen change event
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -54,7 +50,6 @@ const POSSales = () => {
     }
   }, [products]);
 
-  // Update the category filtering functions to work with the category object
   const handleCategorySelect = (category: string | null) => {
     setSelectedCategory(category);
     if (category === null) {
@@ -67,20 +62,17 @@ const POSSales = () => {
     }
   };
 
-  // And update the search function as well
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value.toLowerCase();
     setSearchQuery(query);
     let filtered = products;
 
-    // Apply category filter if selected
     if (selectedCategory) {
       filtered = filtered.filter((product) => 
         product.category && product.category.id === selectedCategory
       );
     }
 
-    // Apply search filter
     if (query.trim() !== "") {
       filtered = filtered.filter((product) =>
         product.name.toLowerCase().includes(query) || 
@@ -148,8 +140,7 @@ const POSSales = () => {
               {isLoadingProducts ? (
                 <p>Loading products...</p>
               ) : productsError ? (
-                <p>Error loading products: {typeof productsError === 'object' && productsError !== null && 'message' in productsError ? 
-                    (productsError as Error).message : 'Unknown error'}</p>
+                <div>Error: {productsError.toString()}</div>
               ) : filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,18 +42,13 @@ const Transactions: React.FC = () => {
   ];
   
   // Handle creating a new transaction
-  const handleAddTransaction = async (data: { 
-    description?: string; 
-    amount?: number; 
-    paymentMethod?: 'cash' | 'card' | 'bank' | 'wave' | 'mobile' | 'not_specified';
-    branchId?: string;
-  }) => {
+  const addTransaction = async (data: TransactionFormData): Promise<boolean> => {
     try {
       setIsSyncing(true);
       
       if (!data.amount || !data.description) {
         toast.error('Amount and description are required');
-        return;
+        return false;
       }
       
       await createTransaction({
@@ -71,9 +65,11 @@ const Transactions: React.FC = () => {
       });
       
       toast.success('Transaction created successfully');
+      return true;
     } catch (error) {
-      console.error('Error creating transaction:', error);
-      toast.error('Failed to create transaction');
+      console.error('Error adding transaction:', error);
+      toast.error('Failed to add transaction');
+      return false;
     } finally {
       setIsSyncing(false);
     }
@@ -223,7 +219,7 @@ const Transactions: React.FC = () => {
         <TransactionFormDialog
           isOpen={isFormDialogOpen}
           onOpenChange={setIsFormDialogOpen}
-          onSubmit={handleAddTransaction}
+          onSubmit={addTransaction}
           businesses={businesses}
         />
       )}
