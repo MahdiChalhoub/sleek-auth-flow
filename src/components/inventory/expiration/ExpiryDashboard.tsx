@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { mapDbProductBatchToModel, ProductBatch } from '@/models/productBatch';
 import { safeArray } from '@/utils/supabaseUtils';
+import { rpcParams } from '@/utils/supabaseTypes';
 import { getBatchStatus, formatDaysUntilExpiry } from '@/utils/expirationUtils';
 import { productsService } from '@/models/product';
 import { Spinner } from '@/components/ui/spinner';
@@ -26,9 +27,9 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
       setIsLoading(true);
       try {
         const { data: tableExists, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', {
+          .rpc('check_table_exists', rpcParams({
             table_name: 'product_batches'
-          });
+          }));
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -43,7 +44,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
         }
         
         const { data: batchesData, error } = await supabase
-          .rpc('get_all_product_batches', {});
+          .rpc('get_all_product_batches', rpcParams({}));
         
         if (error) {
           throw error;
@@ -80,7 +81,7 @@ const ExpiryDashboard: React.FC<ExpiryDashboardProps> = () => {
   const fetchBatches = async (): Promise<ProductBatch[]> => {
     try {
       const { data, error } = await supabase
-        .rpc('get_all_product_batches', {});
+        .rpc('get_all_product_batches', rpcParams({}));
       
       if (error) {
         throw error;

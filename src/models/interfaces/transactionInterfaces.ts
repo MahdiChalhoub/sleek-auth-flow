@@ -72,6 +72,8 @@ export interface LedgerEntry {
   account: string;
   accountName: string;
   type: TransactionType;
+  amount?: number; // Added to match usage in mockData
+  accountId?: string; // Added to match usage in components
 }
 
 export interface Business {

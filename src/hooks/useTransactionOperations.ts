@@ -79,18 +79,19 @@ export function useTransactionOperations(initialTransactions: Transaction[] = []
       await new Promise(resolve => setTimeout(resolve, 1200));
       
       const newId = `txn-${Date.now().toString(36)}`;
-      const transactionType: TransactionType = data.type as TransactionType || 'expense';
+      // Set default transaction type to 'expense' if not provided
+      const transactionType: TransactionType = 'expense';
       
       const newTransaction: Transaction = {
         id: newId,
-        amount: data.amount, // Now correctly typed as a number through the zod transform
+        amount: data.amount || 0,
         status: "open",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         createdBy: "Current User",
-        description: data.description,
-        paymentMethod: data.paymentMethod,
-        branchId: data.branchId,
+        description: data.description || '',
+        paymentMethod: data.paymentMethod || 'cash',
+        branchId: data.branchId || '',
         type: transactionType,
         journalEntries: []
       };

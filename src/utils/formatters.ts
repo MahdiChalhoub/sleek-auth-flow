@@ -20,6 +20,11 @@ export const getFormattedDate = (dateString: string): string => {
 };
 
 /**
+ * Alias for getFormattedDate to fix imports
+ */
+export const getFormattedDateTime = getFormattedDate;
+
+/**
  * Formats a number as currency
  */
 export const formatCurrency = (amount: number): string => {

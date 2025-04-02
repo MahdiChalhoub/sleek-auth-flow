@@ -19,7 +19,8 @@ import { getBatchStatus } from '@/utils/expirationUtils';
 import useProducts from '@/hooks/useProducts';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { safeArray, rpcParams } from '@/utils/supabaseUtils';
+import { safeArray } from '@/utils/supabaseUtils';
+import { rpcParams } from '@/utils/supabaseTypes';
 import { mapDbProductBatchToModel } from '@/models/productBatch';
 
 const ExpirationManagement: React.FC = () => {

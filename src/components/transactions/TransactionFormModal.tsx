@@ -30,9 +30,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Transaction, TransactionType } from '@/models/transaction';
-import { Business } from '@/models/interfaces/businessInterfaces';
+import { Transaction, TransactionType, Business } from '@/models/transaction';
 
+// Updated form schema with proper transaction types
 const formSchema = z.object({
   type: z.enum(['income', 'expense', 'transfer', 'adjustment']),
   amount: z.coerce.number().positive(),
@@ -59,7 +59,8 @@ const TransactionFormModal: React.FC<TransactionFormModalProps> = ({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      type: (transaction?.type as TransactionType) || 'income',
+      // Use a type assertion to ensure valid transaction types for the form
+      type: ((transaction?.type as 'income' | 'expense' | 'transfer' | 'adjustment') || 'expense'),
       amount: transaction?.amount || 0,
       description: transaction?.description || '',
       branchId: transaction?.branchId || '',

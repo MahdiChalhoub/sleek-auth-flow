@@ -25,6 +25,12 @@ export type {
   ReturnPermission
 } from './interfaces/permissionInterfaces';
 
+// Re-export Register types from registerInterfaces
+export type {
+  Register,
+  RegisterSession
+} from './interfaces/registerInterfaces';
+
 export { 
   mockTransactions,
   mockLedgerEntries,

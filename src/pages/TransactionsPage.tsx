@@ -1,230 +1,287 @@
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Download, Upload } from "lucide-react";
 
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import TransactionStatusBadge from '@/components/TransactionStatusBadge';
-import { ArrowLeft, Filter, Plus, Search, X } from 'lucide-react';
-import { useTransactions } from '@/hooks/useTransactions';
-import { useTransactionFilters } from '@/hooks/useTransactionFilters';
-import { Transaction, mockBranches } from '@/models/transaction';
-import TransactionFormModal from '@/components/transactions/TransactionFormModal';
-import TransactionLedgerDialog from '@/components/transactions/TransactionLedgerDialog';
-import { getFormattedDate, getFormattedDateTime } from '@/utils/formatters';
+import TransactionHeader from "@/components/transactions/TransactionHeader";
+import TransactionsList from "@/components/transactions/TransactionsList";
+import TransactionFormDialog from "@/components/transactions/TransactionFormDialog";
+import TransactionLedgerDialog from "@/components/transactions/TransactionLedgerDialog";
+import BackupDialog from "@/components/transactions/BackupDialog";
+import { useTransactionOperations } from "@/hooks/useTransactionOperations";
+import { Transaction, mockBranches, Business } from "@/models/transaction";
+import { transactionAPI } from "@/hooks/transactionAPI";
+import { toast } from 'sonner';
 
-const TransactionsPage = () => {
-  const navigate = useNavigate();
-  const { transactions, isLoading, error, changeStatus, deleteTransaction } = useTransactions();
-  const { 
-    searchQuery, 
-    setSearchQuery, 
-    statusFilter, 
-    setStatusFilter, 
-    filteredTransactions 
-  } = useTransactionFilters(transactions);
-  
+const TransactionsPage: React.FC = () => {
+  // State hooks
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLedgerOpen, setIsLedgerOpen] = useState(false);
+  const [isTransactionFormOpen, setIsTransactionFormOpen] = useState(false);
+  const [isLedgerDialogOpen, setIsLedgerDialogOpen] = useState(false);
+  const [isBackupDialogOpen, setIsBackupDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Convert the readonly array to mutable for props
-  const branches = [...mockBranches].map(branch => ({ 
-    id: branch.id, 
-    name: branch.name 
-  }));
+  // Use transaction operations hook
+  const { 
+    transactions, 
+    setTransactions,
+    isSyncing, 
+    isOfflineMode,
+    isSubmittingTransaction,
+    handleChangeStatus,
+    handleDeleteTransaction,
+    handleToggleOfflineMode,
+    handleCreateTransaction
+  } = useTransactionOperations();
 
-  // View a transaction's ledger entries
+  // Load transactions on mount
+  useEffect(() => {
+    const loadTransactions = async () => {
+      try {
+        setIsLoading(true);
+        const data = await transactionAPI.getAll();
+        setTransactions(data);
+      } catch (error) {
+        console.error("Failed to load transactions:", error);
+        toast.error("Failed to load transactions");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTransactions();
+  }, [setTransactions]);
+
+  // Handle view ledger
   const handleViewLedger = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
-    setIsLedgerOpen(true);
+    setIsLedgerDialogOpen(true);
   };
 
-  // Edit a transaction
-  const handleEditTransaction = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    setIsModalOpen(true);
+  // Group transactions by date for display
+  const groupTransactionsByDate = (transactions: Transaction[]): Record<string, Transaction[]> => {
+    const grouped: Record<string, Transaction[]> = {};
+    
+    transactions.forEach(transaction => {
+      const date = new Date(transaction.createdAt).toLocaleDateString();
+      
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      
+      grouped[date].push(transaction);
+    });
+    
+    return grouped;
   };
 
-  // Create a new transaction
-  const handleCreateTransaction = () => {
-    setSelectedTransaction(null);
-    setIsModalOpen(true);
-  };
+  // Filter transactions by different criteria
+  const pendingTransactions = transactions.filter(t => t.status === 'open' || t.status === 'pending');
+  const lockedTransactions = transactions.filter(t => t.status === 'locked');
+  const verifiedTransactions = transactions.filter(t => t.status === 'verified' || t.status === 'secure');
+  
+  const groupedPendingTransactions = groupTransactionsByDate(pendingTransactions);
+  const groupedLockedTransactions = groupTransactionsByDate(lockedTransactions);
+  const groupedVerifiedTransactions = groupTransactionsByDate(verifiedTransactions);
 
-  // Update transaction status
-  const handleStatusChange = async (id: string, newStatus: any) => {
-    await changeStatus(id, newStatus);
-  };
-
-  // Delete a transaction
-  const handleDeleteTransaction = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this transaction?')) {
-      await deleteTransaction(id);
-    }
-  };
-
-  // Close modal and refresh data
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedTransaction(null);
-  };
-
-  // Close ledger dialog
-  const handleLedgerClose = () => {
-    setIsLedgerOpen(false);
-    setSelectedTransaction(null);
-  };
+  // Create a list of businesses from mockBranches for the TransactionFormDialog
+  // Convert to mutable type to address the readonly error
+  const businesses: Business[] = [...mockBranches].map(branch => ({
+    id: branch.id,
+    name: branch.name,
+    active: true,
+    createdAt: new Date().toISOString()
+  }));
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" asChild>
-            <Link to="/home">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-semibold">Transactions</h1>
-        </div>
-        <Button onClick={handleCreateTransaction}>
-          <Plus className="mr-2 h-4 w-4" /> Add Transaction
-        </Button>
+    <div className="container px-4 py-6 mx-auto">
+      {/* Transaction Header */}
+      <TransactionHeader 
+        onNewTransaction={() => setIsTransactionFormOpen(true)}
+        onBackupOpen={() => setIsBackupDialogOpen(true)}
+        isOfflineMode={isOfflineMode}
+        isSyncing={isSyncing}
+        onToggleOfflineMode={handleToggleOfflineMode}
+      />
+      
+      {/* Transaction Stats Cards */}
+      <div className="grid gap-4 mt-6 md:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Pending Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingTransactions.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Transactions awaiting approval
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Locked Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{lockedTransactions.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Transactions pending verification
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Verified Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{verifiedTransactions.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Completed verification process
+            </p>
+          </CardContent>
+        </Card>
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
-          <CardDescription>View and manage all financial transactions</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search transactions..."
-                className="pl-8"
-                value={searchQuery || ''}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            <div className="flex flex-row gap-2">
-              <div>
-                <Label htmlFor="status-filter" className="sr-only">Status</Label>
-                <select 
-                  id="status-filter"
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  value={statusFilter || 'all'}
-                  onChange={(e) => setStatusFilter(e.target.value as any)}
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="open">Open</option>
-                  <option value="locked">Locked</option>
-                  <option value="verified">Verified</option>
-                  <option value="pending">Pending</option>
-                </select>
-              </div>
-              {(searchQuery || statusFilter !== "all") && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => {
-                    setSearchQuery("");
-                    setStatusFilter("all");
-                  }} 
-                  className="h-10 w-10"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+      
+      {/* Transactions List */}
+      <div className="mt-6">
+        <Tabs defaultValue="pending" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="pending">
+              Pending <span className="ml-1 text-xs">({pendingTransactions.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="locked">
+              Locked <span className="ml-1 text-xs">({lockedTransactions.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="verified">
+              Verified <span className="ml-1 text-xs">({verifiedTransactions.length})</span>
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="pending" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Pending Transactions</CardTitle>
+              </CardHeader>
+              <CardContent>
                 {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      Loading transactions...
-                    </TableCell>
-                  </TableRow>
-                ) : filteredTransactions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      No transactions found. Create one to get started.
-                    </TableCell>
-                  </TableRow>
+                  <div className="flex justify-center py-8">
+                    <div className="animate-pulse flex flex-col items-center">
+                      <div className="h-6 w-32 bg-muted rounded mb-4"></div>
+                      <div className="text-sm text-muted-foreground">Loading transactions...</div>
+                    </div>
+                  </div>
+                ) : pendingTransactions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No pending transactions found</p>
+                    <Button 
+                      variant="outline" 
+                      className="mt-4"
+                      onClick={() => setIsTransactionFormOpen(true)}
+                    >
+                      Create new transaction
+                    </Button>
+                  </div>
                 ) : (
-                  filteredTransactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell className="font-mono text-xs">
-                        {transaction.id.substring(0, 8)}...
-                      </TableCell>
-                      <TableCell>{getFormattedDate(transaction.createdAt)}</TableCell>
-                      <TableCell className="max-w-xs truncate">{transaction.description}</TableCell>
-                      <TableCell>
-                        <Badge variant={transaction.type === 'income' ? 'success' : transaction.type === 'expense' ? 'destructive' : 'outline'}>
-                          {transaction.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className={transaction.type === 'income' ? 'text-green-600' : transaction.type === 'expense' ? 'text-red-600' : ''}>
-                        {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}
-                        {transaction.amount.toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        <TransactionStatusBadge status={transaction.status} />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleViewLedger(transaction)}>
-                            View
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleEditTransaction(transaction)}>
-                            Edit
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  <TransactionsList
+                    transactions={pendingTransactions}
+                    onChangeStatus={handleChangeStatus}
+                    onDeleteTransaction={handleDeleteTransaction}
+                    onViewLedger={handleViewLedger}
+                    isLoading={isLoading}
+                  />
                 )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Transaction Form Modal */}
-      {isModalOpen && (
-        <TransactionFormModal
-          transaction={selectedTransaction}
-          branches={branches}
-          onClose={handleModalClose}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="locked" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Locked Transactions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-pulse flex flex-col items-center">
+                      <div className="h-6 w-32 bg-muted rounded mb-4"></div>
+                      <div className="text-sm text-muted-foreground">Loading transactions...</div>
+                    </div>
+                  </div>
+                ) : lockedTransactions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No locked transactions found</p>
+                  </div>
+                ) : (
+                  <TransactionsList
+                    transactions={lockedTransactions}
+                    onChangeStatus={handleChangeStatus}
+                    onDeleteTransaction={handleDeleteTransaction}
+                    onViewLedger={handleViewLedger}
+                    isLoading={isLoading}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="verified" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl">Verified Transactions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-pulse flex flex-col items-center">
+                      <div className="h-6 w-32 bg-muted rounded mb-4"></div>
+                      <div className="text-sm text-muted-foreground">Loading transactions...</div>
+                    </div>
+                  </div>
+                ) : verifiedTransactions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No verified transactions found</p>
+                  </div>
+                ) : (
+                  <TransactionsList
+                    transactions={verifiedTransactions}
+                    onChangeStatus={handleChangeStatus}
+                    onDeleteTransaction={handleDeleteTransaction}
+                    onViewLedger={handleViewLedger}
+                    isLoading={isLoading}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+      
+      {/* Transaction Form Dialog */}
+      {isTransactionFormOpen && (
+        <TransactionFormDialog
+          isOpen={isTransactionFormOpen}
+          onOpenChange={setIsTransactionFormOpen}
+          onSubmit={handleCreateTransaction}
+          isSubmitting={isSubmittingTransaction}
+          branches={businesses}
         />
       )}
-
-      {/* Ledger Dialog */}
-      {isLedgerOpen && selectedTransaction && (
+      
+      {/* Transaction Ledger Dialog */}
+      {isLedgerDialogOpen && selectedTransaction && (
         <TransactionLedgerDialog
           transaction={selectedTransaction}
-          onClose={handleLedgerClose}
+          onClose={() => setIsLedgerDialogOpen(false)}
+        />
+      )}
+      
+      {/* Backup Dialog */}
+      {isBackupDialogOpen && (
+        <BackupDialog
+          isOpen={isBackupDialogOpen}
+          onOpenChange={setIsBackupDialogOpen}
         />
       )}
     </div>

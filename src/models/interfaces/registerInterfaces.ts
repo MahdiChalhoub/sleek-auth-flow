@@ -1,7 +1,7 @@
 
 import { PaymentMethod } from '../types/transactionTypes';
 
-// Ensure the DiscrepancyResolution type includes all necessary values
+// Define DiscrepancyResolution type to match what's used in transactionTypes
 export type DiscrepancyResolution = 'pending' | 'approved' | 'rejected' | 'deduct_salary' | 'ecart_caisse' | 'adjusted';
 
 export interface Register {

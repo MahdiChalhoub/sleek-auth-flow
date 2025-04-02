@@ -1,106 +1,104 @@
 
 import { supabase } from '@/lib/supabase';
-import { ProductBatch } from '@/models/productBatch';
+import { ProductBatch, mapDbProductBatchToModel } from '../productBatch';
+import { safeArray } from '@/utils/supabaseUtils';
+import { rpcParams } from '@/utils/supabaseTypes';
+import { assertType } from '@/utils/typeUtils';
 
-interface GetProductBatchesResult {
-  data: ProductBatch[];
-  count: number;
-}
+export type GetProductBatchesResult = ProductBatch[];
 
-export async function getProductBatches(
-  page = 1,
-  limit = 10,
-  filters: Record<string, any> = {}
-): Promise<GetProductBatchesResult> {
-  try {
-    const { data, error } = await supabase.rpc('get_product_batches', {
-      page_number: page,
-      page_size: limit,
-      filter_options: filters
-    }) as any;
-
-    if (error) throw error;
-
-    return data as GetProductBatchesResult;
-  } catch (error) {
-    console.error('Error fetching product batches:', error);
-    return { data: [], count: 0 };
-  }
-}
-
-export async function getExpiringSoonBatches(daysThreshold = 30): Promise<ProductBatch[]> {
-  try {
-    const { data, error } = await supabase.rpc('get_expiring_soon_batches', {
-      days_threshold: daysThreshold
-    }) as any;
-
-    if (error) throw error;
-
-    return data as unknown as ProductBatch[];
-  } catch (error) {
-    console.error('Error fetching expiring soon batches:', error);
-    return [];
-  }
-}
-
-export async function getExpiredBatches(): Promise<ProductBatch[]> {
-  try {
-    const { data, error } = await supabase.rpc('get_expired_batches') as any;
-
-    if (error) throw error;
-
-    return data as unknown as ProductBatch[];
-  } catch (error) {
-    console.error('Error fetching expired batches:', error);
-    return [];
-  }
-}
-
-export async function updateBatchStatus(
-  batchId: string,
-  status: 'active' | 'expired' | 'disposed' | 'quarantined'
-): Promise<boolean> {
-  try {
-    const { data, error } = await supabase.rpc('update_batch_status', {
-      batch_id: batchId,
-      new_status: status
-    }) as any;
-
-    if (error) throw error;
-
-    return data as unknown as boolean;
-  } catch (error) {
-    console.error('Error updating batch status:', error);
-    return false;
-  }
-}
-
-export async function disposeBatch(
-  batchId: string,
-  disposalNotes: string,
-  disposedBy: string
-): Promise<boolean> {
-  try {
-    const { data, error } = await supabase.rpc('dispose_batch', {
-      batch_id: batchId,
-      disposal_notes: disposalNotes,
-      disposed_by: disposedBy
-    }) as any;
-
-    if (error) throw error;
-
-    return data as unknown as boolean;
-  } catch (error) {
-    console.error('Error disposing batch:', error);
-    return false;
-  }
-}
-
-// Export as a service object to make it easier to import
 export const productBatchService = {
-  getProductBatches,
-  getExpiringSoonBatches,
-  getExpiredBatches,
-  updateBatchStatus,
-  disposeBatch
+  checkTableExists: async (): Promise<boolean> => {
+    try {
+      const { data: tableExists, error } = await supabase
+        .rpc('check_table_exists', rpcParams({
+          table_name: 'product_batches'
+        }));
+      
+      if (error) throw error;
+      
+      return !!tableExists;
+    } catch (error) {
+      console.error('Error checking product_batches table:', error);
+      return false;
+    }
+  },
+  
+  getAll: async (): Promise<GetProductBatchesResult> => {
+    try {
+      // First check if table exists
+      const tableExists = await productBatchService.checkTableExists();
+      if (!tableExists) {
+        console.log('product_batches table does not exist');
+        return [];
+      }
+      
+      const { data, error } = await supabase
+        .rpc('get_all_product_batches', rpcParams({}));
+      
+      if (error) throw error;
+      
+      const typedData = assertType<any[]>(data || []);
+      return safeArray(typedData, mapDbProductBatchToModel);
+    } catch (error) {
+      console.error('Error fetching product batches:', error);
+      return [];
+    }
+  },
+  
+  getByProductId: async (productId: string): Promise<GetProductBatchesResult> => {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_product_batches_by_product', rpcParams({
+          product_id: productId
+        }));
+      
+      if (error) throw error;
+      
+      const typedData = assertType<any[]>(data || []);
+      return safeArray(typedData, mapDbProductBatchToModel);
+    } catch (error) {
+      console.error(`Error fetching batches for product ${productId}:`, error);
+      return [];
+    }
+  },
+  
+  create: async (batch: Omit<ProductBatch, "id">): Promise<ProductBatch | null> => {
+    try {
+      const { data, error } = await supabase
+        .rpc('insert_product_batch', rpcParams({
+          batch: {
+            product_id: batch.productId,
+            batch_number: batch.batchNumber,
+            quantity: batch.quantity,
+            expiry_date: batch.expiryDate
+          }
+        }));
+      
+      if (error) throw error;
+      
+      return data ? mapDbProductBatchToModel(data) : null;
+    } catch (error) {
+      console.error('Error creating product batch:', error);
+      return null;
+    }
+  },
+  
+  delete: async (batchId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .rpc('delete_product_batch', rpcParams({
+          batch_id: batchId
+        }));
+      
+      if (error) throw error;
+      
+      return true;
+    } catch (error) {
+      console.error(`Error deleting batch ${batchId}:`, error);
+      return false;
+    }
+  }
 };
+
+export default productBatchService;
