@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, AlertTriangle, Clock, Filter, ChevronDown } from 'lucide-react';
 import { Product } from '@/models/product';
-import { ProductBatch, createProductBatch } from '@/models/productBatch';
+import { ProductBatch, createProductBatch, mapModelProductBatchToDb } from '@/models/productBatch';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
@@ -78,16 +78,16 @@ const ExpirationManagement: React.FC = () => {
   }, []);
   
   const productsWithBatches = products.filter(product => 
-    batches.some(batch => batch.productId === product.id)
+    batches.some(batch => batch.product_id === product.id)
   );
   
   const filteredBatches = batches.filter(batch => {
-    if (hideExpired && getBatchStatus(batch.expiryDate) === 'expired') {
+    if (hideExpired && getBatchStatus(batch.expiry_date) === 'expired') {
       return false;
     }
     
     if (filterStatus !== 'all') {
-      return getBatchStatus(batch.expiryDate) === filterStatus;
+      return getBatchStatus(batch.expiry_date) === filterStatus;
     }
     
     return true;
@@ -97,24 +97,34 @@ const ExpirationManagement: React.FC = () => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          (product.barcode && product.barcode.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const hasMatchingBatches = filteredBatches.some(batch => batch.productId === product.id);
+    const hasMatchingBatches = filteredBatches.some(batch => batch.product_id === product.id);
     
     return matchesSearch && hasMatchingBatches;
   });
 
-  const addBatch = async (newBatch: Omit<ProductBatch, "id">) => {
+  const addBatch = async (newBatchData: any) => {
     try {
-      const data = await callRpc<any, { batch: any }>(
+      // Map the incoming data to our ProductBatch model
+      const newBatch: Omit<ProductBatch, "id"> = {
+        product_id: newBatchData.productId,
+        batch_number: newBatchData.batchNumber,
+        quantity: newBatchData.quantity,
+        expiry_date: newBatchData.expiryDate,
+        purchase_date: new Date().toISOString(),
+        cost_per_unit: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: 'active'
+      };
+      
+      const { data, error } = await callRpc<any, { batch: any }>(
         'insert_product_batch', 
         {
-          batch: {
-            product_id: newBatch.productId,
-            batch_number: newBatch.batchNumber,
-            quantity: newBatch.quantity,
-            expiry_date: newBatch.expiryDate
-          }
+          batch: mapModelProductBatchToDb(newBatch)
         }
       );
+      
+      if (error) throw error;
       
       if (data) {
         const addedBatch = mapDbProductBatchToModel(data);
@@ -131,10 +141,12 @@ const ExpirationManagement: React.FC = () => {
 
   const deleteBatch = async (batchId: string) => {
     try {
-      await callRpc<any, { batch_id: string }>(
+      const { error } = await callRpc<any, { batch_id: string }>(
         'delete_product_batch', 
         { batch_id: batchId }
       );
+      
+      if (error) throw error;
       
       setBatches(prev => prev.filter(batch => batch.id !== batchId));
       toast.success('Batch deleted successfully');
@@ -234,7 +246,7 @@ const ExpirationManagement: React.FC = () => {
               ) : (
                 <div className="space-y-6">
                   {filteredProducts.map(product => {
-                    const productBatches = filteredBatches.filter(batch => batch.productId === product.id);
+                    const productBatches = filteredBatches.filter(batch => batch.product_id === product.id);
                     
                     return (
                       <Card key={product.id} className="overflow-hidden">
@@ -288,16 +300,7 @@ const ExpirationManagement: React.FC = () => {
               {selectedProduct ? (
                 <BatchForm 
                   batch={null}
-                  onSave={async (batch) => {
-                    await addBatch({
-                      productId: batch.productId,
-                      batchNumber: batch.batchNumber,
-                      quantity: batch.quantity,
-                      expiryDate: batch.expiryDate,
-                      createdAt: new Date().toISOString(),
-                      updatedAt: new Date().toISOString()
-                    });
-                  }}
+                  onSave={addBatch}
                   onCancel={() => setSelectedProduct(null)}
                   productId={selectedProduct.id}
                 />

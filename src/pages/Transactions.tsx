@@ -6,12 +6,12 @@ import { Plus, Filter, Download } from 'lucide-react';
 import { TransactionFormDialog } from '@/components/transactions/TransactionFormDialog';
 import { TransactionLedgerDialog } from '@/components/transactions/TransactionLedgerDialog';
 import { toast } from 'sonner';
-import { Transaction, TransactionFormData } from '@/models/interfaces/transactionInterfaces';
+import { Transaction, TransactionFormData, Business } from '@/models/interfaces/transactionInterfaces';
 
 // Mock business data
-const mockBusinesses = [
-  { id: 'biz1', name: 'Main Store' },
-  { id: 'biz2', name: 'Branch Location' }
+const mockBusinesses: Business[] = [
+  { id: 'biz1', name: 'Main Store', active: true, createdAt: new Date().toISOString() },
+  { id: 'biz2', name: 'Branch Location', active: true, createdAt: new Date().toISOString() }
 ];
 
 // Mock transactions data
@@ -47,7 +47,7 @@ const Transactions: React.FC = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   
-  const handleCreateTransaction = async (data: TransactionFormData): Promise<boolean> => {
+  const handleCreateTransaction = async (data: TransactionFormData): Promise<void> => {
     try {
       // Simulate creating a transaction
       const newTransaction: Transaction = {
@@ -55,7 +55,7 @@ const Transactions: React.FC = () => {
         type: 'sale',
         amount: data.amount || 0,
         status: 'open',
-        notes: data.description,
+        notes: data.notes,
         created_at: new Date().toISOString()
       };
       
@@ -64,12 +64,9 @@ const Transactions: React.FC = () => {
       toast.success('Transaction created', {
         description: `Transaction of $${data.amount} has been recorded.`
       });
-      
-      return true;
     } catch (error) {
       console.error('Error creating transaction:', error);
       toast.error('Failed to create transaction');
-      return false;
     }
   };
   

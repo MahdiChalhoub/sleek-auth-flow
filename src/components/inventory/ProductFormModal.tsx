@@ -8,10 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Product } from '@/models/product';
+import { Product } from '@/models/interfaces/productInterfaces';
 import { ProductFormData } from '@/models/interfaces/productInterfaces';
-import { categoriesService } from '@/services/categoryService';
 import { Category } from '@/models/interfaces/categoryInterfaces';
+import { categoriesService } from '@/services/categoryService';
 import { Branch } from '@/types/location';
 import { toast } from 'sonner';
 
@@ -69,7 +69,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({
         stock: product.stock,
         categoryId: product.category_id || '',
         hasStock: product.hasStock,
-        isCombo: product.isCombo || false
+        isCombo: product.is_combo
       });
     } else {
       // Reset form for new product

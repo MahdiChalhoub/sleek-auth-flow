@@ -1,36 +1,26 @@
 
 export interface Transaction {
   id: string;
+  type: 'sale' | 'expense' | 'refund' | 'transfer' | string;
   amount: number;
-  type: string;
-  status: 'open' | 'closed' | 'reconciled';
+  status: 'open' | 'closed' | 'reconciled' | string;
   notes?: string;
-  reference_id?: string;
-  reference_type?: string;
-  location_id?: string;
-  financial_year_id?: string;
   created_at?: string;
-  updated_at?: string;
 }
 
 export interface TransactionFormData {
-  description?: string;
-  amount?: number;
-  paymentMethod?: 'cash' | 'card' | 'bank' | 'wave' | 'mobile' | 'not_specified';
-  branchId?: string;
+  type: 'sale' | 'expense' | 'refund' | 'transfer' | string;
+  amount: number;
+  notes?: string;
+  businessId?: string;
+  paymentMethod?: string;
+  date?: string;
+  category?: string;
 }
 
-export interface TransactionPermission {
+export interface Business {
   id: string;
   name: string;
-  description: string;
-  roleId: string;
-  canCreate: boolean;
-  canEdit: boolean;
-  canLock: boolean;
-  canDelete: boolean;
-  canApprove: boolean;
-  canReconcile: boolean;
-  canViewSensitive: boolean;
-  maxAmount: number;
+  active?: boolean;
+  createdAt?: string;
 }

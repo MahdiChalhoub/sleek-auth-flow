@@ -2,7 +2,7 @@
 import { supabase } from '@/lib/supabase';
 import { Category } from '@/models/interfaces/categoryInterfaces';
 
-export async function getCategories(): Promise<Category[]> {
+const getAll = async (): Promise<Category[]> => {
   try {
     const { data, error } = await supabase
       .from('categories')
@@ -16,9 +16,9 @@ export async function getCategories(): Promise<Category[]> {
     console.error('Error fetching categories:', error);
     return [];
   }
-}
+};
 
-export async function getCategoryById(id: string): Promise<Category | null> {
+const getById = async (id: string): Promise<Category | null> => {
   try {
     const { data, error } = await supabase
       .from('categories')
@@ -38,11 +38,18 @@ export async function getCategoryById(id: string): Promise<Category | null> {
     console.error(`Error fetching category with id ${id}:`, error);
     return null;
   }
-}
+};
 
-export async function createCategories(categories: Category[]): Promise<Category[]> {
+const createMany = async (categories: Category[]): Promise<Category[]> => {
   try {
-    const categoriesToCreate = categories.map(cat => ({
+    // Ensure all categories have the required name property
+    const validCategories = categories.filter(cat => cat.name);
+    
+    if (validCategories.length === 0) {
+      return [];
+    }
+    
+    const categoriesToCreate = validCategories.map(cat => ({
       name: cat.name,
       description: cat.description,
       id: cat.id
@@ -60,9 +67,9 @@ export async function createCategories(categories: Category[]): Promise<Category
     console.error('Error creating categories:', error);
     return [];
   }
-}
+};
 
-export async function updateCategory(id: string, category: Partial<Category>): Promise<Category | null> {
+const update = async (id: string, category: Partial<Category>): Promise<Category | null> => {
   try {
     const { data, error } = await supabase
       .from('categories')
@@ -81,9 +88,9 @@ export async function updateCategory(id: string, category: Partial<Category>): P
     console.error(`Error updating category with id ${id}:`, error);
     return null;
   }
-}
+};
 
-export async function deleteCategory(id: string): Promise<boolean> {
+const remove = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from('categories')
@@ -97,4 +104,15 @@ export async function deleteCategory(id: string): Promise<boolean> {
     console.error(`Error deleting category with id ${id}:`, error);
     return false;
   }
-}
+};
+
+export const categoriesService = {
+  getAll,
+  getById,
+  createMany,
+  update,
+  remove
+};
+
+// For backwards compatibility
+export { getAll, getById, createMany as createCategories, update as updateCategory, remove as deleteCategory };

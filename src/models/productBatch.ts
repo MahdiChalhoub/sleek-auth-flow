@@ -28,7 +28,7 @@ export const createProductBatch = (data: Partial<ProductBatch>): ProductBatch =>
     batch_number: data.batch_number || data.batchNumber || '',
     quantity: data.quantity || 0,
     expiry_date: data.expiry_date || data.expiryDate || '',
-    purchase_date: data.purchase_date || '',
+    purchase_date: data.purchase_date || new Date().toISOString(),
     cost_per_unit: data.cost_per_unit || 0,
     created_at: data.created_at || data.createdAt || new Date().toISOString(),
     updated_at: data.updated_at || data.updatedAt || new Date().toISOString(),
