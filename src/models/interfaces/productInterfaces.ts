@@ -34,8 +34,10 @@ export interface ProductFormData {
 }
 
 export interface ProductLocationStock {
+  id?: string;
   locationId: string;
   stock: number;
   minStockLevel?: number;
   maxStockLevel?: number;
+  productId?: string;
 }
