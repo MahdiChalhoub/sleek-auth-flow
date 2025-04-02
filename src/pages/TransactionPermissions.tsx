@@ -8,7 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, Plus, Info } from "lucide-react";
 import { toast } from "sonner";
 import { mockRoles } from "@/models/role";
-import { mockTransactionPermissions, TransactionPermission } from "@/models/transaction";
+import { mockTransactionPermissions } from "@/models/mockData/transactionMockData";
+import { TransactionPermission } from "@/models/interfaces/permissionInterfaces";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
 
@@ -31,7 +32,7 @@ const TransactionPermissions = () => {
     const currentPermission = permissions.find(p => p.roleId === roleId);
     
     toast.success(`Permission updated`, {
-      description: `${role?.name} role ${currentPermission?.[permissionKey] ? 'can no longer' : 'can now'} ${permissionKey.replace('can', '').toLowerCase()} transactions`,
+      description: `${role?.name} role ${currentPermission?.[permissionKey] ? 'can no longer' : 'can now'} ${String(permissionKey).replace('can', '').toLowerCase()} transactions`,
     });
   };
 
