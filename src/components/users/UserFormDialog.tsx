@@ -1,14 +1,13 @@
 
-import React, { useState } from 'react';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import React from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -19,7 +18,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -27,59 +25,63 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { User, UserRole } from '@/types/auth';
-
-const formSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
-  role: z.enum(['admin', 'manager', 'cashier']),
-});
-
-export type UserFormData = z.infer<typeof formSchema>;
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { UserRole } from '@/types/auth';
 
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: UserFormData) => Promise<void>;
-  user?: User;
+  onSubmit: (data: { email?: string; role?: UserRole; fullName?: string }) => Promise<void>;
+  isSubmitting: boolean;
+  initialData?: {
+    email?: string;
+    role?: UserRole;
+    fullName?: string;
+  };
+  mode?: 'create' | 'edit';
 }
 
-const UserFormDialog: React.FC<UserFormDialogProps> = ({
+const formSchema = z.object({
+  email: z.string().email('Invalid email format').min(1, 'Email is required'),
+  fullName: z.string().min(1, 'Full name is required'),
+  role: z.enum(['admin', 'manager', 'cashier']),
+});
+
+export function UserFormDialog({
   open,
   onOpenChange,
   onSubmit,
-  user,
-}) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const form = useForm<UserFormData>({
+  isSubmitting,
+  initialData,
+  mode = 'create',
+}: UserFormDialogProps) {
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: user?.email || '',
-      fullName: user?.fullName || user?.name || '',
-      role: user?.role || 'cashier',
+      email: initialData?.email || '',
+      fullName: initialData?.fullName || '',
+      role: initialData?.role || 'cashier',
     },
   });
-  
-  const handleSubmit = async (data: UserFormData) => {
-    setIsSubmitting(true);
-    try {
-      await onSubmit(data);
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error submitting user form:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
+
+  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    await onSubmit(values);
+    form.reset();
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{user ? 'Edit User' : 'Create New User'}</DialogTitle>
+          <DialogTitle>{mode === 'create' ? 'Create New User' : 'Edit User'}</DialogTitle>
+          <DialogDescription>
+            {mode === 'create'
+              ? 'Add a new user to the system'
+              : 'Update user information'}
+          </DialogDescription>
         </DialogHeader>
-        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
@@ -90,16 +92,15 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input 
-                      {...field}
-                      placeholder="user@example.com"
-                      disabled={!!user}
+                      placeholder="user@example.com" 
+                      {...field} 
+                      disabled={mode === 'edit'} 
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
             <FormField
               control={form.control}
               name="fullName"
@@ -107,16 +108,12 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input 
-                      {...field}
-                      placeholder="John Doe"
-                    />
+                    <Input placeholder="John Doe" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
             <FormField
               control={form.control}
               name="role"
@@ -129,7 +126,7 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
+                        <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -142,17 +139,15 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
                 </FormItem>
               )}
             />
-            
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : user ? 'Update' : 'Create'}
+                {isSubmitting
+                  ? mode === 'create'
+                    ? 'Creating...'
+                    : 'Updating...'
+                  : mode === 'create'
+                  ? 'Create User'
+                  : 'Update User'}
               </Button>
             </DialogFooter>
           </form>
@@ -160,6 +155,4 @@ const UserFormDialog: React.FC<UserFormDialogProps> = ({
       </DialogContent>
     </Dialog>
   );
-};
-
-export default UserFormDialog;
+}

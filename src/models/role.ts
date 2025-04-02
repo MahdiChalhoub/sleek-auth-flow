@@ -5,35 +5,21 @@ export interface Role {
   id: string;
   name: string;
   description: string;
-  permissions: { id: string; enabled: boolean }[];
+  permissions: UserPermission[];
   createdAt?: string;
   updatedAt?: string;
 }
 
-export interface RoleWithPermissions extends Omit<Role, 'permissions'> {
-  permissions: UserPermission[];
-}
-
-export const createRole = (data: Partial<Role>): Role => {
-  return {
-    id: data.id || '',
-    name: data.name || '',
-    description: data.description || '',
-    permissions: data.permissions || [],
-    createdAt: data.createdAt || new Date().toISOString(),
-    updatedAt: data.updatedAt || new Date().toISOString()
-  };
-};
-
 export const mockRoles: Role[] = [
   {
     id: '1',
-    name: 'Administrator',
-    description: 'Full access to all features',
+    name: 'Admin',
+    description: 'Full access to all system features',
     permissions: [
-      { id: '1', enabled: true },
-      { id: '2', enabled: true },
-      { id: '3', enabled: true }
+      { id: '1', name: 'users.view', description: 'View users', category: 'Users', enabled: true },
+      { id: '2', name: 'users.create', description: 'Create users', category: 'Users', enabled: true },
+      { id: '3', name: 'users.edit', description: 'Edit users', category: 'Users', enabled: true },
+      { id: '4', name: 'users.delete', description: 'Delete users', category: 'Users', enabled: true },
     ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -41,23 +27,12 @@ export const mockRoles: Role[] = [
   {
     id: '2',
     name: 'Manager',
-    description: 'Access to most features except administrative settings',
+    description: 'Access to manage daily operations',
     permissions: [
-      { id: '1', enabled: true },
-      { id: '2', enabled: true },
-      { id: '3', enabled: false }
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: '3',
-    name: 'Cashier',
-    description: 'Limited access to sales features',
-    permissions: [
-      { id: '1', enabled: true },
-      { id: '2', enabled: false },
-      { id: '3', enabled: false }
+      { id: '1', name: 'users.view', description: 'View users', category: 'Users', enabled: true },
+      { id: '2', name: 'users.create', description: 'Create users', category: 'Users', enabled: false },
+      { id: '3', name: 'users.edit', description: 'Edit users', category: 'Users', enabled: false },
+      { id: '4', name: 'users.delete', description: 'Delete users', category: 'Users', enabled: false },
     ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()

@@ -1,106 +1,99 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { User } from '@/types/auth';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { UserRole } from '@/types/auth';
 import { Role } from '@/models/role';
 
 interface UserRoleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (roleId: string) => Promise<void>;
-  user: User;
+  userEmail: string;
+  currentRole: UserRole;
   roles: Role[];
+  onSubmit: (roleId: string) => Promise<void>;
+  isSubmitting: boolean;
 }
 
-const UserRoleDialog: React.FC<UserRoleDialogProps> = ({
+export function UserRoleDialog({
   open,
   onOpenChange,
-  onConfirm,
-  user,
+  userEmail,
+  currentRole,
   roles,
-}) => {
-  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const handleConfirm = async () => {
+  onSubmit,
+  isSubmitting,
+}: UserRoleDialogProps) {
+  const [selectedRoleId, setSelectedRoleId] = React.useState<string>('');
+
+  React.useEffect(() => {
+    if (open) {
+      // Find the role ID matching the current role name
+      const roleId = roles.find(r => r.name.toLowerCase() === currentRole)?.id || '';
+      setSelectedRoleId(roleId);
+    }
+  }, [open, currentRole, roles]);
+
+  const handleSubmit = async () => {
     if (!selectedRoleId) return;
     
-    setIsSubmitting(true);
-    try {
-      await onConfirm(selectedRoleId);
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error assigning role:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
+    await onSubmit(selectedRoleId);
+    onOpenChange(false);
   };
-  
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[400px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Assign Role</DialogTitle>
+          <DialogTitle>Change User Role</DialogTitle>
+          <DialogDescription>
+            Select a new role for {userEmail}
+          </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
-          <p className="text-sm">
-            Assign a role to <span className="font-medium">{user.fullName || user.name || user.email}</span>
-          </p>
-          
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="role-select">
-              Select Role
-            </label>
-            <Select
-              value={selectedRoleId}
-              onValueChange={setSelectedRoleId}
-            >
-              <SelectTrigger id="role-select">
-                <SelectValue placeholder="Select a role" />
-              </SelectTrigger>
-              <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role.id} value={role.id}>
+        <div className="py-4">
+          <RadioGroup value={selectedRoleId} onValueChange={setSelectedRoleId}>
+            {roles.map(role => (
+              <div key={role.id} className="flex items-start space-x-2 mb-3">
+                <RadioGroupItem value={role.id} id={`role-${role.id}`} />
+                <div className="grid gap-1.5">
+                  <Label htmlFor={`role-${role.id}`} className="font-medium">
                     {role.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    {role.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </RadioGroup>
         </div>
         
         <DialogFooter>
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
           <Button 
-            onClick={handleConfirm}
-            disabled={!selectedRoleId || isSubmitting}
+            onClick={handleSubmit}
+            disabled={isSubmitting || !selectedRoleId}
           >
-            {isSubmitting ? 'Assigning...' : 'Assign Role'}
+            {isSubmitting ? "Updating..." : "Change Role"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default UserRoleDialog;
+}

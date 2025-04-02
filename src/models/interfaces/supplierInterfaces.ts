@@ -9,6 +9,7 @@ export interface Supplier {
   notes?: string;
   created_at?: string;
   updated_at?: string;
+  products?: any[]; // Add products array for mock data
 }
 
 export interface SupplierFormData {

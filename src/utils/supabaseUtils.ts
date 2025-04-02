@@ -1,104 +1,119 @@
 
-import { PostgrestError } from '@supabase/supabase-js';
+import { toast } from 'sonner';
 
 /**
- * Safely handle arrays from Supabase responses
+ * Safely maps an array of objects using a mapping function
+ * Returns an empty array if the input is not an array or if any mapping fails
  */
-export const safeArray = <T>(data: T[] | null): T[] => {
-  return data || [];
-};
+export function safeArray<T, U>(array: U[] | null | undefined, mapFn: (item: U) => T): T[] {
+  if (!array || !Array.isArray(array)) {
+    return [];
+  }
+  
+  try {
+    return array.map(mapFn);
+  } catch (error) {
+    console.error('Error mapping array:', error);
+    return [];
+  }
+}
 
 /**
- * Create parameters object for RPC calls
+ * Formats parameters for RPC calls
  */
-export const rpcParams = <T>(params: T): T => {
+export function rpcParams<T extends Record<string, any>>(params: T): T {
   return params;
-};
+}
 
 /**
- * Safely get a table source for reuse
+ * Helper to create a table data source with proper error handling
  */
-export const tableSource = (tableName: string) => {
-  return tableName;
-};
+export function tableSource<T>(tableName: string): { 
+  fetch: () => Promise<T[]>;
+  getById: (id: string) => Promise<T | null>;
+} {
+  return {
+    fetch: async () => {
+      try {
+        // Implementation would use supabase to fetch data
+        return [];
+      } catch (error) {
+        console.error(`Error fetching from ${tableName}:`, error);
+        toast.error(`Failed to load ${tableName}`);
+        return [];
+      }
+    },
+    getById: async (id: string) => {
+      try {
+        // Implementation would use supabase to fetch by id
+        return null;
+      } catch (error) {
+        console.error(`Error fetching ${tableName} by ID:`, error);
+        toast.error(`Failed to load ${tableName} details`);
+        return null;
+      }
+    }
+  };
+}
 
 /**
- * Format Supabase error messages for better user experience
+ * Formats a Supabase error message for display
  */
-export const formatSupabaseError = (error: PostgrestError | null): string => {
+export function formatSupabaseError(error: any): string {
   if (!error) return 'Unknown error';
   
-  // Check for common error codes and provide more user-friendly messages
-  if (error.code === '23505') {
-    return 'This record already exists. Please use a unique value.';
-  }
+  if (typeof error === 'string') return error;
   
-  if (error.code === '23503') {
-    return 'This operation failed because the record is used by other records.';
-  }
+  if (error.message) return error.message;
   
-  if (error.code === '42P01') {
-    return 'Database table not found. Please contact support.';
-  }
+  if (error.error_description) return error.error_description;
   
-  return error.message || 'An error occurred with the database operation';
-};
+  return 'An unexpected error occurred';
+}
 
 /**
- * Process multiple promises and collect success/error results
+ * Settles all promises and returns results
  */
-export const settleAll = async <T>(promises: Promise<T>[]): Promise<{
-  successes: T[];
-  errors: any[];
-}> => {
+export async function settleAll<T>(promises: Promise<T>[]): Promise<(T | Error)[]> {
   const results = await Promise.allSettled(promises);
   
-  const successes: T[] = [];
-  const errors: any[] = [];
-  
-  results.forEach(result => {
+  return results.map(result => {
     if (result.status === 'fulfilled') {
-      successes.push(result.value);
+      return result.value;
     } else {
-      errors.push(result.reason);
+      return result.reason instanceof Error ? result.reason : new Error(String(result.reason));
     }
   });
-  
-  return { successes, errors };
-};
+}
 
 /**
- * Safely execute a query with error handling
+ * Safely executes a Supabase query with error handling
  */
-export const safeQuery = async <T>(
-  queryFn: () => Promise<{ data: T | null; error: PostgrestError | null }>
-): Promise<{ data: T | null; error: string | null }> => {
+export async function safeQuery<T>(queryFn: () => Promise<T>, errorMessage: string): Promise<T | null> {
   try {
-    const { data, error } = await queryFn();
-    
-    if (error) {
-      return { data: null, error: formatSupabaseError(error) };
-    }
-    
-    return { data, error: null };
-  } catch (err: any) {
-    return { data: null, error: err.message || 'Unknown error occurred' };
+    return await queryFn();
+  } catch (error) {
+    console.error(errorMessage, error);
+    toast.error(errorMessage);
+    return null;
   }
-};
+}
 
 /**
- * Execute a transaction safely
+ * Safely executes a Supabase transaction with error handling
  */
-export const safeTransaction = async <T>(
-  transactionFn: () => Promise<T>
-): Promise<{ data: T | null; error: string | null }> => {
+export async function safeTransaction<T>(
+  transactionFn: () => Promise<T>,
+  successMessage: string,
+  errorMessage: string
+): Promise<T | null> {
   try {
     const result = await transactionFn();
-    return { data: result, error: null };
-  } catch (err: any) {
-    return { 
-      data: null, 
-      error: err.message || 'Transaction failed' 
-    };
+    toast.success(successMessage);
+    return result;
+  } catch (error) {
+    console.error(errorMessage, error);
+    toast.error(errorMessage);
+    return null;
   }
-};
+}

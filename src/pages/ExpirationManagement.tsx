@@ -100,17 +100,21 @@ const ExpirationManagement: React.FC = () => {
     return matchesSearch && hasMatchingBatches;
   });
 
-  const addBatch = async (newBatch: Omit<ProductBatch, "id">) => {
+  const addBatch = async (batch: Omit<ProductBatch, "id">) => {
     try {
       const { data, error } = await callRpc<any, { batch: any }>(
         'insert_product_batch', 
         {
           batch: {
-            product_id: newBatch.product_id,
-            batch_number: newBatch.batch_number,
-            quantity: newBatch.quantity,
-            expiry_date: newBatch.expiry_date,
-            status: newBatch.status || 'active'
+            product_id: batch.product_id,
+            batch_number: batch.batch_number,
+            quantity: batch.quantity,
+            expiry_date: batch.expiry_date,
+            purchase_date: batch.purchase_date,
+            cost_per_unit: batch.cost_per_unit,
+            status: batch.status || 'active',
+            created_at: batch.created_at,
+            updated_at: batch.updated_at
           }
         }
       );
@@ -291,16 +295,7 @@ const ExpirationManagement: React.FC = () => {
               {selectedProduct ? (
                 <BatchForm 
                   batch={null}
-                  onSave={async (batch) => {
-                    await addBatch({
-                      product_id: batch.product_id,
-                      batch_number: batch.batch_number,
-                      quantity: batch.quantity,
-                      expiry_date: batch.expiry_date,
-                      createdAt: new Date().toISOString(),
-                      updatedAt: new Date().toISOString()
-                    });
-                  }}
+                  onSave={addBatch}
                   onCancel={() => setSelectedProduct(null)}
                   productId={selectedProduct.id}
                 />
