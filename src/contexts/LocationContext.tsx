@@ -1,72 +1,49 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Branch, mockBranches } from '@/models/interfaces/businessInterfaces';
+import { useLocation, useNavigate } from 'react-router-dom';
 
+// Create context type
 type LocationContextType = {
-  currentLocation: Branch | null;
-  setCurrentLocation: (location: Branch | null) => void;
-  availableLocations: Branch[];
-  switchLocation: (locationId: string) => void;
-  userHasAccessToLocation: (locationId: string) => boolean;
+  currentLocation: string;
+  navigateTo: (path: string) => void;
+  // Other location-related properties...
 };
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
-export const useLocationContext = () => {
+export function useLocationContext() {
   const context = useContext(LocationContext);
   if (context === undefined) {
     throw new Error('useLocationContext must be used within a LocationProvider');
   }
   return context;
-};
+}
 
-export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentLocation, setCurrentLocation] = useState<Branch | null>(null);
-  const [availableLocations, setAvailableLocations] = useState<Branch[]>([]);
+export function LocationProvider({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    console.log('LocationProvider mounted');
-    // Filter active branches
-    const activeBranches = mockBranches.filter(branch => branch.status === 'active');
-    setAvailableLocations(activeBranches);
-    
-    // Set the default location if none is selected
-    if (!currentLocation && activeBranches.length > 0) {
-      const defaultLocation = activeBranches.find(branch => branch.isDefault) || activeBranches[0];
-      console.log('Setting default location:', defaultLocation);
-      setCurrentLocation(defaultLocation);
-    }
-  }, []);
+  // State and other logic...
+  const [currentLocation, setCurrentLocation] = useState(location.pathname);
 
-  const switchLocation = (locationId: string) => {
-    console.log('Switching location to:', locationId);
-    const location = mockBranches.find(branch => branch.id === locationId);
-    if (location) {
-      setCurrentLocation(location);
-    }
+  // Update when location changes
+  React.useEffect(() => {
+    setCurrentLocation(location.pathname);
+    console.log("LocationContext value:", { currentLocation: location.pathname });
+  }, [location.pathname]);
+
+  const navigateTo = (path: string) => {
+    navigate(path);
   };
 
-  const userHasAccessToLocation = (locationId: string) => {
-    // In a real app, this would check if the user has access to the location
-    // For now, we'll assume all users have access to all locations
-    return true;
+  const value = {
+    currentLocation,
+    navigateTo,
+    // Other properties...
   };
-
-  const contextValue = {
-    currentLocation, 
-    setCurrentLocation, 
-    availableLocations, 
-    switchLocation,
-    userHasAccessToLocation
-  };
-
-  console.log('LocationContext value:', contextValue);
 
   return (
-    <LocationContext.Provider value={contextValue}>
+    <LocationContext.Provider value={value}>
       {children}
     </LocationContext.Provider>
   );
-};
-
-export { LocationContext };
+}

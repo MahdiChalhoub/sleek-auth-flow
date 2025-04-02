@@ -60,6 +60,7 @@ import BusinessSelection from './pages/BusinessSelection';
 import WaitingApproval from './pages/WaitingApproval';
 import { LocationProvider } from './contexts/LocationContext'; // Import LocationProvider
 import { BrowserRouter } from 'react-router-dom';
+
 function App() {
   return (
     <BrowserRouter>
