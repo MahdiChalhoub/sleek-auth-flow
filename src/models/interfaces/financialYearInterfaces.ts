@@ -19,5 +19,5 @@ export interface FinancialYearFormData {
   startDate: string;
   endDate: string;
   status: FinancialYearStatus;
-  createdBy: string;
+  createdBy?: string;
 }

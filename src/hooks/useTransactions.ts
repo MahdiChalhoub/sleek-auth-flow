@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus, TransactionType } from '@/models/transaction';
+import { Transaction, LedgerEntry, PaymentMethod, TransactionStatus, TransactionType, JournalEntry } from '@/models/transaction';
 import { toast } from 'sonner';
 import { useFinancialYears } from './useFinancialYears';
 
@@ -14,7 +14,10 @@ const mockTransactions: Transaction[] = [
     description: "Sale of inventory items",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    financialYearId: "fy-2023"
+    financialYearId: "fy-2023",
+    createdBy: "System",
+    paymentMethod: "cash",
+    journalEntries: []
   },
   {
     id: "tx-002",
@@ -24,7 +27,10 @@ const mockTransactions: Transaction[] = [
     description: "Office supplies",
     createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    financialYearId: "fy-2023"
+    financialYearId: "fy-2023",
+    createdBy: "System",
+    paymentMethod: "card",
+    journalEntries: []
   },
   {
     id: "tx-003",
@@ -34,7 +40,10 @@ const mockTransactions: Transaction[] = [
     description: "Transfer between accounts",
     createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-    financialYearId: "fy-2023"
+    financialYearId: "fy-2023",
+    createdBy: "System",
+    paymentMethod: "bank",
+    journalEntries: []
   }
 ];
 

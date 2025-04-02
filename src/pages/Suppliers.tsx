@@ -10,6 +10,7 @@ import SupplierViewModal from "@/components/inventory/SupplierViewModal";
 import SupplierDeleteDialog from "@/components/inventory/SupplierDeleteDialog";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { voidPromise } from '@/utils/promiseHelpers';
 
 const Suppliers = () => {
   const [suppliers, setSuppliers] = useState<any[]>([]);

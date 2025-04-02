@@ -1,5 +1,5 @@
 
-import { UserPermission } from '@/types/auth';
+import { UserPermission } from "@/types/auth";
 
 export interface Role {
   id: string;
@@ -8,59 +8,23 @@ export interface Role {
   permissions: UserPermission[];
   createdAt?: string;
   updatedAt?: string;
-  created_at?: string;
-  updated_at?: string;
+  created_at?: string;  // Used for compatibility with database fields
+  updated_at?: string;  // Used for compatibility with database fields
 }
 
-export const mockRoles: Role[] = [
-  {
-    id: '1',
-    name: 'Admin',
-    description: 'Full access to all system features',
-    permissions: [
-      { id: '1', name: 'users.view', description: 'View users', category: 'Users', enabled: true },
-      { id: '2', name: 'users.create', description: 'Create users', category: 'Users', enabled: true },
-      { id: '3', name: 'users.edit', description: 'Edit users', category: 'Users', enabled: true },
-      { id: '4', name: 'users.delete', description: 'Delete users', category: 'Users', enabled: true },
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: '2',
-    name: 'Manager',
-    description: 'Access to manage daily operations',
-    permissions: [
-      { id: '1', name: 'users.view', description: 'View users', category: 'Users', enabled: true },
-      { id: '2', name: 'users.create', description: 'Create users', category: 'Users', enabled: false },
-      { id: '3', name: 'users.edit', description: 'Edit users', category: 'Users', enabled: false },
-      { id: '4', name: 'users.delete', description: 'Delete users', category: 'Users', enabled: false },
-    ],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-];
-
-// Utility to convert between role formats
-export function adaptRole(role: any): Role {
-  // Handle both auth.Role and models.Role formats
-  const converted: Role = {
+// Helper for converting between different role formats
+export const adaptRole = (role: any): Role => {
+  const createdAt = role.createdAt || role.created_at || new Date().toISOString();
+  const updatedAt = role.updatedAt || role.updated_at || new Date().toISOString();
+  
+  return {
     id: role.id,
     name: role.name,
-    // Ensure description is a string (required in models.Role)
-    description: role.description || '',
-    // Ensure permissions is an array
+    description: role.description || "",
     permissions: role.permissions || [],
-    createdAt: role.createdAt || role.created_at,
-    updatedAt: role.updatedAt || role.updated_at,
-    created_at: role.created_at || role.createdAt,
-    updated_at: role.updated_at || role.updatedAt
+    createdAt,
+    updatedAt,
+    created_at: createdAt,
+    updated_at: updatedAt
   };
-  
-  return converted;
-}
-
-// Utility function to convert array of roles
-export function adaptRoles(roles: any[]): Role[] {
-  return roles.map(role => adaptRole(role));
-}
+};

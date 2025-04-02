@@ -7,14 +7,14 @@ import { Role as ModelRole } from '@/models/role';
  */
 export function adaptRole(role: AuthRole | ModelRole): ModelRole {
   // Check if role has createdAt or created_at
-  const createdAt = 'createdAt' in role 
-    ? role.createdAt 
-    : ('created_at' in role ? role.created_at : undefined);
+  const createdAt = 
+    'createdAt' in role && role.createdAt ? role.createdAt : 
+    ('created_at' in role && role.created_at ? role.created_at : undefined);
   
   // Check if role has updatedAt or updated_at
-  const updatedAt = 'updatedAt' in role 
-    ? role.updatedAt 
-    : ('updated_at' in role ? role.updated_at : undefined);
+  const updatedAt = 
+    'updatedAt' in role && role.updatedAt ? role.updatedAt : 
+    ('updated_at' in role && role.updated_at ? role.updated_at : undefined);
   
   return {
     id: role.id,

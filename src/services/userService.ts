@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { User, Role as AuthRole } from '@/types/auth';
 import { adaptRoles } from '@/utils/roleAdapter';
 import { Role } from '@/models/role';
+import { mapUserData, mapRoleData, methodAdapters, safeGet } from './userServiceHelper';
 
 /**
  * User Service - Handle all user-related operations
@@ -16,26 +17,27 @@ export const userService = {
       // Get extended user data
       const { data: extendedUser, error } = await supabase
         .from('extended_users')
-        .select('*')
+        .select('*, profiles:id(*)')
         .eq('id', user.id)
         .single();
       
       if (error) {
         console.error('Error fetching extended user data:', error);
+        return null;
       }
       
-      return {
+      return mapUserData({
         id: user.id,
-        email: user.email || '',
+        email: user.email,
         role: extendedUser?.role || 'employee',
-        isGlobalAdmin: extendedUser?.is_global_admin || false,
-        fullName: extendedUser?.profiles?.full_name || user.email?.split('@')[0] || '',
-        avatarUrl: extendedUser?.profiles?.avatar_url || '',
-        createdAt: user.created_at || null,
-        updatedAt: user.updated_at || null,
-        lastLogin: user.last_sign_in_at || null,
+        is_global_admin: extendedUser?.is_global_admin || false,
+        profiles: extendedUser?.profiles,
+        status: extendedUser?.status || 'active',
+        last_login: user.last_sign_in_at,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
         permissions: extendedUser?.permissions || []
-      };
+      });
     } catch (error) {
       console.error('Error fetching current user:', error);
       return null;
@@ -52,7 +54,7 @@ export const userService = {
           email,
           role,
           is_global_admin,
-          profiles:profile_id(full_name, avatar_url),
+          profiles:id(full_name, avatar_url),
           status,
           permissions,
           last_login,
@@ -65,23 +67,16 @@ export const userService = {
         return [];
       }
       
-      // Map to User type
-      return data.map(user => ({
-        id: user.id,
-        email: user.email || '',
-        role: user.role || 'employee',
-        isGlobalAdmin: user.is_global_admin || false,
-        fullName: user.profiles?.full_name || user.email?.split('@')[0] || '',
-        avatarUrl: user.profiles?.avatar_url || '',
-        createdAt: user.created_at || null,
-        updatedAt: user.updated_at || null,
-        lastLogin: user.last_login || null,
-        permissions: user.permissions || []
-      }));
+      // Map data safely
+      return methodAdapters.listUsers(data || []);
     } catch (error) {
       console.error('Error listing users:', error);
       return [];
     }
+  },
+  
+  async getAllUsers(): Promise<User[]> {
+    return await userService.listUsers();
   },
   
   async getUserById(userId: string): Promise<User | null> {
@@ -94,7 +89,7 @@ export const userService = {
           email,
           role,
           is_global_admin,
-          profiles:profile_id(full_name, avatar_url),
+          profiles:id(full_name, avatar_url),
           status,
           permissions,
           last_login,
@@ -109,19 +104,8 @@ export const userService = {
         return null;
       }
       
-      // Map to User type
-      return {
-        id: data.id,
-        email: data.email || '',
-        role: data.role || 'employee',
-        isGlobalAdmin: data.is_global_admin || false,
-        fullName: data.profiles?.full_name || data.email?.split('@')[0] || '',
-        avatarUrl: data.profiles?.avatar_url || '',
-        createdAt: data.created_at || null,
-        updatedAt: data.updated_at || null,
-        lastLogin: data.last_login || null,
-        permissions: data.permissions || []
-      };
+      // Map to User type safely
+      return mapUserData(data);
     } catch (error) {
       console.error('Error getting user by ID:', error);
       return null;
@@ -225,13 +209,13 @@ export const userService = {
         return [];
       }
       
-      return data.map(role => ({
+      return data.map(role => mapRoleData({
         id: role.id,
         name: role.name,
         description: role.description || '',
         permissions: role.permissions || [],
-        createdAt: role.created_at,
-        updatedAt: role.updated_at
+        created_at: role.created_at,
+        updated_at: role.updated_at
       }));
     } catch (error) {
       console.error('Error fetching roles:', error);

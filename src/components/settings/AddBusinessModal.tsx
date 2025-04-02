@@ -62,6 +62,8 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
   });
 
   const handleSubmit = (values: z.infer<typeof businessSchema>) => {
+    const userId = "user-1"; // In a real app, this would come from auth context
+    
     const newBusiness: Business = {
       id: `bus-${Date.now()}`,
       name: values.name,
@@ -70,6 +72,8 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
       currency: values.currency,
       description: values.description,
       timezone: values.timezone,
+      status: "active",
+      ownerId: userId,
       active: true
     };
     
