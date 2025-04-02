@@ -1,4 +1,3 @@
-
 import { Product } from './interfaces/productInterfaces';
 import { Supplier } from './interfaces/supplierInterfaces';
 import { PurchaseOrder } from './interfaces/purchaseOrderInterfaces';
@@ -13,7 +12,8 @@ export const mockProducts: Product[] = [
     cost: 899.99,
     stock: 15,
     barcode: "123456789012",
-    image_url: "/images/laptop.jpg",
+    imageUrl: "/images/laptop.jpg",
+    image_url: "/images/laptop.jpg", // For compatibility
     image: "/images/laptop.jpg", // For compatibility
     categoryId: "cat-001",
     hasStock: true,
@@ -30,7 +30,8 @@ export const mockProducts: Product[] = [
     cost: 599.99,
     stock: 25,
     barcode: "223456789012",
-    image_url: "/images/smartphone.jpg",
+    imageUrl: "/images/smartphone.jpg",
+    image_url: "/images/smartphone.jpg", // For compatibility
     image: "/images/smartphone.jpg", // For compatibility
     categoryId: "cat-001",
     hasStock: true,
@@ -47,7 +48,8 @@ export const mockProducts: Product[] = [
     cost: 89.99,
     stock: 8,
     barcode: "323456789012",
-    image_url: "/images/coffeemaker.jpg",
+    imageUrl: "/images/coffeemaker.jpg",
+    image_url: "/images/coffeemaker.jpg", // For compatibility
     image: "/images/coffeemaker.jpg", // For compatibility
     categoryId: "cat-002",
     hasStock: true,
@@ -64,7 +66,8 @@ export const mockProducts: Product[] = [
     cost: 149.99,
     stock: 12,
     barcode: "423456789012",
-    image_url: "/images/chair.jpg",
+    imageUrl: "/images/chair.jpg",
+    image_url: "/images/chair.jpg", // For compatibility
     image: "/images/chair.jpg", // For compatibility
     categoryId: "cat-003",
     hasStock: true,
@@ -81,7 +84,8 @@ export const mockProducts: Product[] = [
     cost: 24.99,
     stock: 20,
     barcode: "523456789012",
-    image_url: "/images/lamp.jpg",
+    imageUrl: "/images/lamp.jpg",
+    image_url: "/images/lamp.jpg", // For compatibility
     image: "/images/lamp.jpg", // For compatibility
     categoryId: "cat-003",
     hasStock: true,

@@ -13,11 +13,16 @@ export interface Product {
   has_stock?: boolean;
   hasStock?: boolean; // Adding for compatibility with existing components
   is_combo?: boolean;
+  isCombo?: boolean; // Adding for compatibility with existing components
   category_id?: string;
+  categoryId?: string; // Adding for compatibility with existing components
   image_url?: string;
+  imageUrl?: string; // Adding for compatibility with existing components
   image?: string; // Adding for compatibility with existing components
   created_at?: string;
   updated_at?: string;
+  createdAt?: string; // Adding for compatibility with existing components
+  updatedAt?: string; // Adding for compatibility with existing components
   category?: Category;
   min_stock_level?: number;
   max_stock_level?: number;

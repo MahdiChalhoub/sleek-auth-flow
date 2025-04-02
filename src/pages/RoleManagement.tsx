@@ -13,6 +13,7 @@ import { Role, UserPermission } from "@/types/auth";
 import { getAllRoles, getAllPermissions, updateRole, deleteRole, createRole } from '@/services/roleService';
 import { getAllUsers, updateUser } from '@/services/userService';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { adaptRoles } from '@/utils/roleAdapter';
 
 const RoleManagement: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -192,6 +193,8 @@ const RoleManagement: React.FC = () => {
     );
   }
 
+  const adaptedRoles = adaptRoles(roles);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
       <div className="max-w-6xl mx-auto glass-card rounded-2xl p-6">
@@ -249,7 +252,7 @@ const RoleManagement: React.FC = () => {
             
             <TabsContent value="roles">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {roles.map(role => (
+                {adaptedRoles.map(role => (
                   <RoleCard
                     key={role.id}
                     role={role}
