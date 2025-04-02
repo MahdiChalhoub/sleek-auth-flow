@@ -1,31 +1,6 @@
 
 import { useState } from 'react';
-import { Branch } from '@/types/location';
-
-// Mock data for branches
-const mockBranches: Branch[] = [
-  {
-    id: "branch-001",
-    name: "Main Branch",
-    address: "123 Main Street",
-    phone: "+1234567890",
-    status: "active"
-  },
-  {
-    id: "branch-002",
-    name: "Downtown Branch",
-    address: "456 Downtown Avenue",
-    phone: "+1234567891",
-    status: "active"
-  },
-  {
-    id: "branch-003",
-    name: "Uptown Branch",
-    address: "789 Uptown Boulevard",
-    phone: "+1234567892",
-    status: "inactive"
-  }
-];
+import { Branch, mockBranches } from '@/models/interfaces/businessInterfaces';
 
 export function useLocationManagement(businessId?: string) {
   const [locations, setLocations] = useState<Branch[]>(mockBranches);
@@ -69,6 +44,11 @@ export function useLocationManagement(businessId?: string) {
   
   return {
     locations,
+    addLocation,
+    updateLocation,
+    deleteLocation,
+    getLocationById,
+    getActiveLocations,
     handleAddLocation,
     handleDeleteLocation,
     handleToggleLocationStatus

@@ -9,29 +9,32 @@ export interface Category {
 
 export const mockCategories: Category[] = [
   {
-    id: "cat-001",
-    name: "Electronics",
-    description: "Electronic devices and accessories",
+    id: 'cat-1',
+    name: 'Electronics',
+    description: 'Electronic products and gadgets',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   },
   {
-    id: "cat-002",
-    name: "Home Appliances",
-    description: "Appliances for home use",
+    id: 'cat-2',
+    name: 'Clothing',
+    description: 'Apparel and fashion items',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   },
   {
-    id: "cat-003",
-    name: "Furniture",
-    description: "Home and office furniture",
+    id: 'cat-3',
+    name: 'Food & Beverage',
+    description: 'Consumable products',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   }
 ];
 
-export function getCategoryById(categories: Category[], id?: string): Category | null {
-  if (!id) return null;
-  return categories.find(category => category.id === id) || null;
-}
+export const getCategoryById = (id: string): Category | undefined => {
+  return mockCategories.find(cat => cat.id === id);
+};
+
+export const getCategoryByName = (name: string): Category | undefined => {
+  return mockCategories.find(cat => cat.name.toLowerCase() === name.toLowerCase());
+};

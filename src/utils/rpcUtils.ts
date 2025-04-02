@@ -48,5 +48,5 @@ export async function canDeleteUser(userId: string): Promise<boolean> {
     return false;
   }
   
-  return data;
+  return !!data;
 }

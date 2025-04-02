@@ -1,6 +1,17 @@
 
 import { Category } from '../category';
 
+export interface ProductLocationStock {
+  id: string;
+  productId: string;
+  locationId: string;
+  stock: number;
+  minStockLevel?: number;
+  maxStockLevel?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -10,11 +21,8 @@ export interface Product {
   barcode?: string;
   stock: number;
   hasStock: boolean;
-  has_stock?: boolean;
   isCombo?: boolean;
-  is_combo?: boolean;
   categoryId?: string;
-  category_id?: string;
   image?: string;
   image_url?: string;
   createdAt?: string;
@@ -40,16 +48,4 @@ export interface ProductFormData {
   isCombo?: boolean;
   min_stock_level?: number;
   max_stock_level?: number;
-}
-
-// Define the ProductLocationStock interface which was missing
-export interface ProductLocationStock {
-  id: string;
-  productId: string;
-  locationId: string;
-  stock: number;
-  minStockLevel?: number;
-  maxStockLevel?: number;
-  createdAt: string;
-  updatedAt: string;
 }
