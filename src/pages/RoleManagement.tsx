@@ -1,26 +1,69 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import RoleCard from "@/components/RoleCard";
 import PermissionGroup from "@/components/PermissionGroup";
 import UserRoleTable from "@/components/UserRoleTable";
 import CreateRoleDialog from "@/components/CreateRoleDialog";
-import { Role, mockRoles, mockUsers, permissionCategories, mockPermissions } from "@/models/role";
+import { Role, UserPermission } from "@/types/auth";
+import { getAllRoles, getAllPermissions, updateRole, deleteRole, createRole } from '@/services/roleService';
+import { getAllUsers, updateUser } from '@/services/userService';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const RoleManagement = () => {
-  const [roles, setRoles] = useState(mockRoles);
-  const [users, setUsers] = useState(mockUsers);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [permissionCategories, setPermissionCategories] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const selectedRole = selectedRoleId ? roles.find(role => role.id === selectedRoleId) : null;
 
+  // Load roles and permissions data
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const rolesData = await getAllRoles();
+        setRoles(rolesData);
+        
+        const usersData = await getAllUsers();
+        setUsers(usersData);
+        
+        // Extract unique permission categories
+        if (rolesData.length > 0) {
+          const categories = rolesData[0].permissions
+            .map(p => p.category || 'Other')
+            .filter((v, i, a) => a.indexOf(v) === i);
+          setPermissionCategories(categories);
+        } else {
+          const permissions = await getAllPermissions();
+          const categories = permissions
+            .map(p => p.category || 'Other')
+            .filter((v, i, a) => a.indexOf(v) === i);
+          setPermissionCategories(categories);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Failed to load roles and permissions");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
+
   const handleTogglePermission = (roleId: string, permissionId: string, enabled: boolean) => {
+    if (!isEditing) return;
+    
     setRoles(roles.map(role => {
       if (role.id === roleId) {
         return {
@@ -35,24 +78,69 @@ const RoleManagement = () => {
       }
       return role;
     }));
-    
-    toast.success(`Permission ${enabled ? 'granted' : 'revoked'}`, {
-      description: `Permission has been ${enabled ? 'granted' : 'revoked'} for ${roles.find(r => r.id === roleId)?.name}`,
-    });
   };
 
-  const handleCreateRole = (newRole: Omit<Role, 'id'>) => {
-    const roleId = `r${roles.length + 1}`;
-    setRoles([...roles, { ...newRole, id: roleId }]);
-    
-    toast.success("Role created", {
-      description: `New role '${newRole.name}' has been created successfully`,
-    });
+  const handleCreateRole = async (newRole: { name: string, description: string, permissions: UserPermission[] }) => {
+    try {
+      // Format permissions for API
+      const permissionsForApi = newRole.permissions.map(p => ({
+        id: p.id,
+        enabled: p.enabled
+      }));
+      
+      const success = await createRole(newRole.name, newRole.description, permissionsForApi);
+      
+      if (success) {
+        // Refresh roles list
+        const updatedRoles = await getAllRoles();
+        setRoles(updatedRoles);
+        
+        toast.success("Role created", {
+          description: `New role '${newRole.name}' has been created successfully`,
+        });
+      }
+    } catch (error) {
+      console.error("Error creating role:", error);
+      toast.error("Failed to create role");
+    }
   };
 
-  const handleDeleteRole = (roleId: string) => {
+  const handleSaveRoleChanges = async () => {
+    if (!selectedRole) return;
+    
+    setIsSaving(true);
+    
+    try {
+      // Format permissions for API
+      const permissionsForApi = selectedRole.permissions.map(p => ({
+        id: p.id,
+        enabled: p.enabled
+      }));
+      
+      const success = await updateRole(selectedRole.id, {
+        permissions: permissionsForApi
+      });
+      
+      if (success) {
+        setIsEditing(false);
+        toast.success("Role updated", {
+          description: `Role '${selectedRole.name}' has been updated successfully`,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating role:", error);
+      toast.error("Failed to save role changes");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteRole = async (roleId: string) => {
     // Check if any users have this role
-    const hasUsers = users.some(user => user.roleId === roleId);
+    const hasUsers = users.some(user => {
+      const role = roles.find(r => r.id === roleId);
+      return role && user.role === role.name;
+    });
     
     if (hasUsers) {
       toast.error("Cannot delete role", {
@@ -61,24 +149,54 @@ const RoleManagement = () => {
       return;
     }
     
-    setRoles(roles.filter(role => role.id !== roleId));
-    if (selectedRoleId === roleId) {
-      setSelectedRoleId(null);
-      setIsEditing(false);
+    try {
+      const success = await deleteRole(roleId);
+      
+      if (success) {
+        if (selectedRoleId === roleId) {
+          setSelectedRoleId(null);
+          setIsEditing(false);
+        }
+        
+        // Refresh roles list
+        const updatedRoles = await getAllRoles();
+        setRoles(updatedRoles);
+      }
+    } catch (error) {
+      console.error("Error deleting role:", error);
+      toast.error("Failed to delete role");
     }
-    
-    toast.success("Role deleted", {
-      description: "The role has been deleted successfully",
-    });
   };
 
-  const handleChangeUserRole = (userId: string, roleId: string) => {
-    setUsers(users.map(user => user.id === userId ? { ...user, roleId } : user));
-    
-    toast.success("Role assigned", {
-      description: `User has been assigned to ${roles.find(r => r.id === roleId)?.name} role`,
-    });
+  const handleChangeUserRole = async (userId: string, roleId: string) => {
+    try {
+      const success = await updateUser(userId, { roleId });
+      
+      if (success) {
+        // Refresh users list
+        const updatedUsers = await getAllUsers();
+        setUsers(updatedUsers);
+        
+        const roleName = roles.find(r => r.id === roleId)?.name;
+        toast.success("Role assigned", {
+          description: `User has been assigned to ${roleName} role`,
+        });
+      }
+    } catch (error) {
+      console.error("Error changing user role:", error);
+      toast.error("Failed to change user role");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4 md:p-8">
@@ -96,15 +214,33 @@ const RoleManagement = () => {
           {selectedRoleId && (
             <div className="flex gap-2">
               {isEditing ? (
-                <Button onClick={() => setIsEditing(false)}>
-                  Done
+                <Button onClick={handleSaveRoleChanges} disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Changes
+                    </>
+                  )}
                 </Button>
               ) : (
-                <Button variant="outline" onClick={() => {
-                  setSelectedRoleId(null);
-                }}>
-                  Back to Roles
-                </Button>
+                <>
+                  <Button variant="outline" onClick={() => {
+                    setIsEditing(true);
+                  }}>
+                    Edit Permissions
+                  </Button>
+                  <Button variant="outline" onClick={() => {
+                    setSelectedRoleId(null);
+                    setIsEditing(false);
+                  }}>
+                    Back to Roles
+                  </Button>
+                </>
               )}
             </div>
           )}
@@ -136,12 +272,20 @@ const RoleManagement = () => {
                 ))}
               </div>
               
-              <CreateRoleDialog onCreateRole={handleCreateRole} />
+              <CreateRoleDialog 
+                onCreateRole={handleCreateRole} 
+                existingPermissions={roles.length > 0 ? roles[0].permissions : []}
+              />
             </TabsContent>
             
             <TabsContent value="users">
               <UserRoleTable 
-                users={users} 
+                users={users.map(u => ({
+                  id: u.id,
+                  name: u.fullName || u.email,
+                  email: u.email,
+                  roleId: roles.find(r => r.name === u.role)?.id || ''
+                }))} 
                 roles={roles} 
                 onRoleChange={handleChangeUserRole} 
               />
@@ -156,6 +300,14 @@ const RoleManagement = () => {
               <p className="text-muted-foreground">
                 {selectedRole?.description}
               </p>
+              
+              {selectedRole?.name === 'admin' && !isEditing && (
+                <Alert className="mt-4">
+                  <AlertDescription>
+                    The Admin role has all permissions by default. Changes to specific permissions won't affect admin access.
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
 
             <Accordion type="multiple" className="space-y-4">

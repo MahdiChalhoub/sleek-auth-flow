@@ -45,6 +45,11 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // If user is pending approval or denied, redirect to waiting page
+  if (user.status === 'pending' || user.status === 'denied' || user.status === 'inactive') {
+    return <Navigate to="/waiting-approval" replace />;
+  }
+
   // If role checking is required and user doesn't have the required role
   if (requiredRole && user.role !== requiredRole && user.role !== "admin") {
     toast.error(`Access denied. This page requires ${requiredRole} privileges.`);

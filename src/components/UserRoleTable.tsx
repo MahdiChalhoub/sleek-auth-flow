@@ -2,11 +2,18 @@
 import React, { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Role } from "@/models/role";
+import { Role } from "@/types/auth";
 import { Loader2 } from "lucide-react";
 
+interface UserWithRole {
+  id: string;
+  name: string;
+  email: string;
+  roleId: string;
+}
+
 interface UserRoleTableProps {
-  users: User[];
+  users: UserWithRole[];
   roles: Role[];
   onRoleChange: (userId: string, roleId: string) => void;
 }
@@ -17,9 +24,11 @@ const UserRoleTable: React.FC<UserRoleTableProps> = ({ users, roles, onRoleChang
   const handleRoleChange = (userId: string, roleId: string) => {
     setChangingRoleForUser(userId);
     
-    // Simulate a short delay to show the loading state
+    // Process the role change
+    onRoleChange(userId, roleId);
+    
+    // Clear loading state after a short delay
     setTimeout(() => {
-      onRoleChange(userId, roleId);
       setChangingRoleForUser(null);
     }, 500);
   };
@@ -54,7 +63,7 @@ const UserRoleTable: React.FC<UserRoleTableProps> = ({ users, roles, onRoleChang
                     </div>
                   ) : (
                     <Select
-                      defaultValue={user.roleId || "no-role"} // Ensure there's a fallback value
+                      defaultValue={user.roleId || "no-role"}
                       onValueChange={(value) => handleRoleChange(user.id, value)}
                     >
                       <SelectTrigger className="w-[180px]">

@@ -58,6 +58,7 @@ import PrivateRoute from './components/auth/PrivateRoute';
 import ClientEditForm from './pages/ClientEditForm';
 import FinancialYearManagement from './pages/FinancialYearManagement';
 import BusinessSelection from './pages/BusinessSelection';
+import WaitingApproval from './pages/WaitingApproval';
 
 function App() {
   return (
@@ -74,6 +75,7 @@ function App() {
               <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ForgotPassword />} />
               <Route path="/business-selection" element={<BusinessSelection />} />
+              <Route path="/waiting-approval" element={<WaitingApproval />} />
               
               {/* Main layout with protected routes */}
               <Route path="/" element={

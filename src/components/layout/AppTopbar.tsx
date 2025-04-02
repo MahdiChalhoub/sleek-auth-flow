@@ -1,121 +1,141 @@
 
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { 
+  Menu, 
+  Sun, 
+  Moon, 
+  Search, 
+  Bell, 
+  CircleUser,
+  ChevronDown,
+  Store,
+  ShoppingCart
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocationContext } from "@/contexts/LocationContext";
-import PageTitle from "./topbar/PageTitle";
-import LocationSelector from "./topbar/LocationSelector";
-import BusinessSelector from "./topbar/BusinessSelector";
-import NotificationsMenu from "./topbar/NotificationsMenu";
-import UserMenu from "./topbar/UserMenu";
+import { useTheme } from "@/components/theme-provider";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { useSidebar } from "@/components/ui/sidebar";
+import { useScreenSize } from "@/hooks/use-mobile";
 
 const AppTopbar: React.FC = () => {
-  const { currentBusiness } = useAuth();
-  const { currentLocation } = useLocationContext();
-  
-  // State for dropdown menus
-  const [isBusinessDialogOpen, setIsBusinessDialogOpen] = useState(false);
-  const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  
-  // Synchronization flag to prevent rapid state changes
-  const pendingUpdatesRef = useRef<Array<() => void>>([]);
-  const isProcessingRef = useRef(false);
-  
-  // Process pending state updates one at a time
-  const processNextUpdate = () => {
-    if (pendingUpdatesRef.current.length === 0) {
-      isProcessingRef.current = false;
-      return;
-    }
-    
-    isProcessingRef.current = true;
-    const nextUpdate = pendingUpdatesRef.current.shift();
-    
-    if (nextUpdate) {
-      nextUpdate();
-      // Wait a bit before processing the next update to avoid flickering
-      setTimeout(processNextUpdate, 50);
-    } else {
-      isProcessingRef.current = false;
-    }
-  };
-  
-  // Queue a state update
-  const queueStateUpdate = (updateFn: () => void) => {
-    pendingUpdatesRef.current.push(updateFn);
-    
-    if (!isProcessingRef.current) {
-      processNextUpdate();
-    }
-  };
-  
-  // Close all other dropdowns when one is opened
-  const closeAllExcept = (keepOpen: string) => {
-    queueStateUpdate(() => {
-      if (keepOpen !== 'business' && isBusinessDialogOpen) setIsBusinessDialogOpen(false);
-      if (keepOpen !== 'location' && isLocationDialogOpen) setIsLocationDialogOpen(false);
-      if (keepOpen !== 'notifications' && isNotificationsOpen) setIsNotificationsOpen(false);
-      if (keepOpen !== 'user' && isUserMenuOpen) setIsUserMenuOpen(false);
-    });
-  };
-  
-  // Handlers for each dropdown
-  const handleBusinessDialogChange = (open: boolean) => {
-    if (open) closeAllExcept('business');
-    queueStateUpdate(() => setIsBusinessDialogOpen(open));
-  };
-  
-  const handleLocationDialogChange = (open: boolean) => {
-    if (open) closeAllExcept('location');
-    queueStateUpdate(() => setIsLocationDialogOpen(open));
-  };
-  
-  const handleNotificationsChange = (open: boolean) => {
-    if (open) closeAllExcept('notifications');
-    queueStateUpdate(() => setIsNotificationsOpen(open));
-  };
-  
-  const handleUserMenuChange = (open: boolean) => {
-    if (open) closeAllExcept('user');
-    queueStateUpdate(() => setIsUserMenuOpen(open));
-  };
-  
-  // Clean up any pending timeouts
-  useEffect(() => {
-    return () => {
-      isProcessingRef.current = false;
-      pendingUpdatesRef.current = [];
-    };
-  }, []);
-  
-  return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <PageTitle />
-      
-      <div className="flex items-center gap-4">
-        {currentBusiness && currentLocation && (
-          <div className="flex items-center gap-2">
-            <LocationSelector 
-              isOpen={isLocationDialogOpen} 
-              onOpenChange={handleLocationDialogChange} 
-            />
+  const { user, logout } = useAuth();
+  const { toggleSidebar } = useSidebar();
+  const { setTheme } = useTheme();
+  const { isMobile } = useScreenSize();
+  const navigate = useNavigate();
 
-            <BusinessSelector 
-              isOpen={isBusinessDialogOpen} 
-              onOpenChange={handleBusinessDialogChange} 
+  return (
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      <Button
+        variant="outline"
+        size="icon"
+        className="mr-2"
+        onClick={toggleSidebar}
+      >
+        <Menu className="h-5 w-5" />
+        <span className="sr-only">Toggle Menu</span>
+      </Button>
+
+      <div className="hidden md:flex md:flex-1">
+        <form className="w-full max-w-lg">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search..."
+              className="w-full bg-background pl-8 md:w-[300px] lg:w-[400px]"
             />
           </div>
-        )}
+        </form>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          className="mr-1"
+          onClick={() => navigate("/pos-sales")}
+        >
+          <ShoppingCart className="h-5 w-5" />
+          <span className="sr-only">Open POS</span>
+        </Button>
         
-        <NotificationsMenu />
-        
-        <UserMenu 
-          isOpen={isUserMenuOpen}
-          onOpenChange={handleUserMenuChange}
-          openBusinessDialog={() => handleBusinessDialogChange(true)}
-          openLocationDialog={() => handleLocationDialogChange(true)}
-        />
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setTheme("light")}
+          className="mr-1"
+        >
+          <Sun className="h-[1.2rem] w-[1.2rem]" />
+          <span className="sr-only">Light Mode</span>
+        </Button>
+
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => setTheme("dark")}
+          className="mr-1"
+        >
+          <Moon className="h-[1.2rem] w-[1.2rem]" />
+          <span className="sr-only">Dark Mode</span>
+        </Button>
+
+        <Button
+          variant="outline"
+          size="icon"
+          className="mr-1"
+          onClick={() => navigate("/notifications")}
+        >
+          <Bell className="h-5 w-5" />
+          <span className="sr-only">Notifications</span>
+        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-2 px-3">
+              <CircleUser className="h-5 w-5" />
+              {!isMobile && (
+                <>
+                  <span className="line-clamp-1 text-sm font-medium">
+                    {user?.fullName || user?.email?.split("@")[0] || "User"}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <div className="flex items-center gap-2 p-2">
+              <div className="flex flex-col space-y-0.5">
+                <span className="text-sm font-medium">
+                  {user?.fullName || user?.email?.split("@")[0] || "User"}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {user?.email}
+                </span>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/settings")}>
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/business-selection")}>
+              <Store className="mr-2 h-4 w-4" />
+              Switch Business
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

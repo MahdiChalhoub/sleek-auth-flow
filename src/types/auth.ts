@@ -1,23 +1,37 @@
 
 import { Business } from "@/models/interfaces/businessInterfaces";
 
-export type UserRole = "admin" | "cashier" | "manager";
+export type UserStatus = 'pending' | 'active' | 'inactive' | 'denied';
+
+export type UserRole = "admin" | "manager" | "cashier";
 
 export interface UserPermission {
   id: string;
   name: string;
-  enabled: boolean;
+  description?: string;
   category?: string;
+  enabled: boolean;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+  permissions: UserPermission[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface User {
   id: string;
-  name: string;
   email: string;
-  role: UserRole;
+  fullName?: string;
   avatarUrl?: string;
-  isGlobalAdmin?: boolean;
-  isAdmin?: boolean;
+  status: UserStatus;
+  role: UserRole;
+  isDeleted?: boolean;
+  lastLogin?: string;
+  createdAt?: string;
   permissions?: UserPermission[];
 }
 
@@ -29,5 +43,5 @@ export interface AuthContextType {
   login: (email: string, password: string, businessId: string, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
   switchBusiness: (businessId: string) => void;
-  hasPermission?: (permissionName: string) => boolean;
+  hasPermission: (permissionName: string) => boolean;
 }
