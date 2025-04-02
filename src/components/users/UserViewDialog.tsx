@@ -16,22 +16,22 @@ interface UserViewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
-  onEdit: () => void;
-  onDelete: () => void;
-  onChangeRole: () => void;
-  onActivate: () => void;
-  onDeactivate: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onChangeRole?: () => void;
+  onActivate?: () => void;
+  onDeactivate?: () => void;
 }
 
 export function UserViewDialog({
   open,
   onOpenChange,
   user,
-  onEdit,
-  onDelete,
-  onChangeRole,
-  onActivate,
-  onDeactivate,
+  onEdit = () => {},
+  onDelete = () => {},
+  onChangeRole = () => {},
+  onActivate = () => {},
+  onDeactivate = () => {},
 }: UserViewDialogProps) {
   if (!user) return null;
 

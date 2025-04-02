@@ -1,10 +1,10 @@
 
 import { supabase } from '@/lib/supabase';
 
-type RpcFunction = 'can_delete_user' | 'get_product_batches' | 'get_all_product_batches' | 
-                   'insert_product_batch' | 'update_product_batch' | 'delete_product_batch' |
-                   'check_table_exists' | 'open_register' | 'close_register' | 
-                   'resolve_register_discrepancy';
+export type RpcFunction = 'can_delete_user' | 'get_product_batches' | 'get_all_product_batches' | 
+                         'insert_product_batch' | 'update_product_batch' | 'delete_product_batch' |
+                         'check_table_exists' | 'open_register' | 'close_register' | 
+                         'resolve_register_discrepancy';
 
 /**
  * Helper function to call Supabase RPC functions with proper typing
@@ -14,7 +14,7 @@ export async function callRpc<T, P extends Record<string, any>>(
   params: P
 ): Promise<{ data: T | null; error: Error | null }> {
   try {
-    const { data, error } = await supabase.rpc(functionName, params);
+    const { data, error } = await supabase.rpc(functionName as string, params);
     
     if (error) {
       return { data: null, error: new Error(error.message) };
@@ -48,5 +48,5 @@ export async function canDeleteUser(userId: string): Promise<boolean> {
     return false;
   }
   
-  return data;
+  return data as boolean;
 }

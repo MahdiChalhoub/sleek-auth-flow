@@ -1,4 +1,3 @@
-
 import React from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -71,8 +70,7 @@ export const AddBusinessModal: React.FC<AddBusinessModalProps> = ({
       currency: values.currency,
       description: values.description,
       timezone: values.timezone,
-      active: true,
-      createdAt: new Date().toISOString(),
+      active: true
     };
     
     onSave(newBusiness);

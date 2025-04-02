@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,8 +11,8 @@ import { Business } from '@/models/interfaces/businessInterfaces';
 
 // Mock business data
 const mockBusinesses: Business[] = [
-  { id: 'biz1', name: 'Main Store', active: true, createdAt: new Date().toISOString() },
-  { id: 'biz2', name: 'Branch Location', active: true, createdAt: new Date().toISOString() }
+  { id: 'biz1', name: 'Main Store', active: true },
+  { id: 'biz2', name: 'Branch Location', active: true }
 ];
 
 // Mock transactions data

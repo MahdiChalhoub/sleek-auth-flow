@@ -29,17 +29,19 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { UserRole } from '@/types/auth';
+import { Role } from '@/models/role';
 
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: { email?: string; role?: UserRole; fullName?: string }) => Promise<void>;
-  isSubmitting: boolean;
-  initialData?: {
+  onSubmit: (data: { email?: string; role?: UserRole; fullName?: string }) => Promise<void | boolean>;
+  isSubmitting?: boolean;
+  user?: {
     email?: string;
     role?: UserRole;
     fullName?: string;
   };
+  roles?: Role[];
   mode?: 'create' | 'edit';
 }
 
@@ -53,22 +55,31 @@ export function UserFormDialog({
   open,
   onOpenChange,
   onSubmit,
-  isSubmitting,
-  initialData,
+  isSubmitting = false,
+  user,
+  roles = [],
   mode = 'create',
 }: UserFormDialogProps) {
+  const [submitting, setSubmitting] = React.useState(false);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: initialData?.email || '',
-      fullName: initialData?.fullName || '',
-      role: initialData?.role || 'cashier',
+      email: user?.email || '',
+      fullName: user?.fullName || '',
+      role: user?.role || 'cashier',
     },
   });
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-    await onSubmit(values);
-    form.reset();
+    setSubmitting(true);
+    try {
+      await onSubmit(values);
+      form.reset();
+      onOpenChange(false);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -140,8 +151,8 @@ export function UserFormDialog({
               )}
             />
             <DialogFooter>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting
+              <Button type="submit" disabled={isSubmitting || submitting}>
+                {isSubmitting || submitting
                   ? mode === 'create'
                     ? 'Creating...'
                     : 'Updating...'

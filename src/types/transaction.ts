@@ -24,4 +24,5 @@ export interface TransactionFormData {
   amount?: number;
   paymentMethod?: 'cash' | 'card' | 'bank' | 'wave' | 'mobile' | 'not_specified' | string;
   branchId?: string;
+  notes?: string;
 }

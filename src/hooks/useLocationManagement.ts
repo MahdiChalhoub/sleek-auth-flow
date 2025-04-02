@@ -1,39 +1,38 @@
 
-import { useState } from "react";
-import { Branch, mockBranches } from "@/models/interfaces/businessInterfaces";
+import { useState } from 'react';
+import { Branch, mockBranches } from '@/models/interfaces/businessInterfaces';
 
-export const useLocationManagement = (businessId: string) => {
-  const [locations, setLocations] = useState<Branch[]>(
-    mockBranches.filter(branch => branch.businessId === businessId)
-  );
+export function useLocationManagement() {
+  const [locations, setLocations] = useState<Branch[]>(mockBranches);
   
-  const handleAddLocation = (newLocation: Branch) => {
-    setLocations(prev => [...prev, { ...newLocation, businessId }]);
+  const addLocation = (location: Branch) => {
+    setLocations(prev => [...prev, location]);
   };
   
-  const handleDeleteLocation = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this location? This action cannot be undone.")) {
-      setLocations(prev => prev.filter(location => location.id !== id));
-    }
-  };
-  
-  const handleToggleLocationStatus = (id: string) => {
-    setLocations(prev =>
-      prev.map(location =>
-        location.id === id
-          ? { 
-              ...location, 
-              status: location.status === "active" ? "inactive" : "active" 
-            }
-          : location
-      )
+  const updateLocation = (id: string, updatedLocation: Partial<Branch>) => {
+    setLocations(prev => 
+      prev.map(loc => loc.id === id ? { ...loc, ...updatedLocation } : loc)
     );
   };
-
+  
+  const deleteLocation = (id: string) => {
+    setLocations(prev => prev.filter(loc => loc.id !== id));
+  };
+  
+  const getLocationById = (id: string) => {
+    return locations.find(loc => loc.id === id);
+  };
+  
+  const getActiveLocations = () => {
+    return locations.filter(loc => loc.status === 'active');
+  };
+  
   return {
     locations,
-    handleAddLocation,
-    handleDeleteLocation,
-    handleToggleLocationStatus
+    addLocation,
+    updateLocation,
+    deleteLocation,
+    getLocationById,
+    getActiveLocations
   };
-};
+}

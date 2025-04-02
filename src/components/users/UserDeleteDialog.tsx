@@ -16,8 +16,7 @@ interface UserDeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
-  onConfirm: () => Promise<void>;
-  isDeleting: boolean;
+  onConfirm: () => Promise<void | boolean>;
 }
 
 export function UserDeleteDialog({
@@ -25,9 +24,20 @@ export function UserDeleteDialog({
   onOpenChange,
   user,
   onConfirm,
-  isDeleting,
 }: UserDeleteDialogProps) {
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  
   if (!user) return null;
+  
+  const handleConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      await onConfirm();
+      onOpenChange(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -56,7 +66,7 @@ export function UserDeleteDialog({
           </Button>
           <Button
             variant="destructive"
-            onClick={onConfirm}
+            onClick={handleConfirm}
             disabled={isDeleting}
           >
             {isDeleting ? "Deleting..." : "Delete User"}

@@ -1,57 +1,41 @@
 
-import { Category } from './categoryInterfaces';
+import { Category } from '../category';
 
 export interface Product {
   id: string;
   name: string;
   description?: string;
-  barcode?: string;
   price: number;
   cost?: number;
+  barcode?: string;
   stock: number;
-  image_url?: string;
-  image?: string;
-  category?: Category;
-  category_id?: string;
   hasStock: boolean;
+  has_stock?: boolean;
+  isCombo?: boolean;
   is_combo?: boolean;
+  categoryId?: string;
+  category_id?: string;
+  image?: string;
+  image_url?: string;
+  createdAt?: string;
+  created_at?: string;
+  updatedAt?: string;
+  updated_at?: string;
+  category?: Category;
   min_stock_level?: number;
   max_stock_level?: number;
-  created_at?: string;
-  updated_at?: string;
-  // Adding locationStock for ReorderSuggestions component
-  locationStock?: ProductLocationStock[];
-}
-
-export interface ProductLocationStock {
-  id: string;
-  productId: string;
-  locationId: string;
-  stock: number;
-  minStockLevel: number;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface ProductFormData {
   name: string;
   description?: string;
-  barcode?: string;
   price: number;
   cost?: number;
-  stock?: number;
+  barcode?: string;
+  stock: number;
+  hasStock: boolean;
   categoryId?: string;
-  imageUrl?: string;
-  hasStock?: boolean;
-  isCombo?: boolean;
-  minStockLevel?: number;
-  maxStockLevel?: number;
-}
-
-export interface ProductFilterOptions {
-  searchTerm?: string;
-  categoryId?: string;
-  minPrice?: number;
-  maxPrice?: number;
-  inStock?: boolean;
+  image?: string;
+  min_stock_level?: number;
+  max_stock_level?: number;
 }

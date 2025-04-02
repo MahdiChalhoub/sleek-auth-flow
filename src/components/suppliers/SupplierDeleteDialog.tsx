@@ -1,39 +1,36 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
-import { Supplier } from '@/models/interfaces/supplierInterfaces';
 
-export interface SupplierDeleteDialogProps {
+interface SupplierDeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  supplier: { id: string; name: string };
   onConfirm: () => Promise<boolean>;
-  supplier: Supplier;
 }
 
-const SupplierDeleteDialog: React.FC<SupplierDeleteDialogProps> = ({
+export function SupplierDeleteDialog({
   open,
   onOpenChange,
+  supplier,
   onConfirm,
-  supplier
-}) => {
+}: SupplierDeleteDialogProps) {
   const [isDeleting, setIsDeleting] = React.useState(false);
-
+  
   const handleConfirm = async () => {
     setIsDeleting(true);
     try {
       await onConfirm();
       onOpenChange(false);
-    } catch (error) {
-      console.error('Error deleting supplier:', error);
     } finally {
       setIsDeleting(false);
     }
@@ -48,20 +45,31 @@ const SupplierDeleteDialog: React.FC<SupplierDeleteDialogProps> = ({
             Delete Supplier
           </DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete supplier "{supplier?.name}"? This action cannot be undone.
+            Are you sure you want to delete {supplier.name}? This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
+        
+        <div className="bg-amber-50 text-amber-700 p-3 rounded-md text-sm">
+          Deleting a supplier will remove their information from the system but will preserve references in historical records.
+        </div>
+        
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isDeleting}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isDeleting}
+          >
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleConfirm} disabled={isDeleting}>
-            {isDeleting ? 'Deleting...' : 'Delete Supplier'}
+          <Button
+            variant="destructive"
+            onClick={handleConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting..." : "Delete Supplier"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default SupplierDeleteDialog;
+}

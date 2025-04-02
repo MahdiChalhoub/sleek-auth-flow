@@ -11,43 +11,47 @@ import {
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { UserRole } from '@/types/auth';
+import { UserRole, User } from '@/types/auth';
 import { Role } from '@/models/role';
 
 interface UserRoleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userEmail: string;
-  currentRole: UserRole;
+  user: User;
   roles: Role[];
-  onSubmit: (roleId: string) => Promise<void>;
-  isSubmitting: boolean;
+  onSubmit: (roleId: string) => Promise<void | boolean>;
+  isSubmitting?: boolean;
 }
 
 export function UserRoleDialog({
   open,
   onOpenChange,
-  userEmail,
-  currentRole,
+  user,
   roles,
   onSubmit,
-  isSubmitting,
+  isSubmitting = false,
 }: UserRoleDialogProps) {
   const [selectedRoleId, setSelectedRoleId] = React.useState<string>('');
+  const [submitting, setSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
       // Find the role ID matching the current role name
-      const roleId = roles.find(r => r.name.toLowerCase() === currentRole)?.id || '';
+      const roleId = roles.find(r => r.name.toLowerCase() === user.role)?.id || '';
       setSelectedRoleId(roleId);
     }
-  }, [open, currentRole, roles]);
+  }, [open, user.role, roles]);
 
   const handleSubmit = async () => {
     if (!selectedRoleId) return;
     
-    await onSubmit(selectedRoleId);
-    onOpenChange(false);
+    setSubmitting(true);
+    try {
+      await onSubmit(selectedRoleId);
+      onOpenChange(false);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -56,7 +60,7 @@ export function UserRoleDialog({
         <DialogHeader>
           <DialogTitle>Change User Role</DialogTitle>
           <DialogDescription>
-            Select a new role for {userEmail}
+            Select a new role for {user.email}
           </DialogDescription>
         </DialogHeader>
         
@@ -82,15 +86,15 @@ export function UserRoleDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || submitting}
           >
             Cancel
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={isSubmitting || !selectedRoleId}
+            disabled={isSubmitting || submitting || !selectedRoleId}
           >
-            {isSubmitting ? "Updating..." : "Change Role"}
+            {isSubmitting || submitting ? "Updating..." : "Change Role"}
           </Button>
         </DialogFooter>
       </DialogContent>

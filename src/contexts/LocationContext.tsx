@@ -1,7 +1,7 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { Branch } from "@/models/interfaces/businessInterfaces";
+import { Branch, mockBranches } from "@/models/interfaces/businessInterfaces";
 import { useAuth } from "./AuthContext";
-import { mockBranches } from "@/models/interfaces/businessInterfaces";
 
 interface LocationContextType {
   currentLocation: Branch | null;

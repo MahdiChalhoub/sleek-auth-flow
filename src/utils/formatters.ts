@@ -1,58 +1,51 @@
 
-/**
- * Utility functions for formatting data
- */
+import { format, parseISO, isValid } from 'date-fns';
 
 /**
- * Format a date string to a localized date string
+ * Format a date string to a human-readable format
+ * @param dateString - The date string to format
+ * @param formatString - The format string to use (default: 'PPP')
+ * @returns Formatted date string or 'N/A' if invalid
  */
-export const formatDate = (dateString?: string): string => {
+export function formatDate(dateString?: string, formatString: string = 'PPP'): string {
   if (!dateString) return 'N/A';
   
   try {
-    return new Date(dateString).toLocaleDateString();
+    const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
+    if (!isValid(date)) return 'Invalid date';
+    return format(date, formatString);
   } catch (error) {
     console.error('Error formatting date:', error);
-    return 'Invalid date';
+    return 'N/A';
   }
-};
+}
 
 /**
- * Format a number as currency
+ * Format a currency value
+ * @param amount - The amount to format
+ * @param currency - The currency code (default: 'USD')
+ * @returns Formatted currency string
  */
-export const formatCurrency = (amount?: number): string => {
-  if (amount === undefined || amount === null) return '$0.00';
+export function formatCurrency(amount?: number, currency: string = 'USD'): string {
+  if (amount === undefined || amount === null) return '-';
+  
+  return new Intl.NumberFormat('en-US', { 
+    style: 'currency', 
+    currency 
+  }).format(amount);
+}
+
+/**
+ * Format a number with thousands separators
+ * @param value - The number to format
+ * @param decimals - Number of decimal places (default: 0)
+ * @returns Formatted number string
+ */
+export function formatNumber(value?: number, decimals: number = 0): string {
+  if (value === undefined || value === null) return '-';
   
   return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2
-  }).format(amount);
-};
-
-/**
- * Format a number with commas as thousands separators
- */
-export const formatNumber = (num?: number): string => {
-  if (num === undefined || num === null) return '0';
-  
-  return new Intl.NumberFormat('en-US').format(num);
-};
-
-/**
- * Format a phone number to (XXX) XXX-XXXX format
- */
-export const formatPhoneNumber = (phone?: string): string => {
-  if (!phone) return '';
-  
-  // Remove all non-digit characters
-  const cleaned = phone.replace(/\D/g, '');
-  
-  // Check if the number has 10 digits
-  if (cleaned.length === 10) {
-    return `(${cleaned.substring(0, 3)}) ${cleaned.substring(3, 6)}-${cleaned.substring(6, 10)}`;
-  }
-  
-  // Return the original if it doesn't match the expected format
-  return phone;
-};
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  }).format(value);
+}

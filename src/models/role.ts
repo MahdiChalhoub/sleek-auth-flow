@@ -8,6 +8,8 @@ export interface Role {
   permissions: UserPermission[];
   createdAt?: string;
   updatedAt?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export const mockRoles: Role[] = [
@@ -38,3 +40,17 @@ export const mockRoles: Role[] = [
     updatedAt: new Date().toISOString()
   }
 ];
+
+// Utility to convert between role formats
+export function adaptRole(role: any): Role {
+  return {
+    id: role.id,
+    name: role.name,
+    description: role.description || '',
+    permissions: role.permissions || [],
+    createdAt: role.createdAt || role.created_at,
+    updatedAt: role.updatedAt || role.updated_at,
+    created_at: role.created_at || role.createdAt,
+    updated_at: role.updated_at || role.updatedAt
+  };
+}
