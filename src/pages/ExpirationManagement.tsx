@@ -17,10 +17,10 @@ import BatchTable from '@/components/inventory/expiration/BatchTable';
 import BatchStatusBadge from '@/components/inventory/expiration/BatchStatusBadge';
 import { getBatchStatus } from '@/utils/expirationUtils';
 import useProducts from '@/hooks/useProducts';
-import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { safeArray, rpcParams } from '@/utils/supabaseUtils';
+import { safeArray } from '@/utils/supabaseUtils';
 import { mapDbProductBatchToModel } from '@/models/productBatch';
+import { callRpc } from '@/utils/rpcUtils';
 
 const ExpirationManagement: React.FC = () => {
   const { products } = useProducts();
@@ -35,10 +35,10 @@ const ExpirationManagement: React.FC = () => {
     const loadBatches = async () => {
       setIsLoading(true);
       try {
-        const { data: tableExists, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', rpcParams({
-            table_name: 'product_batches'
-          }));
+        const { data: tableExists, error: tableCheckError } = await callRpc<boolean, {table_name: string}>(
+          'check_table_exists',
+          { table_name: 'product_batches' }
+        );
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -53,14 +53,16 @@ const ExpirationManagement: React.FC = () => {
           return;
         }
         
-        const { data: batchesData, error } = await supabase
-          .rpc('get_all_product_batches', rpcParams({}));
+        const { data: batchesData, error } = await callRpc<any[], {}>(
+          'get_all_product_batches', 
+          {}
+        );
         
         if (error) {
           throw error;
         }
         
-        const fetchedBatches = safeArray(batchesData, mapDbProductBatchToModel);
+        const fetchedBatches = safeArray(batchesData || [], mapDbProductBatchToModel);
         setBatches(fetchedBatches);
       } catch (error) {
         console.error('Error loading batches:', error);
@@ -100,15 +102,17 @@ const ExpirationManagement: React.FC = () => {
 
   const addBatch = async (newBatch: Omit<ProductBatch, "id">) => {
     try {
-      const { data, error } = await supabase
-        .rpc('insert_product_batch', rpcParams({
+      const { data, error } = await callRpc<any, { batch: any }>(
+        'insert_product_batch', 
+        {
           batch: {
             product_id: newBatch.productId,
             batch_number: newBatch.batchNumber,
             quantity: newBatch.quantity,
             expiry_date: newBatch.expiryDate
           }
-        }));
+        }
+      );
       
       if (error) throw error;
       
@@ -127,10 +131,10 @@ const ExpirationManagement: React.FC = () => {
 
   const deleteBatch = async (batchId: string) => {
     try {
-      const { error } = await supabase
-        .rpc('delete_product_batch', rpcParams({
-          batch_id: batchId
-        }));
+      const { error } = await callRpc<any, { batch_id: string }>(
+        'delete_product_batch', 
+        { batch_id: batchId }
+      );
       
       if (error) throw error;
       

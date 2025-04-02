@@ -9,6 +9,7 @@ import { useCategories } from '@/hooks/useCategories';
 import ProductCard from '@/components/ProductCard';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Product } from '@/models/product';
 
 const POSSales = () => {
   // Add fullscreen state
@@ -43,7 +44,7 @@ const POSSales = () => {
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const { products, isLoading: isLoadingProducts, error: productsError } = useProducts();
   const { categories, isLoading: isLoadingCategories, error: categoriesError } = useCategories();
 

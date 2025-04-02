@@ -7,28 +7,27 @@ import { supabase } from '@/lib/supabase';
 type RpcParams<T extends Record<string, any>> = T;
 
 /**
- * Call an RPC function with the given parameters
- * Modified to accept any function name as string
+ * Type-safe call to RPC functions
  * @param functionName The name of the RPC function to call
  * @param params The parameters to pass to the function
- * @returns The result of the RPC call
+ * @returns The result of the RPC call with proper typing
  */
 export async function callRpc<T, P extends Record<string, any>>(
   functionName: string, 
   params: RpcParams<P>
-): Promise<T> {
+): Promise<{ data: T | null; error: any | null }> {
   try {
     const { data, error } = await supabase.rpc(functionName, params);
     
     if (error) {
       console.error(`Error calling RPC function ${functionName}:`, error);
-      throw error;
+      return { data: null, error };
     }
     
-    return data as T;
+    return { data, error: null };
   } catch (error) {
     console.error(`Failed to call RPC function ${functionName}:`, error);
-    throw error;
+    return { data: null, error };
   }
 }
 

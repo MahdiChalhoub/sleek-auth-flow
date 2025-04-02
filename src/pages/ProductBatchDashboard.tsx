@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import { ProductBatch, mapDbProductBatchToModel } from '@/models/productBatch';
-import { safeArray, rpcParams } from '@/utils/supabaseUtils';
+import { safeArray } from '@/utils/supabaseUtils';
 import { toast } from 'sonner';
 import BatchTable from '@/components/inventory/expiration/BatchTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/spinner';
 import { Product } from '@/models/product';
 import { productsService } from '@/models/product';
+import { callRpc } from '@/utils/rpcUtils';
 
 const ProductBatchDashboard: React.FC = () => {
   const [batches, setBatches] = useState<ProductBatch[]>([]);
@@ -20,10 +20,10 @@ const ProductBatchDashboard: React.FC = () => {
       setIsLoading(true);
       try {
         // Check if the table exists
-        const { data: tableExists, error: tableCheckError } = await supabase
-          .rpc('check_table_exists', rpcParams({
-            table_name: 'product_batches'
-          }));
+        const { data: tableExists, error: tableCheckError } = await callRpc<boolean, { table_name: string }>(
+          'check_table_exists',
+          { table_name: 'product_batches' }
+        );
         
         if (tableCheckError) {
           console.error('Error checking if table exists:', tableCheckError);
@@ -40,14 +40,16 @@ const ProductBatchDashboard: React.FC = () => {
         }
         
         // Fetch batches
-        const { data: batchesData, error: batchesError } = await supabase
-          .rpc('get_all_product_batches', rpcParams({}));
+        const { data: batchesData, error: batchesError } = await callRpc<any[], {}>(
+          'get_all_product_batches',
+          {}
+        );
         
         if (batchesError) {
           throw batchesError;
         }
         
-        const fetchedBatches = safeArray(batchesData, mapDbProductBatchToModel);
+        const fetchedBatches = safeArray(batchesData || [], mapDbProductBatchToModel);
         
         // Get unique product IDs
         const productIds = [...new Set(fetchedBatches.map(batch => batch.productId))];
@@ -76,10 +78,10 @@ const ProductBatchDashboard: React.FC = () => {
 
   const handleDeleteBatch = async (batchId: string) => {
     try {
-      const { error } = await supabase
-        .rpc('delete_product_batch', rpcParams({
-          batch_id: batchId
-        }));
+      const { error } = await callRpc<any, { batch_id: string }>(
+        'delete_product_batch',
+        { batch_id: batchId }
+      );
       
       if (error) throw error;
       
