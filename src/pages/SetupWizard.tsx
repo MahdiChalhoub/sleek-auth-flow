@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -120,22 +119,18 @@ const SetupWizard: React.FC = () => {
         throw new Error('Failed to create business');
       }
       
-      // Validate business data
       if (!businessResponse.data || businessResponse.data.length === 0) {
         throw new Error('No business data returned');
       }
       
       const businessObj = businessResponse.data[0];
       
-      // TypeScript null check - guarantee businessObj exists and has required properties
       if (!businessObj || typeof businessObj !== 'object' || !('id' in businessObj)) {
         throw new Error('Invalid business data returned from database');
       }
       
-      // Now we can safely use the businessId after validation
-      const businessId = businessObj.id as string;
+      const businessId = (businessObj as { id: string }).id;
       
-      // Create location using the validated businessId
       const locationResponse = await fromTable('locations')
         .insert({
           name: locationData.name,

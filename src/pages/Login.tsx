@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,17 +24,30 @@ const Login: React.FC = () => {
           .eq('status', 'active')
           .limit(10);
           
-        if (isDataResponse(response) && response.data) {
-          const businesses: Business[] = response.data.map(business => ({
-            id: business.id,
-            name: business.name,
-            status: business.status,
-            ownerId: business.owner_id
-          }));
+        if (isDataResponse(response) && Array.isArray(response.data)) {
+          const businesses: Business[] = response.data.map(business => {
+            if (business && typeof business === 'object' &&
+                'id' in business && 
+                'name' in business && 
+                'status' in business && 
+                'owner_id' in business) {
+              return {
+                id: business.id as string,
+                name: business.name as string,
+                status: business.status as string,
+                ownerId: business.owner_id as string
+              };
+            }
+            return {
+              id: 'unknown',
+              name: 'Unknown Business',
+              status: 'active',
+              ownerId: 'unknown'
+            };
+          });
           
           setAvailableBusinesses(businesses);
         } else {
-          // If there's an error or no data, provide fallback businesses
           console.error('Could not fetch businesses:', response.error);
           setAvailableBusinesses([
             {
@@ -48,7 +60,6 @@ const Login: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching businesses:', error);
-        // Provide fallback businesses in case of error
         setAvailableBusinesses([
           {
             id: 'business-1',
@@ -73,7 +84,6 @@ const Login: React.FC = () => {
   
   // If already logged in, redirect to appropriate page
   if (user) {
-    // Check for an intended redirect path or use the default
     const redirectTo = localStorage.getItem("intended_redirect") || "/home";
     localStorage.removeItem("intended_redirect");
     return <Navigate to={redirectTo} replace />;
@@ -82,11 +92,9 @@ const Login: React.FC = () => {
   const handleSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     try {
-      // Make businessId optional since we might not have any businesses yet
       await login(data.email, data.password, data.businessId, data.rememberMe);
     } catch (error) {
       console.error(error);
-      // Display the actual error message from the authentication process
       toast.error(error instanceof Error ? error.message : "Login failed. Please check your credentials.");
     } finally {
       setIsSubmitting(false);

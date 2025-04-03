@@ -20,14 +20,15 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
       const dataValue = settingsResponse.data;
       
       // Safely access nested value property with proper null/undefined checks
-      const setupCompleted = dataValue && 
-                          typeof dataValue === 'object' && 
-                          'value' in dataValue &&
-                          dataValue.value !== null &&
-                          typeof dataValue.value === 'object' &&
-                          dataValue.value !== null &&
-                          'completed' in dataValue.value &&
-                          dataValue.value.completed === true;
+      const valueObject = dataValue && 
+                    typeof dataValue === 'object' && 
+                    'value' in dataValue ? 
+                    dataValue.value : null;
+                    
+      const setupCompleted = valueObject !== null &&
+                    typeof valueObject === 'object' &&
+                    'completed' in valueObject &&
+                    valueObject.completed === true;
                           
       return { isComplete: setupCompleted, businessExists: true };
     }

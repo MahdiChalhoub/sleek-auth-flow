@@ -59,27 +59,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Only process the data if it exists and is an array
       if (Array.isArray(ownedResponse.data)) {
-        for (const business of ownedResponse.data) {
+        for (const item of ownedResponse.data) {
           // Type checking to ensure we have a valid business object
-          if (business && typeof business === 'object') {
-            businesses.push({
-              id: business.id,
-              name: business.name,
-              address: business.address,
-              phone: business.phone,
-              email: business.email,
-              status: business.status,
-              ownerId: business.owner_id,
-              createdAt: business.created_at,
-              updatedAt: business.updated_at,
-              logoUrl: business.logo_url,
-              description: business.description,
-              type: business.type,
-              country: business.country,
-              currency: business.currency,
-              active: business.active,
-              timezone: business.timezone
-            });
+          if (item && typeof item === 'object') {
+            const business: Business = {
+              id: item.id ?? 'unknown',
+              name: item.name ?? 'Unknown Business',
+              address: item.address,
+              phone: item.phone,
+              email: item.email,
+              status: item.status ?? 'inactive',
+              ownerId: item.owner_id ?? userId,
+              createdAt: item.created_at,
+              updatedAt: item.updated_at,
+              logoUrl: item.logo_url,
+              description: item.description,
+              type: item.type,
+              country: item.country,
+              currency: item.currency,
+              active: item.active,
+              timezone: item.timezone
+            };
+            businesses.push(business);
           }
         }
       }
