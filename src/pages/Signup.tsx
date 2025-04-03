@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +16,16 @@ const Signup: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      // First, check if the business name already exists
+      const businessNameCheck = await fromTable('businesses')
+        .select('id')
+        .eq('name', `${data.fullName}'s Business`)
+        .maybeSingle();
+
+      if (isDataResponse(businessNameCheck) && businessNameCheck.data) {
+        throw new Error('A business with this name already exists. Please choose a different name.');
+      }
+      
       // 1. Create the user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
@@ -87,6 +98,7 @@ const Signup: React.FC = () => {
         description: 'You can now log in with your credentials.'
       });
       
+      // Always redirect to login after successful registration
       navigate('/login');
     } catch (error) {
       console.error('Signup error:', error);

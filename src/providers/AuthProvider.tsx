@@ -181,14 +181,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Login successful but no user returned');
       }
 
+      // Verify that the selected business belongs to the user
       if (businessId) {
+        const businessResponse = await fromTable('businesses')
+          .select('*')
+          .eq('id', businessId)
+          .eq('owner_id', data.user.id)
+          .maybeSingle();
+          
+        if (!isDataResponse(businessResponse) || !businessResponse.data) {
+          throw new Error('Selected business not found or doesn\'t belong to you');
+        }
+        
         localStorage.setItem('pos_current_business', businessId);
+      } else {
+        throw new Error('Please select a business to continue');
       }
 
-      // Navigate to home after login
-      navigate('/home');
-      
+      // Toast for successful login
       toast.success('Login successful');
+      
+      // Navigate to dashboard after login
+      navigate('/dashboard');
       
       return;
     } catch (error) {

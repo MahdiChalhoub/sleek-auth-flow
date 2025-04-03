@@ -1,115 +1,128 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, Building, Check, MapPin, User } from 'lucide-react';
-import BusinessInfoForm from '@/components/setup/BusinessInfoForm';
-import LocationInfoForm from '@/components/setup/LocationInfoForm';
-import AdminInfoForm from '@/components/setup/AdminInfoForm';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
 import { saveSetupStatus } from '@/services/setupService';
 
+interface BusinessFormData {
+  name: string;
+  type: string;
+  phone: string;
+  email: string;
+  address: string;
+}
+
+interface LocationFormData {
+  name: string;
+  type: string;
+  address: string;
+}
+
 const SetupWizard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeStep, setActiveStep] = useState('business');
+  const [activeTab, setActiveTab] = useState('business');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [businessData, setBusinessData] = useState({
+  // Business form state
+  const [businessData, setBusinessData] = useState<BusinessFormData>({
     name: '',
     type: 'Retail',
-    currency: 'USD',
-    country: '',
-    logoUrl: '',
-    description: ''
-  });
-  
-  const [locationData, setLocationData] = useState({
-    name: 'Main Store',
-    type: 'retail',
-    address: '',
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     phone: '',
     email: '',
-    isDefault: true
+    address: ''
   });
   
-  const [adminData, setAdminData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+  // Location form state
+  const [locationData, setLocationData] = useState<LocationFormData>({
+    name: 'Main Store',
+    type: 'retail',
+    address: ''
   });
-
-  const handleStepChange = (step: string) => {
-    if (activeStep === 'business' && step === 'location') {
-      if (!businessData.name || !businessData.type || !businessData.currency) {
-        toast.error('Please fill in all required business information');
-        return;
-      }
-    } else if (activeStep === 'location' && step === 'admin') {
-      if (!locationData.name || !locationData.type) {
-        toast.error('Please fill in all required location information');
-        return;
-      }
-    }
-    
-    setActiveStep(step);
+  
+  const handleBusinessChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setBusinessData(prev => ({ ...prev, [name]: value }));
   };
   
-  const completedSteps = {
-    business: !!businessData.name && !!businessData.type && !!businessData.currency,
-    location: !!locationData.name && !!locationData.type,
-    admin: !!adminData.fullName && !!adminData.email && !!adminData.password && 
-           adminData.password === adminData.confirmPassword && adminData.password.length >= 6
+  const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setLocationData(prev => ({ ...prev, [name]: value }));
   };
-
-  const handleSubmit = async () => {
-    if (!completedSteps.business || !completedSteps.location || !completedSteps.admin) {
-      toast.error('Please complete all steps before submitting');
+  
+  const handleBusinessSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!businessData.name.trim()) {
+      toast.error('Business name is required');
       return;
     }
     
-    if (adminData.password !== adminData.confirmPassword) {
-      toast.error('Passwords do not match');
+    // Move to next tab
+    setActiveTab('location');
+  };
+  
+  const handleLocationSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!locationData.name.trim()) {
+      toast.error('Location name is required');
       return;
     }
     
-    if (adminData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
-    }
-    
+    // Submit both forms
+    handleFinalSubmit();
+  };
+  
+  const handleFinalSubmit = async () => {
     setIsSubmitting(true);
     
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: adminData.email,
-        password: adminData.password,
-        options: {
-          data: {
-            full_name: adminData.fullName
-          }
-        }
-      });
+      // Get current user
+      const { data: userData, error: userError } = await supabase.auth.getUser();
       
-      if (authError) throw authError;
-      
-      if (!authData.user) {
-        throw new Error('Failed to create admin account');
+      if (userError || !userData.user) {
+        throw new Error('You must be logged in to complete setup');
       }
       
+      // Check if business name already exists
+      const businessNameCheck = await fromTable('businesses')
+        .select('id')
+        .eq('name', businessData.name)
+        .maybeSingle();
+        
+      if (isDataResponse(businessNameCheck) && businessNameCheck.data) {
+        throw new Error('A business with this name already exists. Please choose a different name.');
+      }
+      
+      // Check if phone already exists (if provided)
+      if (businessData.phone) {
+        const phoneCheck = await fromTable('businesses')
+          .select('id')
+          .eq('phone', businessData.phone)
+          .maybeSingle();
+          
+        if (isDataResponse(phoneCheck) && phoneCheck.data) {
+          throw new Error('A business with this phone number already exists.');
+        }
+      }
+      
+      // 1. Create business
       const businessResponse = await fromTable('businesses')
         .insert({
           name: businessData.name,
           type: businessData.type,
-          currency: businessData.currency,
-          country: businessData.country,
-          logo_url: businessData.logoUrl,
-          description: businessData.description,
-          owner_id: authData.user.id,
+          phone: businessData.phone,
+          email: businessData.email,
+          address: businessData.address,
+          owner_id: userData.user.id,
           status: 'active',
           active: true
         })
@@ -119,63 +132,53 @@ const SetupWizard: React.FC = () => {
         throw new Error('Failed to create business');
       }
       
+      // Verify business data exists and has the proper shape
       if (!businessResponse.data || businessResponse.data.length === 0) {
         throw new Error('No business data returned');
       }
       
       const businessObj = businessResponse.data[0];
       
-      if (!businessObj || typeof businessObj !== 'object' || !('id' in businessObj)) {
-        throw new Error('Invalid business data returned from database');
-      }
-      
-      const businessId = (businessObj as { id: string }).id;
-      
-      const locationResponse = await fromTable('locations')
-        .insert({
-          name: locationData.name,
-          type: locationData.type,
-          address: locationData.address,
-          business_id: businessId,
-          phone: locationData.phone,
-          email: locationData.email,
-          timezone: locationData.timezone,
-          status: 'active',
-          is_default: locationData.isDefault
-        })
-        .select();
+      if (businessObj && typeof businessObj === 'object' && 'id' in businessObj) {
+        // Safe type assertion after validation
+        const businessId = (businessObj as { id: string }).id;
         
-      if (!isDataResponse(locationResponse)) {
-        throw new Error('Failed to create location');
+        try {
+          // 2. Create location
+          const locationResponse = await fromTable('locations')
+            .insert({
+              name: locationData.name,
+              type: locationData.type,
+              address: locationData.address,
+              business_id: businessId,
+              status: 'active',
+              is_default: true
+            });
+          
+          if (!isDataResponse(locationResponse)) {
+            console.error('Error creating location:', locationResponse);
+            // Continue anyway, user can create locations later
+          }
+        } catch (locationError) {
+          console.error('Failed to create location:', locationError);
+          // Continue anyway, user can create locations later
+        }
+      } else {
+        console.warn('Invalid business data returned from database');
       }
       
-      await fromTable('extended_users')
-        .update({ status: 'active' })
-        .eq('id', authData.user.id);
-        
-      const roleResponse = await fromTable('roles')
-        .select()
-        .eq('name', 'SuperAdmin')
-        .maybeSingle();
-      
-      if (isDataResponse(roleResponse) && !roleResponse.data) {
-        await fromTable('roles')
-          .insert({
-            name: 'SuperAdmin',
-            description: 'System SuperAdmin with full access'
-          });
-      }
-      
+      // 3. Mark setup as complete
       await saveSetupStatus(true);
       
-      toast.success('Setup complete! You can now log in to your POS system.');
+      toast.success('Setup completed successfully!');
       
-      await supabase.auth.signOut();
-      
-      navigate('/login');
+      // 4. Navigate to dashboard
+      navigate('/dashboard');
     } catch (error) {
       console.error('Setup error:', error);
-      toast.error('Setup failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast.error('Setup failed', {
+        description: error instanceof Error ? error.message : 'Please try again or contact support.'
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -183,91 +186,146 @@ const SetupWizard: React.FC = () => {
   
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background to-muted/50 p-4">
-      <div className="w-full max-w-4xl">
-        <Card className="shadow-lg">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold">POS System Setup</CardTitle>
+      <div className="w-full max-w-md">
+        <Card className="border-border/40 bg-background/80 backdrop-blur">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold">Setup Your Business</CardTitle>
             <CardDescription>
-              Welcome to your new POS system. Let's get everything set up for your business.
+              Complete the setup to start using the POS system
             </CardDescription>
           </CardHeader>
-
-          <Tabs value={activeStep} onValueChange={setActiveStep}>
-            <div className="px-6">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="business" disabled={isSubmitting} className="flex items-center gap-2">
-                  <Building className="h-4 w-4" />
-                  <span className="hidden sm:inline">Business Info</span>
-                  {completedSteps.business && <Check className="h-4 w-4 text-green-500 ml-1" />}
-                </TabsTrigger>
-                <TabsTrigger value="location" disabled={isSubmitting} className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  <span className="hidden sm:inline">Location Info</span>
-                  {completedSteps.location && <Check className="h-4 w-4 text-green-500 ml-1" />}
-                </TabsTrigger>
-                <TabsTrigger value="admin" disabled={isSubmitting} className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">Admin Setup</span>
-                  {completedSteps.admin && <Check className="h-4 w-4 text-green-500 ml-1" />}
-                </TabsTrigger>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="business">Business</TabsTrigger>
+                <TabsTrigger value="location">Location</TabsTrigger>
               </TabsList>
-            </div>
-
-            <CardContent className="p-6">
-              <TabsContent value="business" className="mt-0">
-                <BusinessInfoForm 
-                  data={businessData}
-                  onChange={setBusinessData}
-                />
+              
+              <TabsContent value="business">
+                <form onSubmit={handleBusinessSubmit} className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Business Name <span className="text-destructive">*</span></Label>
+                    <Input 
+                      id="name" 
+                      name="name" 
+                      value={businessData.name} 
+                      onChange={handleBusinessChange} 
+                      placeholder="Your Business Name" 
+                      required 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Business Type</Label>
+                    <Input 
+                      id="type" 
+                      name="type" 
+                      value={businessData.type} 
+                      onChange={handleBusinessChange} 
+                      placeholder="Retail, Restaurant, etc." 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input 
+                      id="phone" 
+                      name="phone" 
+                      value={businessData.phone} 
+                      onChange={handleBusinessChange} 
+                      placeholder="Business Phone" 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Business Email</Label>
+                    <Input 
+                      id="email" 
+                      name="email" 
+                      type="email" 
+                      value={businessData.email} 
+                      onChange={handleBusinessChange} 
+                      placeholder="business@example.com" 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="address">Business Address</Label>
+                    <Input 
+                      id="address" 
+                      name="address" 
+                      value={businessData.address} 
+                      onChange={handleBusinessChange} 
+                      placeholder="123 Main St, City, Country" 
+                    />
+                  </div>
+                  
+                  <Button type="submit" className="w-full">
+                    Continue to Location
+                  </Button>
+                </form>
               </TabsContent>
               
-              <TabsContent value="location" className="mt-0">
-                <LocationInfoForm 
-                  data={locationData}
-                  onChange={setLocationData}
-                />
+              <TabsContent value="location">
+                <form onSubmit={handleLocationSubmit} className="space-y-4 pt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="locationName">Location Name <span className="text-destructive">*</span></Label>
+                    <Input 
+                      id="locationName" 
+                      name="name" 
+                      value={locationData.name} 
+                      onChange={handleLocationChange} 
+                      placeholder="Main Store" 
+                      required 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="locationType">Location Type</Label>
+                    <Input 
+                      id="locationType" 
+                      name="type" 
+                      value={locationData.type} 
+                      onChange={handleLocationChange} 
+                      placeholder="retail, warehouse, etc." 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="locationAddress">Location Address</Label>
+                    <Input 
+                      id="locationAddress" 
+                      name="address" 
+                      value={locationData.address} 
+                      onChange={handleLocationChange} 
+                      placeholder="123 Main St, City, Country" 
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="w-1/2" 
+                      onClick={() => setActiveTab('business')}
+                    >
+                      Back
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="w-1/2" 
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? 'Setting up...' : 'Complete Setup'}
+                    </Button>
+                  </div>
+                </form>
               </TabsContent>
-              
-              <TabsContent value="admin" className="mt-0">
-                <AdminInfoForm 
-                  data={adminData}
-                  onChange={setAdminData}
-                />
-              </TabsContent>
-            </CardContent>
-            
-            <CardFooter className="flex justify-between border-t p-6">
-              {activeStep === 'business' ? (
-                <div></div>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={() => handleStepChange(activeStep === 'location' ? 'business' : 'location')}
-                  disabled={isSubmitting}
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
-              )}
-              
-              {activeStep === 'admin' ? (
-                <Button 
-                  onClick={handleSubmit} 
-                  disabled={isSubmitting || !completedSteps.business || !completedSteps.location || !completedSteps.admin}
-                >
-                  {isSubmitting ? 'Setting up...' : 'Complete Setup'}
-                </Button>
-              ) : (
-                <Button 
-                  onClick={() => handleStepChange(activeStep === 'business' ? 'location' : 'admin')}
-                  disabled={isSubmitting || (activeStep === 'business' && !completedSteps.business) || (activeStep === 'location' && !completedSteps.location)}
-                >
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
-            </CardFooter>
-          </Tabs>
+            </Tabs>
+          </CardContent>
+          <CardFooter className="text-sm text-muted-foreground">
+            <p>You can add more locations and customize your business later.</p>
+          </CardFooter>
         </Card>
       </div>
     </div>

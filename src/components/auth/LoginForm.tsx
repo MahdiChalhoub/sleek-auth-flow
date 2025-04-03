@@ -11,26 +11,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { Business } from "@/models/interfaces/businessInterfaces";
 
-// Define form schema with zod - make businessId optional
-const formSchema = z.object({
+// Define form schema with zod - make businessId required if requireBusinessSelection is true
+const formSchemaFactory = (requireBusinessSelection: boolean) => z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  businessId: z.string().optional(),
+  businessId: requireBusinessSelection 
+    ? z.string({ required_error: "Please select a business" })
+    : z.string().optional(),
   rememberMe: z.boolean().default(true)
 });
 
-export type LoginFormValues = z.infer<typeof formSchema>;
+export type LoginFormValues = z.infer<ReturnType<typeof formSchemaFactory>>;
 
 interface LoginFormProps {
   onSubmit: (data: LoginFormValues) => void;
   businesses: Business[];
   isSubmitting: boolean;
+  requireBusinessSelection?: boolean;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({
   onSubmit,
   businesses,
-  isSubmitting
+  isSubmitting,
+  requireBusinessSelection = false
 }) => {
   // Get localStorage remember me preference if it exists
   const savedRememberMe = localStorage.getItem("auth_remember_me");
@@ -40,6 +44,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const lastUsedEmail = initialRememberMe ? localStorage.getItem("auth_last_email") || "" : "";
   
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Use the dynamic schema based on requireBusinessSelection
+  const formSchema = formSchemaFactory(requireBusinessSelection);
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(formSchema),
@@ -123,7 +130,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             name="businessId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business</FormLabel>
+                <FormLabel>Business {requireBusinessSelection && <span className="text-destructive">*</span>}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger>

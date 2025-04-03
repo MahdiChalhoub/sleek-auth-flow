@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +15,7 @@ const Login: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableBusinesses, setAvailableBusinesses] = useState<Business[]>([]);
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Fetch available businesses when page loads
   useEffect(() => {
@@ -25,49 +27,33 @@ const Login: React.FC = () => {
           .limit(10);
           
         if (isDataResponse(response) && Array.isArray(response.data)) {
-          const businesses: Business[] = response.data.map(business => {
-            if (business && typeof business === 'object' &&
-                'id' in business && 
-                'name' in business && 
-                'status' in business && 
-                'owner_id' in business) {
-              return {
-                id: business.id as string,
-                name: business.name as string,
-                status: business.status as string,
-                ownerId: business.owner_id as string
-              };
-            }
-            return {
-              id: 'unknown',
-              name: 'Unknown Business',
-              status: 'active',
-              ownerId: 'unknown'
-            };
-          });
+          const businesses: Business[] = response.data
+            .filter(business => business !== null)
+            .map(business => {
+              if (business && typeof business === 'object' &&
+                  'id' in business && 
+                  'name' in business && 
+                  'status' in business && 
+                  'owner_id' in business) {
+                return {
+                  id: business.id as string,
+                  name: business.name as string,
+                  status: business.status as string,
+                  ownerId: business.owner_id as string
+                };
+              }
+              return null;
+            })
+            .filter((business): business is Business => business !== null);
           
           setAvailableBusinesses(businesses);
         } else {
           console.error('Could not fetch businesses:', response.error);
-          setAvailableBusinesses([
-            {
-              id: 'business-1',
-              name: 'Main Business',
-              status: 'active',
-              ownerId: 'user-1'
-            }
-          ]);
+          setAvailableBusinesses([]);
         }
       } catch (error) {
         console.error('Error fetching businesses:', error);
-        setAvailableBusinesses([
-          {
-            id: 'business-1',
-            name: 'Main Business',
-            status: 'active',
-            ownerId: 'user-1'
-          }
-        ]);
+        setAvailableBusinesses([]);
       }
     };
     
@@ -82,17 +68,24 @@ const Login: React.FC = () => {
     }
   }, [location]);
   
-  // If already logged in, redirect to appropriate page
+  // If already logged in, redirect to dashboard
   if (user) {
-    const redirectTo = localStorage.getItem("intended_redirect") || "/home";
-    localStorage.removeItem("intended_redirect");
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to="/dashboard" replace />;
   }
   
   const handleSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     try {
+      // Ensure a business is selected
+      if (!data.businessId) {
+        throw new Error("Please select a business to continue");
+      }
+      
+      // Login with the selected business
       await login(data.email, data.password, data.businessId, data.rememberMe);
+      
+      // Redirect to dashboard after successful login
+      navigate('/dashboard');
     } catch (error) {
       console.error(error);
       toast.error(error instanceof Error ? error.message : "Login failed. Please check your credentials.");
@@ -116,6 +109,7 @@ const Login: React.FC = () => {
               onSubmit={handleSubmit}
               businesses={availableBusinesses}
               isSubmitting={isSubmitting}
+              requireBusinessSelection={true}
             />
             
             <DemoAccountsSection />
