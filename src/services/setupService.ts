@@ -17,20 +17,17 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
     
     // If the setting exists and is complete, return it
     if (isDataResponse(settingsResponse) && settingsResponse.data) {
-      const dataValue = settingsResponse.data;
-      
-      // Safely access nested value property with proper null/undefined checks
-      if (dataValue && 
-          typeof dataValue === 'object' && 
-          'value' in dataValue && 
-          dataValue.value !== null && 
-          typeof dataValue.value === 'object') {
+      // Properly check for null before accessing properties
+      if (settingsResponse.data !== null && 
+          typeof settingsResponse.data === 'object' && 
+          'value' in settingsResponse.data && 
+          settingsResponse.data.value !== null) {
         
         // Type assertion to help TypeScript understand the structure
-        const valueObject = dataValue.value as Record<string, unknown>;
+        const valueObject = settingsResponse.data.value as Record<string, unknown>;
         
         // Check if completed exists in the value object
-        const setupCompleted = valueObject.completed === true;
+        const setupCompleted = valueObject && 'completed' in valueObject && valueObject.completed === true;
         
         return { 
           isComplete: setupCompleted, 
