@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
@@ -68,8 +69,8 @@ import SetupWizard from './pages/SetupWizard';
 function App() {
   const [isCheckingSetup, setIsCheckingSetup] = useState(true);
   const [setupStatus, setSetupStatus] = useState<SetupStatus>({
-    isComplete: true,
-    businessExists: true
+    isComplete: false,
+    businessExists: false
   });
   const navigate = useNavigate();
   const location = useLocation();
@@ -82,14 +83,22 @@ function App() {
         console.log('Setup status:', status);
         setSetupStatus(status);
         
-        if (!status.isComplete && location.pathname !== ROUTES.SETUP) {
-          navigate(ROUTES.SETUP, { replace: true });
-        } else if (status.isComplete && location.pathname === ROUTES.SETUP) {
+        // Only redirect if we're on the setup page and setup is complete
+        // or if we're not on the setup page and setup is not complete
+        if (status.isComplete && location.pathname === ROUTES.SETUP) {
+          console.log('Setup is complete, redirecting to home');
           navigate(ROUTES.HOME, { replace: true });
+        } else if (!status.isComplete && location.pathname !== ROUTES.SETUP && 
+                   location.pathname !== ROUTES.LOGIN && 
+                   location.pathname !== ROUTES.SIGNUP && 
+                   location.pathname !== ROUTES.FORGOT_PASSWORD) {
+          console.log('Setup is not complete, redirecting to setup');
+          navigate(ROUTES.SETUP, { replace: true });
         }
       } catch (error) {
         console.error('Error checking setup status:', error);
         toast.error('Failed to check system setup status');
+        // Default to true to prevent endless redirects in case of error
         setSetupStatus({ isComplete: true, businessExists: true });
       } finally {
         setIsCheckingSetup(false);

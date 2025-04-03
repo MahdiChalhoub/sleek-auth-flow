@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +9,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
 import { saveSetupStatus } from '@/services/setupService';
+import { ROUTES } from '@/constants/routes';
 
 interface BusinessFormData {
   name: string;
@@ -86,6 +86,9 @@ const SetupWizard: React.FC = () => {
         throw new Error('You must be logged in to complete setup');
       }
       
+      console.log('Creating business with data:', businessData);
+      console.log('User ID:', userData.user.id);
+      
       // Check if business exists with same name
       const businessNameCheck = await fromTable('businesses')
         .select('id')
@@ -96,29 +99,18 @@ const SetupWizard: React.FC = () => {
         throw new Error('A business with this name already exists. Please choose a different name.');
       }
       
-      // Check phone if provided
-      if (businessData.phone) {
-        const phoneCheck = await fromTable('businesses')
-          .select('id')
-          .eq('phone', businessData.phone)
-          .maybeSingle();
-          
-        if (isDataResponse(phoneCheck) && phoneCheck.data) {
-          throw new Error('A business with this phone number already exists.');
-        }
-      }
-      
       // Create business with better error handling
       const businessResult = await fromTable('businesses')
         .insert({
           name: businessData.name,
           type: businessData.type,
-          phone: businessData.phone,
           email: businessData.email,
           address: businessData.address,
           owner_id: userData.user.id,
           status: 'active',
-          active: true
+          active: true,
+          currency: 'USD', // Default currency
+          country: 'US', // Default country
         })
         .select();
       
@@ -130,6 +122,8 @@ const SetupWizard: React.FC = () => {
       if (!businessResult.data || businessResult.data.length === 0) {
         throw new Error('No business data returned from database');
       }
+      
+      console.log('Business created successfully:', businessResult.data);
       
       const businessObj = businessResult.data[0];
       
@@ -151,6 +145,9 @@ const SetupWizard: React.FC = () => {
         throw new Error('Could not retrieve business ID');
       }
       
+      console.log('Creating location with data:', locationData);
+      console.log('Business ID:', businessId);
+      
       // Create location with better error handling
       try {
         const locationResult = await fromTable('locations')
@@ -160,7 +157,8 @@ const SetupWizard: React.FC = () => {
             address: locationData.address,
             business_id: businessId,
             status: 'active',
-            is_default: true
+            is_default: true,
+            is_active: true,
           })
           .select();
         
@@ -168,6 +166,8 @@ const SetupWizard: React.FC = () => {
           console.error('Location creation error:', locationResult.error);
           throw new Error(`Failed to create location: ${locationResult.error?.message || 'Unknown error'}`);
         }
+        
+        console.log('Location created successfully:', locationResult.data);
       } catch (locationError) {
         console.error('Failed to create location:', locationError);
         // Continue with setup even if location creation fails
@@ -179,7 +179,7 @@ const SetupWizard: React.FC = () => {
       toast.success('Setup completed successfully!');
       
       // Navigate to dashboard after setup completes
-      navigate('/dashboard', { replace: true });
+      navigate(ROUTES.DASHBOARD, { replace: true });
     } catch (error) {
       console.error('Setup error:', error);
       toast.error('Setup failed', {

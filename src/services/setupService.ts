@@ -53,7 +53,7 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
     console.log('Checking if any businesses exist');
     
     const businessResponse = await fromTable('businesses')
-      .select('id')
+      .select('id, name')
       .limit(1);
     
     console.log('Business response:', businessResponse);
@@ -89,12 +89,13 @@ export const saveSetupStatus = async (completed: boolean): Promise<void> => {
   try {
     console.log('Saving setup status:', completed);
     
-    // Ensure value is properly formatted
+    // Ensure value is properly formatted as an object, not a string
     const setupValue = {
       completed,
       completed_at: new Date().toISOString()
     };
     
+    // Use upsert with the correct structure
     const response = await fromTable('settings')
       .upsert({
         key: 'system_setup',
