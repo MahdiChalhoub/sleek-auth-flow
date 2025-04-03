@@ -1,10 +1,9 @@
-
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/auth';
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { toast } from 'sonner';
-import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
+import { fromTable, isDataResponse, safeDataTransform } from '@/utils/supabaseServiceHelper';
 
 interface AuthContextType {
   user: User | null;
@@ -60,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Filter out any null or undefined business_id values
       const validMemberBusinesses = (membershipResponse.data || [])
-        .filter(item => item && typeof item === 'object' && item.business_id);
+        .filter(item => item && typeof item === 'object' && 'business_id' in item && item.business_id);
       
       let businessesFromMembership: any[] = [];
       if (validMemberBusinesses.length > 0) {
