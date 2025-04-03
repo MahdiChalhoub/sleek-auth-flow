@@ -52,19 +52,23 @@ const Signup: React.FC = () => {
         // Continue anyway, user can create business later
       } else {
         // 3. Create a default location for the business
-        const businessData = businessResponse.data;
-        const locationResponse = await fromTable('locations')
-          .insert({
-            name: 'Main Store',
-            business_id: businessData.id,
-            type: 'retail',
-            status: 'active',
-            is_default: true
-          });
+        // Safe access to data using optional chaining and type guard
+        const businessId = businessResponse.data?.id;
         
-        if (!isDataResponse(locationResponse)) {
-          console.error('Error creating location:', locationResponse.error);
-          // Continue anyway, user can create locations later
+        if (businessId) {
+          const locationResponse = await fromTable('locations')
+            .insert({
+              name: 'Main Store',
+              business_id: businessId,
+              type: 'retail',
+              status: 'active',
+              is_default: true
+            });
+          
+          if (!isDataResponse(locationResponse)) {
+            console.error('Error creating location:', locationResponse.error);
+            // Continue anyway, user can create locations later
+          }
         }
       }
       

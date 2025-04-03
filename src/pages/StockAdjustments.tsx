@@ -8,6 +8,7 @@ import { useLocationContext } from "@/contexts/LocationContext";
 import { mockProducts } from "@/models/product";
 import StockAdjustmentTable from "@/components/inventory/StockAdjustmentTable";
 import { useToast } from "@/hooks/use-toast";
+import { Location } from "@/types/location";
 
 const StockAdjustments: React.FC = () => {
   const { toast } = useToast();

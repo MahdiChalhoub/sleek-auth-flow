@@ -13,6 +13,7 @@ import TransferViewModal from "@/components/inventory/TransferViewModal";
 import SecurityCodeDialog from "@/components/inventory/SecurityCodeDialog";
 import { useLocationContext } from "@/contexts/LocationContext";
 import { toast } from "sonner";
+import { Location } from "@/types/location";
 
 const statusColors: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",

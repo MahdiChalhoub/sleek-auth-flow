@@ -2,15 +2,15 @@
 import React from "react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Branch } from "@/models/interfaces/businessInterfaces";
+import { Location } from "@/types/location";
 import { useStockTransferForm } from "@/hooks/useStockTransferForm";
 import TransferLocationForm from "./TransferLocationForm";
 import TransferItemsTable from "./TransferItemsTable";
 
 interface CreateTransferModalProps {
   onClose?: () => void;
-  currentLocation: Branch | null;
-  availableLocations: Branch[];
+  currentLocation: Location | null;
+  availableLocations: Location[];
 }
 
 const CreateTransferModal: React.FC<CreateTransferModalProps> = ({ 

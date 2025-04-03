@@ -153,14 +153,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('user_id', userId)
         .eq('is_active', true);
       
-      if (!isDataResponse(memberBusinessesResponse)) {
-        console.error('Error fetching member businesses:', memberBusinessesResponse.error);
-        return [];
-      }
+      let memberBusinessesData: any[] = [];
       
-      const memberBusinessesData = memberBusinessesResponse.data
-        .map(item => item.business)
-        .filter(Boolean);
+      if (isDataResponse(memberBusinessesResponse)) {
+        memberBusinessesData = memberBusinessesResponse.data
+          .filter(item => item && typeof item === 'object' && 'business' in item)
+          .map(item => item.business)
+          .filter(Boolean);
+      } else {
+        console.error('Error fetching member businesses:', memberBusinessesResponse.error);
+      }
       
       const allBusinesses = [...ownedBusinesses, ...memberBusinessesData];
       

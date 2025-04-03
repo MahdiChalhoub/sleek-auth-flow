@@ -6,13 +6,13 @@ export interface Branch {
   phone: string;
   email: string;
   businessId: string;
-  status: 'active' | 'inactive' | 'pending';
+  status: 'active' | 'inactive' | 'pending' | 'closed';
   type: 'retail' | 'warehouse' | 'office' | 'other';
   isDefault: boolean;
   locationCode: string;
   createdAt: string;
   updatedAt: string;
-  openingHours?: Record<string, any>;
+  openingHours?: Record<string, string> | string;
 }
 
 export interface LocationFormData {
@@ -23,5 +23,8 @@ export interface LocationFormData {
   type: 'retail' | 'warehouse' | 'office' | 'other';
   isDefault: boolean;
   locationCode: string;
-  openingHours?: Record<string, any>;
+  openingHours?: Record<string, string> | string;
 }
+
+// Alias Location to Branch for backwards compatibility
+export type Location = Branch;

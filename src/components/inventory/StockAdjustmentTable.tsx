@@ -7,11 +7,11 @@ import { Dialog } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import SecurityCodeDialog from "./SecurityCodeDialog";
 import { useScreenSize } from "@/hooks/use-mobile";
-import { Branch } from "@/models/interfaces/businessInterfaces";
+import { Location } from "@/types/location";
 
 interface StockAdjustmentTableProps {
   products: any[];
-  currentLocation?: Branch | null;
+  currentLocation?: Location | null;
 }
 
 const StockAdjustmentTable: React.FC<StockAdjustmentTableProps> = ({ products, currentLocation }) => {

@@ -11,6 +11,18 @@ import { Button } from "@/components/ui/button";
 import { AddLocationModal } from "@/components/settings/AddLocationModal";
 import { toast } from "sonner";
 
+// Define a proper type for openingHours
+interface OpeningHours {
+  monday?: string;
+  tuesday?: string;
+  wednesday?: string;
+  thursday?: string;
+  friday?: string;
+  saturday?: string;
+  sunday?: string;
+  [key: string]: string | undefined;
+}
+
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const { currentLocation, availableLocations, switchLocation } = useLocationContext();
@@ -22,6 +34,14 @@ const Settings: React.FC = () => {
     // In a real app, this would call an API to save the location
     toast.success(`New location "${newLocation.name}" created successfully!`);
     setIsAddLocationModalOpen(false);
+  };
+  
+  // Helper function to get opening hours safely
+  const getOpeningHoursValue = (day: keyof OpeningHours): string => {
+    if (!currentLocation?.openingHours) return "Closed";
+    
+    const hours = currentLocation.openingHours as OpeningHours;
+    return hours[day] || "Closed";
   };
   
   return (
@@ -88,25 +108,25 @@ const Settings: React.FC = () => {
                         
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div>Monday:</div>
-                          <div>{currentLocation.openingHours?.monday || "Closed"}</div>
+                          <div>{getOpeningHoursValue('monday')}</div>
                           
                           <div>Tuesday:</div>
-                          <div>{currentLocation.openingHours?.tuesday || "Closed"}</div>
+                          <div>{getOpeningHoursValue('tuesday')}</div>
                           
                           <div>Wednesday:</div>
-                          <div>{currentLocation.openingHours?.wednesday || "Closed"}</div>
+                          <div>{getOpeningHoursValue('wednesday')}</div>
                           
                           <div>Thursday:</div>
-                          <div>{currentLocation.openingHours?.thursday || "Closed"}</div>
+                          <div>{getOpeningHoursValue('thursday')}</div>
                           
                           <div>Friday:</div>
-                          <div>{currentLocation.openingHours?.friday || "Closed"}</div>
+                          <div>{getOpeningHoursValue('friday')}</div>
                           
                           <div>Saturday:</div>
-                          <div>{currentLocation.openingHours?.saturday || "Closed"}</div>
+                          <div>{getOpeningHoursValue('saturday')}</div>
                           
                           <div>Sunday:</div>
-                          <div>{currentLocation.openingHours?.sunday || "Closed"}</div>
+                          <div>{getOpeningHoursValue('sunday')}</div>
                         </div>
                       </div>
                     </div>

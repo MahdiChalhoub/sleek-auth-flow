@@ -1,15 +1,14 @@
-
 import React from "react";
 import { DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Printer, FileText, MapPin } from "lucide-react";
-import { Branch } from "@/models/interfaces/businessInterfaces";
+import { Location } from "@/types/location";
 
 interface TransferViewModalProps {
   transfer: any;
   onClose: () => void;
-  currentLocation: Branch | null;
+  currentLocation: Location | null;
 }
 
 const statusColors: Record<string, string> = {
