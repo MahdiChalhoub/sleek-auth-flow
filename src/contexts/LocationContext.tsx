@@ -66,7 +66,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     );
   }
   
-  const { user, currentBusiness, isLoading } = auth;
+  const { user, currentBusiness, isLoading, bypassAuth } = auth;
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
   const [isLoadingLocations, setIsLoadingLocations] = useState(true);
@@ -89,12 +89,62 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
   };
 
+  // Create mock locations for bypass mode
+  const createMockLocations = () => {
+    console.log('🏙️ Creating mock locations for bypass mode');
+    if (!currentBusiness) return;
+
+    const mockLocations: Location[] = [
+      {
+        id: 'mock-location-1',
+        name: 'Main Store',
+        address: '123 Main St',
+        phone: '555-1234',
+        email: 'store@example.com',
+        businessId: currentBusiness.id,
+        status: 'active',
+        type: 'retail',
+        isDefault: true,
+        locationCode: 'MAIN',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        openingHours: '9am-5pm'
+      },
+      {
+        id: 'mock-location-2',
+        name: 'Warehouse',
+        address: '456 Storage Ave',
+        phone: '555-5678',
+        email: 'warehouse@example.com',
+        businessId: currentBusiness.id,
+        status: 'active',
+        type: 'warehouse',
+        isDefault: false,
+        locationCode: 'WH',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ];
+
+    setAvailableLocations(mockLocations);
+    setCurrentLocation(mockLocations[0]);
+    setIsLoadingLocations(false);
+  };
+
   useEffect(() => {
     console.log('🏙️ LocationProvider useEffect triggered', { 
       hasBusiness: !!currentBusiness, 
       hasUser: !!user, 
-      isLoading 
+      isLoading,
+      bypassAuth 
     });
+    
+    // If bypass mode is enabled, create mock locations
+    if (bypassAuth && currentBusiness) {
+      console.log('🏙️ Auth bypass enabled, using mock locations');
+      createMockLocations();
+      return;
+    }
     
     const fetchLocations = async () => {
       if (!currentBusiness || !user) {
@@ -150,6 +200,12 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       } catch (error) {
         console.error('Error fetching locations:', error);
         toast.error('Failed to load locations');
+        
+        // If in bypass mode, create mock locations anyway on error
+        if (bypassAuth) {
+          console.log('🏙️ Using mock locations after fetch error');
+          createMockLocations();
+        }
       } finally {
         setIsLoadingLocations(false);
       }
@@ -158,7 +214,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!isLoading) {
       fetchLocations();
     }
-  }, [currentBusiness, user, isLoading]);
+  }, [currentBusiness, user, isLoading, bypassAuth]);
 
   const switchLocation = (locationId: string) => {
     const location = availableLocations.find(loc => loc.id === locationId);
@@ -172,6 +228,9 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const userHasAccessToLocation = (locationId: string): boolean => {
+    // In bypass mode, always return true
+    if (bypassAuth) return true;
+    
     // For now, assume all locations in the business are accessible
     // This can be enhanced with permission checks later
     return availableLocations.some(loc => loc.id === locationId);

@@ -1,60 +1,84 @@
 
-import { User, UserPermission } from "@/types/auth";
+import { UserPermission } from "@/types/auth";
 
-// Generate mock permissions for different roles
-export const getMockPermissions = (role: User["role"]): UserPermission[] => {
-  const basicPermissions: UserPermission[] = [
-    { id: "1", name: "can_view_transactions", enabled: true },
-    { id: "2", name: "can_view_inventory", enabled: true },
+/**
+ * Returns a set of mock permissions based on the user role
+ * Used during bypass auth mode for testing
+ */
+export const getMockPermissions = (role: string): UserPermission[] => {
+  console.log('📋 Generating mock permissions for role:', role);
+  
+  // Common permissions for all roles
+  const commonPermissions: UserPermission[] = [
+    { name: 'can_view_dashboard', enabled: true },
+    { name: 'can_view_profile', enabled: true },
   ];
   
-  const cashierPermissions: UserPermission[] = [
-    ...basicPermissions,
-    { id: "3", name: "can_edit_transactions", enabled: true },
-    { id: "4", name: "can_apply_discount", enabled: false },
-  ];
-  
-  const managerPermissions: UserPermission[] = [
-    ...cashierPermissions,
-    { id: "5", name: "can_lock_transactions", enabled: true },
-    { id: "6", name: "can_unlock_transactions", enabled: true },
-    { id: "7", name: "can_verify_transactions", enabled: true },
-    { id: "8", name: "can_unverify_transactions", enabled: true },
-    { id: "9", name: "can_approve_discrepancy", enabled: true },
-    { id: "10", name: "can_apply_discount", enabled: true },
-  ];
-  
-  const adminPermissions: UserPermission[] = [
-    ...managerPermissions,
-    { id: "11", name: "can_delete_transactions", enabled: true },
-    { id: "12", name: "can_secure_transactions", enabled: true },
-    { id: "13", name: "can_manage_users", enabled: true },
-    { id: "14", name: "can_manage_roles", enabled: true },
-    { id: "15", name: "can_manage_permissions", enabled: true },
-  ];
-  
-  switch (role) {
-    case "admin":
-      return adminPermissions;
-    case "manager":
-      return managerPermissions;
-    case "cashier":
-      return cashierPermissions;
-    default:
-      return basicPermissions;
+  // Admin has all permissions
+  if (role === 'admin') {
+    return [
+      ...commonPermissions,
+      { name: 'can_manage_users', enabled: true },
+      { name: 'can_manage_roles', enabled: true },
+      { name: 'can_view_transactions', enabled: true },
+      { name: 'can_edit_transactions', enabled: true },
+      { name: 'can_delete_transactions', enabled: true },
+      { name: 'can_manage_inventory', enabled: true },
+      { name: 'can_manage_settings', enabled: true },
+      { name: 'can_view_reports', enabled: true },
+      { name: 'can_export_data', enabled: true },
+      { name: 'can_manage_clients', enabled: true },
+      { name: 'can_manage_suppliers', enabled: true },
+      { name: 'can_manage_locations', enabled: true },
+      { name: 'can_view_financial_data', enabled: true },
+      { name: 'can_manage_pos', enabled: true },
+    ];
   }
+  
+  // Manager has most permissions except user management
+  if (role === 'manager') {
+    return [
+      ...commonPermissions,
+      { name: 'can_view_transactions', enabled: true },
+      { name: 'can_edit_transactions', enabled: true },
+      { name: 'can_manage_inventory', enabled: true },
+      { name: 'can_view_reports', enabled: true },
+      { name: 'can_export_data', enabled: true },
+      { name: 'can_manage_clients', enabled: true },
+      { name: 'can_manage_suppliers', enabled: true },
+      { name: 'can_manage_pos', enabled: true },
+    ];
+  }
+  
+  // Cashier has limited permissions
+  if (role === 'cashier') {
+    return [
+      ...commonPermissions,
+      { name: 'can_view_transactions', enabled: true },
+      { name: 'can_edit_transactions', enabled: true },
+      { name: 'can_manage_pos', enabled: true },
+      { name: 'can_view_inventory', enabled: true },
+    ];
+  }
+  
+  // Return basic permissions for unknown roles
+  return commonPermissions;
 };
 
-// Helper function to get default page by role
-export const getRoleDefaultPage = (role: User["role"]): string => {
-  switch (role) {
-    case "admin":
-      return "/home";
-    case "cashier":
-      return "/pos-sales";
-    case "manager":
-      return "/inventory";
-    default:
-      return "/home";
-  }
+/**
+ * Hook for checking permissions in bypass mode
+ */
+export const usePermissions = (role: string = 'admin') => {
+  const permissions = getMockPermissions(role);
+  
+  const hasPermission = (permissionName: string): boolean => {
+    return permissions.some(p => p.name === permissionName && p.enabled);
+  };
+  
+  return {
+    permissions,
+    hasPermission
+  };
 };
+
+export default usePermissions;
