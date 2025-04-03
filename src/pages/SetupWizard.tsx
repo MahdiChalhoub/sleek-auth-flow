@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -128,6 +129,12 @@ const SetupWizard: React.FC = () => {
       
       const businessObj = businessResponse.data[0];
       
+      // Type assertion to help TypeScript
+      if (!businessObj || typeof businessObj !== 'object') {
+        throw new Error('Invalid business data returned from database');
+      }
+
+      // Safe type assertion
       const typedBusinessObj = businessObj as Record<string, unknown>;
       
       if (!('id' in typedBusinessObj)) {
