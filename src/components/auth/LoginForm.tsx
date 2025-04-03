@@ -11,11 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2 } from "lucide-react";
 import { Business } from "@/models/interfaces/businessInterfaces";
 
-// Define form schema with zod
+// Define form schema with zod - make businessId optional
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  businessId: z.string().min(1, { message: "Please select a business" }),
+  businessId: z.string().optional(),
   rememberMe: z.boolean().default(true)
 });
 
@@ -46,7 +46,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
     defaultValues: {
       email: lastUsedEmail,
       password: "",
-      businessId: businesses.length > 0 ? businesses[0].id : "",
+      businessId: businesses.length > 0 ? businesses[0].id : undefined,
       rememberMe: initialRememberMe
     }
   });
@@ -117,30 +117,32 @@ const LoginForm: React.FC<LoginFormProps> = ({
           )}
         />
         
-        <FormField
-          control={form.control}
-          name="businessId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Business</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select business" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {businesses.map(business => (
-                    <SelectItem key={business.id} value={business.id}>
-                      {business.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {businesses.length > 0 && (
+          <FormField
+            control={form.control}
+            name="businessId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Business</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select business" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {businesses.map(business => (
+                      <SelectItem key={business.id} value={business.id}>
+                        {business.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         
         <FormField
           control={form.control}

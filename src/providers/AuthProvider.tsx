@@ -13,7 +13,7 @@ interface AuthContextType {
   isLoading: boolean;
   currentBusiness: Business | null;
   userBusinesses: Business[];
-  login: (email: string, password: string, businessId: string, rememberMe?: boolean) => Promise<void>;
+  login: (email: string, password: string, businessId?: string, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
   switchBusiness: (businessId: string) => void;
   hasPermission: (permissionName: string) => boolean;
@@ -49,36 +49,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .select('*')
         .eq('owner_id', userId);
       
-      // Fetch businesses where user is a member
-      const memberResponse = await fromTable('business_users')
-        .select('business:businesses(*)')
-        .eq('user_id', userId);
-      
-      if (!isDataResponse(ownedResponse) || !isDataResponse(memberResponse)) {
-        console.error('Error fetching businesses:', ownedResponse.error || memberResponse.error);
+      if (!isDataResponse(ownedResponse)) {
+        console.error('Error fetching owned businesses:', ownedResponse.error);
         return [];
       }
       
-      // Combine and deduplicate businesses
-      const memberBusinessesData = safeDataTransform(memberResponse.data, item => {
-        if (item && typeof item === 'object' && 'business' in item && item.business !== null) {
-          return item.business;
-        }
-        return null;
-      });
-      
-      const allBusinesses = [...(ownedResponse.data || []), ...memberBusinessesData];
-      
-      // Remove duplicates based on business ID
-      const uniqueBusinessMap = new Map<string, any>();
-      allBusinesses.forEach(business => {
-        if (business && business.id) {
-          uniqueBusinessMap.set(business.id, business);
-        }
-      });
+      // For now, skip fetching business_users as it seems the table relationship is not set up
+      // We'll just use owned businesses
       
       // Map to our Business interface
-      const mappedBusinesses: Business[] = Array.from(uniqueBusinessMap.values()).map(business => ({
+      const mappedBusinesses: Business[] = (ownedResponse.data || []).map(business => ({
         id: business.id,
         name: business.name,
         address: business.address,
@@ -197,9 +177,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('pos_current_business', businessId);
       }
 
+      // Navigate to home after login
+      navigate('/home');
+      
+      toast.success('Login successful');
+      
       return;
     } catch (error) {
       console.error('Login error:', error);
+      toast.error('Login failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
       throw error;
     }
   };

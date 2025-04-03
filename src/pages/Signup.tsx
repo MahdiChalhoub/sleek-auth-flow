@@ -55,12 +55,13 @@ const Signup: React.FC = () => {
         
         const businessObj = businessResponse.data[0];
         
+        // TypeScript null check - guarantee businessObj exists and has required properties
         if (!businessObj || typeof businessObj !== 'object' || !('id' in businessObj)) {
           throw new Error('Invalid business data returned from database');
         }
         
-        // Safe access to business ID
-        const businessId = businessObj.id;
+        // Type assertion to make TypeScript happy
+        const businessId = businessObj.id as string;
         
         const locationResponse = await fromTable('locations')
           .insert({

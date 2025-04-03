@@ -8,28 +8,49 @@ import { Business } from "@/models/interfaces/businessInterfaces";
 import LoginForm, { LoginFormValues } from "@/components/auth/LoginForm";
 import DemoAccountsSection from "@/components/auth/DemoAccountsSection";
 import AuthLinks from "@/components/auth/AuthLinks";
-
-// Mock businesses for the login page
-const mockBusinesses: Business[] = [
-  {
-    id: 'business-1',
-    name: 'Main Business',
-    status: 'active',
-    ownerId: 'user-1'
-  },
-  {
-    id: 'business-2',
-    name: 'Secondary Business',
-    status: 'active',
-    ownerId: 'user-1'
-  }
-];
+import { fromTable, isDataResponse } from "@/utils/supabaseServiceHelper";
 
 const Login: React.FC = () => {
   const { user, login, isLoading } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [availableBusinesses, setAvailableBusinesses] = useState<Business[]>(mockBusinesses);
+  const [availableBusinesses, setAvailableBusinesses] = useState<Business[]>([]);
   const location = useLocation();
+  
+  // Fetch available businesses when page loads
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      try {
+        const response = await fromTable('businesses')
+          .select('*')
+          .eq('status', 'active')
+          .limit(10);
+          
+        if (isDataResponse(response) && response.data) {
+          const businesses: Business[] = response.data.map(business => ({
+            id: business.id,
+            name: business.name,
+            status: business.status,
+            ownerId: business.owner_id
+          }));
+          
+          setAvailableBusinesses(businesses);
+        }
+      } catch (error) {
+        console.error('Error fetching businesses:', error);
+        // Provide fallback businesses in case of error
+        setAvailableBusinesses([
+          {
+            id: 'business-1',
+            name: 'Main Business',
+            status: 'active',
+            ownerId: 'user-1'
+          }
+        ]);
+      }
+    };
+    
+    fetchBusinesses();
+  }, []);
   
   // Store the current path as the intended redirect if it's not a public route
   useEffect(() => {
@@ -50,14 +71,8 @@ const Login: React.FC = () => {
   const handleSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     try {
-      if (!data.businessId || data.businessId.trim() === "") {
-        toast.error("Please select a business to continue");
-        setIsSubmitting(false);
-        return;
-      }
-      
+      // Make businessId optional since we might not have any businesses yet
       await login(data.email, data.password, data.businessId, data.rememberMe);
-      toast.success("Login successful");
     } catch (error) {
       console.error(error);
       // Display the actual error message from the authentication process
