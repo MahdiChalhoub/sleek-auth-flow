@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -128,6 +129,7 @@ const SetupWizard: React.FC = () => {
         throw new Error('Invalid business data returned from database');
       }
       
+      // Add non-null assertion (!) after checking businessObj is valid
       const businessId = (businessObj as { id: string }).id;
       
       const locationResponse = await fromTable('locations')

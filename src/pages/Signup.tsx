@@ -56,7 +56,7 @@ const Signup: React.FC = () => {
           // Make sure we have a valid business object with an id before trying to access it
           const businessObj = businessResponse.data[0];
           if (businessObj && typeof businessObj === 'object' && 'id' in businessObj) {
-            // Now we can safely access businessObj.id
+            // Add non-null assertion (!) after checking businessObj is valid
             const businessId = (businessObj as { id: string }).id;
             
             const locationResponse = await fromTable('locations')
