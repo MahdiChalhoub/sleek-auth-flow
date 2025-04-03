@@ -58,14 +58,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return ownedBusinesses.map(mapBusinessData);
       }
       
-      const memberBusinesses = membershipResponse.data || [];
+      // Filter out any null or undefined business_id values
+      const validMemberBusinesses = (membershipResponse.data || [])
+        .filter(item => item && typeof item === 'object' && item.business_id);
       
       let businessesFromMembership: any[] = [];
-      if (memberBusinesses.length > 0) {
-        // Extract valid business IDs from memberBusinesses
-        const businessIds = memberBusinesses
-          .filter(item => item && item.business_id)
-          .map(item => item.business_id);
+      if (validMemberBusinesses.length > 0) {
+        // Extract business IDs from validMemberBusinesses
+        const businessIds = validMemberBusinesses.map(item => item.business_id);
         
         if (businessIds.length > 0) {
           const memberDetailsResponse = await fromTable('businesses')

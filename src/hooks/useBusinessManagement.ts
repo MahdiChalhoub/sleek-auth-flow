@@ -1,9 +1,8 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { useAuth } from '@/contexts/AuthContext';
-import { fromTable, isDataResponse, safeDataTransform } from '@/utils/supabaseServiceHelper';
+import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
 
 export const useBusinessManagement = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -33,12 +32,12 @@ export const useBusinessManagement = () => {
       }
       
       // Combine and deduplicate businesses
-      const memberBusinessesData = safeDataTransform(memberResponse.data, item => {
+      const memberBusinessesData = (memberResponse.data || []).map(item => {
         if (item && typeof item === 'object' && 'business' in item && item.business) {
           return item.business;
         }
         return null;
-      });
+      }).filter((item): item is any => item !== null);
       
       const allBusinesses = [...(ownedResponse.data || []), ...memberBusinessesData];
       
