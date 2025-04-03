@@ -10,6 +10,7 @@ import { QueryProvider } from './providers/QueryProvider';
 import { AuthProvider } from './providers/AuthProvider';
 import { LocationProvider } from './contexts/LocationContext';
 import { Loader2 } from 'lucide-react';
+import PrivateRoute from './components/auth/PrivateRoute';
 
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
