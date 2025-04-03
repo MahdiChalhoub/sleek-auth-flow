@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss"
 
 export default {
@@ -21,6 +22,8 @@ export default {
         sans: ['SF Pro Display', 'Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: '#9b87f5',
           foreground: '#ffffff',
