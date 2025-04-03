@@ -2,6 +2,7 @@
 import { supabase } from '@/lib/supabase';
 import { ProductBatch, mapDbProductBatchToModel, mapModelProductBatchToDb } from '@/models/productBatch';
 import { callRPC } from '@/utils/rpcUtils';
+import { fromTable } from '@/utils/supabaseServiceHelper';
 
 export const productBatchService = {
   getAllBatches: async (): Promise<ProductBatch[]> => {
@@ -17,8 +18,7 @@ export const productBatchService = {
         return [];
       }
       
-      const { data, error } = await supabase
-        .from('product_batches')
+      const { data, error } = await fromTable('product_batches')
         .select('*, products(name)');
         
       if (error) {
@@ -38,8 +38,7 @@ export const productBatchService = {
   
   getProductBatches: async (productId: string): Promise<ProductBatch[]> => {
     try {
-      const { data, error } = await supabase
-        .from('product_batches')
+      const { data, error } = await fromTable('product_batches')
         .select('*')
         .eq('product_id', productId);
         
@@ -57,8 +56,7 @@ export const productBatchService = {
   
   addBatch: async (batch: Omit<ProductBatch, "id" | "created_at" | "updated_at">): Promise<ProductBatch | null> => {
     try {
-      const { data, error } = await supabase
-        .from('product_batches')
+      const { data, error } = await fromTable('product_batches')
         .insert(mapModelProductBatchToDb(batch))
         .select()
         .single();
@@ -77,8 +75,7 @@ export const productBatchService = {
   
   updateBatch: async (batch: Partial<ProductBatch> & { id: string }): Promise<ProductBatch | null> => {
     try {
-      const { data, error } = await supabase
-        .from('product_batches')
+      const { data, error } = await fromTable('product_batches')
         .update({
           quantity: batch.quantity,
           expiry_date: batch.expiry_date,
@@ -103,8 +100,7 @@ export const productBatchService = {
   
   deleteBatch: async (batchId: string): Promise<boolean> => {
     try {
-      const { error } = await supabase
-        .from('product_batches')
+      const { error } = await fromTable('product_batches')
         .delete()
         .eq('id', batchId);
         

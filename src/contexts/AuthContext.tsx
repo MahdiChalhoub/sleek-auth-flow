@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { User } from '@/types/auth';
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { toast } from 'sonner';
+import { fromTable } from '@/utils/supabaseServiceHelper';
 
 interface AuthContextType {
   user: User | null;
@@ -50,8 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       // Fetch businesses where user is a member
-      const { data: memberBusinesses, error: memberError } = await supabase
-        .from('business_users')
+      const { data: memberBusinesses, error: memberError } = await fromTable('business_users')
         .select('*, business:businesses(*)')
         .eq('user_id', userId);
       
@@ -60,9 +60,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       // Combine and deduplicate businesses
-      const businessesFromMembership = (memberBusinesses || [])
-        .filter(item => item.business)
-        .map(item => item.business);
+      const businessesFromMembership = Array.isArray(memberBusinesses) 
+        ? memberBusinesses
+            .filter(item => item.business)
+            .map(item => item.business)
+        : [];
       
       const allBusinesses = [...(ownedBusinesses || []), ...businessesFromMembership];
       
