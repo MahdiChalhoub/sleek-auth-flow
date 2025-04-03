@@ -128,10 +128,13 @@ const SetupWizard: React.FC = () => {
         throw new Error('Failed to retrieve created business ID');
       }
       
-      const businessId = businessResponse.data[0]?.id;
-      if (!businessId) {
-        throw new Error('Failed to retrieve created business ID');
+      // Make sure we have a valid business object with an id before trying to access it
+      const businessObj = businessResponse.data[0];
+      if (!businessObj || typeof businessObj !== 'object' || !('id' in businessObj)) {
+        throw new Error('Invalid business data returned from database');
       }
+      
+      const businessId = businessObj.id;
       
       // 3. Create the main location
       const locationResponse = await fromTable('locations')

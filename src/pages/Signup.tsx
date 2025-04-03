@@ -53,9 +53,11 @@ const Signup: React.FC = () => {
         // 3. Create a default location for the business
         // Safely access the business ID
         if (businessResponse.data && businessResponse.data.length > 0) {
-          const businessId = businessResponse.data[0]?.id;
-          
-          if (businessId) {
+          // Make sure we have a valid business object with an id before trying to access it
+          const businessObj = businessResponse.data[0];
+          if (businessObj && typeof businessObj === 'object' && 'id' in businessObj) {
+            const businessId = businessObj.id;
+            
             const locationResponse = await fromTable('locations')
               .insert({
                 name: 'Main Store',

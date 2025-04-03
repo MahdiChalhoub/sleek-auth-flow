@@ -17,9 +17,12 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
     
     // If the setting exists and is complete, return it
     if (isDataResponse(settingsResponse) && settingsResponse.data) {
-      // Safely access the value property with optional chaining
-      const setupComplete = settingsResponse.data?.value?.completed === true;
-      return { isComplete: setupComplete, businessExists: true };
+      // Safely access value property after checking it's a data response
+      const setupCompleted = settingsResponse.data.value && 
+                            typeof settingsResponse.data.value === 'object' && 
+                            'completed' in settingsResponse.data.value &&
+                            settingsResponse.data.value.completed === true;
+      return { isComplete: setupCompleted, businessExists: true };
     }
     
     // If the setting doesn't exist, check if any businesses exist
