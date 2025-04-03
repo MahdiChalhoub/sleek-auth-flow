@@ -20,17 +20,16 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
       const dataValue = settingsResponse.data;
       
       // Safely access nested value property with proper null/undefined checks
-      if (dataValue && typeof dataValue === 'object' && 'value' in dataValue && dataValue.value !== null) {
-        // Access the value object after validation
+      if (dataValue && typeof dataValue === 'object' && 'value' in dataValue) {
+        // Access the value object after validation, but ensure it's not null
         const valueObject = dataValue.value;
-                    
-        // Check if completed exists in the value object
-        const setupCompleted = valueObject !== null &&
-                      typeof valueObject === 'object' &&
-                      'completed' in valueObject &&
-                      Boolean(valueObject.completed);
-                          
-        return { isComplete: setupCompleted, businessExists: true };
+        
+        if (valueObject !== null && typeof valueObject === 'object') {
+          // Check if completed exists in the value object
+          const setupCompleted = 'completed' in valueObject && Boolean(valueObject.completed);
+          
+          return { isComplete: setupCompleted, businessExists: true };
+        }
       }
     }
     

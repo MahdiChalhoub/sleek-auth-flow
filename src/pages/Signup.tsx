@@ -69,14 +69,14 @@ const Signup: React.FC = () => {
           // Only proceed if we definitely have a valid business object
           if (!businessObj || typeof businessObj !== 'object') {
             console.warn('Invalid business data returned from database');
-          } else if (!('id' in businessObj)) {
-            console.warn('Business object is missing ID field');
           } else {
-            // After validation, we can safely use businessObj.id
-            const businessId = businessObj && typeof businessObj === 'object' && 'id' in businessObj ? 
-              String(businessObj.id) : '';
+            // Type assertion to help TypeScript
+            const typedBusinessObj = businessObj as Record<string, unknown>;
             
-            if (businessId) {
+            // After validation, we can safely use businessObj.id if it exists
+            if ('id' in typedBusinessObj) {
+              const businessId = String(typedBusinessObj.id);
+              
               try {
                 const locationResponse = await fromTable('locations')
                   .insert({

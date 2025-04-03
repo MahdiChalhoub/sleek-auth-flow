@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +29,6 @@ const SetupWizard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('business');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Business form state
   const [businessData, setBusinessData] = useState<BusinessFormData>({
     name: '',
     type: 'Retail',
@@ -39,7 +37,6 @@ const SetupWizard: React.FC = () => {
     address: ''
   });
   
-  // Location form state
   const [locationData, setLocationData] = useState<LocationFormData>({
     name: 'Main Store',
     type: 'retail',
@@ -59,26 +56,22 @@ const SetupWizard: React.FC = () => {
   const handleBusinessSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
     if (!businessData.name.trim()) {
       toast.error('Business name is required');
       return;
     }
     
-    // Move to next tab
     setActiveTab('location');
   };
   
   const handleLocationSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
     if (!locationData.name.trim()) {
       toast.error('Location name is required');
       return;
     }
     
-    // Submit both forms
     handleFinalSubmit();
   };
   
@@ -86,14 +79,12 @@ const SetupWizard: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Get current user
       const { data: userData, error: userError } = await supabase.auth.getUser();
       
       if (userError || !userData.user) {
         throw new Error('You must be logged in to complete setup');
       }
       
-      // Check if business name already exists
       const businessNameCheck = await fromTable('businesses')
         .select('id')
         .eq('name', businessData.name)
@@ -103,7 +94,6 @@ const SetupWizard: React.FC = () => {
         throw new Error('A business with this name already exists. Please choose a different name.');
       }
       
-      // Check if phone already exists (if provided)
       if (businessData.phone) {
         const phoneCheck = await fromTable('businesses')
           .select('id')
@@ -115,7 +105,6 @@ const SetupWizard: React.FC = () => {
         }
       }
       
-      // 1. Create business
       const businessResponse = await fromTable('businesses')
         .insert({
           name: businessData.name,
@@ -133,33 +122,25 @@ const SetupWizard: React.FC = () => {
         throw new Error('Failed to create business');
       }
       
-      // Verify business data exists and has the proper shape
       if (!businessResponse.data || businessResponse.data.length === 0) {
         throw new Error('No business data returned');
       }
       
       const businessObj = businessResponse.data[0];
       
-      // Safely access business ID with null and type checks
-      if (!businessObj || typeof businessObj !== 'object') {
-        throw new Error('Invalid business data returned');
-      }
+      const typedBusinessObj = businessObj as Record<string, unknown>;
       
-      // Check if 'id' exists in the business object
-      if (!('id' in businessObj)) {
+      if (!('id' in typedBusinessObj)) {
         throw new Error('Business ID not found in response');
       }
       
-      // After validating, we can safely use businessObj.id
-      const businessId = businessObj && typeof businessObj === 'object' && 'id' in businessObj ? 
-        String(businessObj.id) : '';
+      const businessId = String(typedBusinessObj.id);
       
       if (!businessId) {
         throw new Error('Could not retrieve business ID');
       }
       
       try {
-        // 2. Create location
         const locationResponse = await fromTable('locations')
           .insert({
             name: locationData.name,
@@ -172,19 +153,15 @@ const SetupWizard: React.FC = () => {
         
         if (!isDataResponse(locationResponse)) {
           console.error('Error creating location:', locationResponse);
-          // Continue anyway, user can create locations later
         }
       } catch (locationError) {
         console.error('Failed to create location:', locationError);
-        // Continue anyway, user can create locations later
       }
       
-      // 3. Mark setup as complete
       await saveSetupStatus(true);
       
       toast.success('Setup completed successfully!');
       
-      // 4. Navigate to dashboard
       navigate('/dashboard');
     } catch (error) {
       console.error('Setup error:', error);
