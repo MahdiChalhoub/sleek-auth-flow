@@ -1,4 +1,3 @@
-
 import { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
@@ -28,10 +27,16 @@ export function safeArray<T, R>(data: T[] | null, mapper: (item: T) => R): R[] {
   return data.map(mapper);
 }
 
-// Helper function to safely transform data with a mapping function
-export function safeDataTransform<T, R>(data: T[] | null, mapper: (item: T) => R | null): R[] {
-  if (!data || !Array.isArray(data)) return [];
-  return data.map(mapper).filter((item): item is R => item !== null);
+// Safe transform utility for handling potentially null data
+export function safeDataTransform<T, R>(
+  data: T[] | null | undefined,
+  transformer: (item: T) => R | null
+): R[] {
+  if (!data) return [];
+  
+  return data
+    .map(item => (item ? transformer(item) : null))
+    .filter((item): item is R => item !== null);
 }
 
 // Helper function to access Supabase tables with better typing

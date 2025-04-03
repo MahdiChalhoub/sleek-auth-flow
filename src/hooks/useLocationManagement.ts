@@ -28,21 +28,26 @@ export const useLocationManagement = () => {
       // Type guard to ensure data is available
       const locationsData = response.data || [];
       
-      const mappedLocations: Branch[] = locationsData.map(location => ({
-        id: location?.id || '',
-        name: location?.name || '',
-        address: location?.address || '',
-        phone: location?.phone || '',
-        email: location?.email || '',
-        businessId: location?.business_id || '',
-        status: (location?.status as 'active' | 'inactive' | 'pending') || 'active',
-        type: (location?.type as 'retail' | 'warehouse' | 'office' | 'other') || 'retail',
-        isDefault: location?.is_default || false,
-        locationCode: location?.location_code || '',
-        createdAt: location?.created_at || '',
-        updatedAt: location?.updated_at || '',
-        openingHours: location?.opening_hours || {}
-      }));
+      const mappedLocations: Branch[] = locationsData.map(location => {
+        // Make sure location is not null before accessing properties
+        if (!location) return null;
+        
+        return {
+          id: location.id || '',
+          name: location.name || '',
+          address: location.address || '',
+          phone: location.phone || '',
+          email: location.email || '',
+          businessId: location.business_id || '',
+          status: (location.status as 'active' | 'inactive' | 'pending') || 'active',
+          type: (location.type as 'retail' | 'warehouse' | 'office' | 'other') || 'retail',
+          isDefault: location.is_default || false,
+          locationCode: location.location_code || '',
+          createdAt: location.created_at || '',
+          updatedAt: location.updated_at || '',
+          openingHours: location.opening_hours || {}
+        };
+      }).filter(Boolean) as Branch[]; // Filter out null values
       
       setLocations(mappedLocations);
     } catch (error) {

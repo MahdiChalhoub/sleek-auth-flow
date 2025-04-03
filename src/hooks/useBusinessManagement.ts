@@ -38,7 +38,7 @@ export const useBusinessManagement = () => {
           return item.business;
         }
         return null;
-      });
+      }).filter(Boolean); // Filter out null values
       
       const allBusinesses = [...(ownedResponse.data || []), ...memberBusinessesData];
       
