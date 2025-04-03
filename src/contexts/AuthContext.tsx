@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/auth';
@@ -61,16 +62,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       let businessesFromMembership: any[] = [];
       if (memberBusinesses.length > 0) {
-        const businessIds = memberBusinesses.map(item => item.business_id);
+        // Extract valid business IDs from memberBusinesses
+        const businessIds = memberBusinesses
+          .filter(item => item && item.business_id)
+          .map(item => item.business_id);
         
-        const memberDetailsResponse = await fromTable('businesses')
-          .select('*')
-          .in('id', businessIds);
-          
-        if (isDataResponse(memberDetailsResponse)) {
-          businessesFromMembership = memberDetailsResponse.data || [];
-        } else {
-          console.error('Error fetching member business details:', memberDetailsResponse.error);
+        if (businessIds.length > 0) {
+          const memberDetailsResponse = await fromTable('businesses')
+            .select('*')
+            .in('id', businessIds);
+            
+          if (isDataResponse(memberDetailsResponse)) {
+            businessesFromMembership = memberDetailsResponse.data || [];
+          } else {
+            console.error('Error fetching member business details:', memberDetailsResponse.error);
+          }
         }
       }
       

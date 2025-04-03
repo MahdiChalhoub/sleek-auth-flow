@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { Branch } from '@/types/location';
 import { useAuth } from '@/contexts/AuthContext';
-import { fromTable, isDataResponse, safeDataTransform } from '@/utils/supabaseServiceHelper';
+import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
 
 export const useLocationManagement = () => {
   const [locations, setLocations] = useState<Branch[]>([]);
@@ -28,7 +28,7 @@ export const useLocationManagement = () => {
       // Type guard to ensure data is available
       const locationsData = response.data || [];
       
-      const mappedLocations: Branch[] = safeDataTransform(locationsData, location => ({
+      const mappedLocations: Branch[] = locationsData.map(location => ({
         id: location.id || '',
         name: location.name || '',
         address: location.address || '',

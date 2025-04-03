@@ -34,7 +34,7 @@ export const useBusinessManagement = () => {
       
       // Combine and deduplicate businesses
       const memberBusinessesData = safeDataTransform(memberResponse.data, item => {
-        if (item && typeof item === 'object' && 'business' in item) {
+        if (item && typeof item === 'object' && 'business' in item && item.business) {
           return item.business;
         }
         return null;

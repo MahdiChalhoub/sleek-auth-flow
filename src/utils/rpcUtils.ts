@@ -9,7 +9,10 @@ export type RpcFunctionName =
   | 'insert_product_batch'
   | 'update_product_batch'
   | 'delete_product_batch'
-  | 'can_delete_user';
+  | 'can_delete_user'
+  | 'open_register'
+  | 'close_register'
+  | 'resolve_register_discrepancy';
 
 // Helper function to format RPC parameters
 export function rpcParams<T extends Record<string, any>>(params: T): T {
