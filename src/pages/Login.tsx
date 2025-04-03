@@ -34,6 +34,17 @@ const Login: React.FC = () => {
           }));
           
           setAvailableBusinesses(businesses);
+        } else {
+          // If there's an error or no data, provide fallback businesses
+          console.error('Could not fetch businesses:', response.error);
+          setAvailableBusinesses([
+            {
+              id: 'business-1',
+              name: 'Main Business',
+              status: 'active',
+              ownerId: 'user-1'
+            }
+          ]);
         }
       } catch (error) {
         console.error('Error fetching businesses:', error);

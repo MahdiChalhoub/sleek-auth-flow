@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,32 +50,37 @@ const Signup: React.FC = () => {
         console.error('Error creating business:', businessResponse);
         // Continue anyway, user can create business later
       } else {
+        // Verify business data exists and has the proper shape
         if (!businessResponse.data || businessResponse.data.length === 0) {
-          throw new Error('No business data returned');
-        }
-        
-        const businessObj = businessResponse.data[0];
-        
-        // TypeScript null check - guarantee businessObj exists and has required properties
-        if (!businessObj || typeof businessObj !== 'object' || !('id' in businessObj)) {
-          throw new Error('Invalid business data returned from database');
-        }
-        
-        // Type assertion to make TypeScript happy
-        const businessId = businessObj.id as string;
-        
-        const locationResponse = await fromTable('locations')
-          .insert({
-            name: 'Main Store',
-            business_id: businessId,
-            type: 'retail',
-            status: 'active',
-            is_default: true
-          });
-        
-        if (!isDataResponse(locationResponse)) {
-          console.error('Error creating location:', locationResponse);
-          // Continue anyway, user can create locations later
+          console.warn('No business data returned');
+        } else {
+          const businessObj = businessResponse.data[0];
+          
+          // Only proceed if we definitely have a business object with an id
+          if (businessObj && typeof businessObj === 'object' && 'id' in businessObj) {
+            // Safe type assertion after validation
+            const businessId = businessObj.id as string;
+            
+            try {
+              const locationResponse = await fromTable('locations')
+                .insert({
+                  name: 'Main Store',
+                  business_id: businessId,
+                  type: 'retail',
+                  status: 'active',
+                  is_default: true
+                });
+              
+              if (!isDataResponse(locationResponse)) {
+                console.error('Error creating location:', locationResponse);
+              }
+            } catch (locationError) {
+              console.error('Failed to create location:', locationError);
+              // Continue anyway, user can create locations later
+            }
+          } else {
+            console.warn('Invalid business data returned from database');
+          }
         }
       }
       
