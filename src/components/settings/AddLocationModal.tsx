@@ -11,18 +11,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LocationFormContent } from "./LocationForm/LocationFormContent";
-import { Branch } from "@/models/interfaces/businessInterfaces";
+import { Location } from "@/types/location";
 
 interface AddLocationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (location: Branch) => void;
+  onSave: (location: Location) => void;
 }
 
 // Make sure the schema matches the Branch interface type requirements
 const locationSchema = z.object({
   name: z.string().min(2, { message: "Location name must be at least 2 characters" }),
-  type: z.enum(["store", "warehouse", "pickup"]),
+  type: z.enum(["retail", "warehouse", "office", "other"]),
   address: z.string().min(5, { message: "Please enter a valid address" }),
   phone: z.string().optional(),
   email: z.string().email({ message: "Please enter a valid email" }).optional().or(z.literal("")),
@@ -48,7 +48,7 @@ export const AddLocationModal: React.FC<AddLocationModalProps> = ({
     resolver: zodResolver(locationSchema),
     defaultValues: {
       name: "",
-      type: "store",
+      type: "retail",
       address: "",
       phone: "",
       email: "",
@@ -68,26 +68,20 @@ export const AddLocationModal: React.FC<AddLocationModalProps> = ({
 
   const handleSubmit = (values: z.infer<typeof locationSchema>) => {
     // Create the new location object
-    const newLocation: Branch = {
+    const newLocation: Location = {
       id: `branch-${Date.now()}`,
       name: values.name,
       type: values.type,
       address: values.address,
       phone: values.phone || "",
       email: values.email || "",
-      managerId: values.managerId || "",
-      locationCode: values.locationCode || "",
-      openingHours: {
-        monday: values.openingHours.monday,
-        tuesday: values.openingHours.tuesday,
-        wednesday: values.openingHours.wednesday,
-        thursday: values.openingHours.thursday,
-        friday: values.openingHours.friday,
-        saturday: values.openingHours.saturday,
-        sunday: values.openingHours.sunday,
-      },
       businessId: "", // This will be set by the parent component
       status: "active",
+      isDefault: false,
+      locationCode: values.locationCode || "",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      openingHours: values.openingHours
     };
     
     onSave(newLocation);

@@ -1,5 +1,8 @@
+import React from 'react';
+import { Card } from '@/components/ui/card';
+import { LocationManagement } from '@/components/settings/LocationManagement';
+import { parseOpeningHours } from '@/types/location';
 
-import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { AddLocationModal } from "@/components/settings/AddLocationModal";
 import { toast } from "sonner";
 
-// Define a proper type for openingHours
 interface OpeningHours {
   monday?: string;
   tuesday?: string;
@@ -31,19 +33,28 @@ const Settings: React.FC = () => {
   const isSuperAdmin = user?.isGlobalAdmin;
   
   const handleAddLocation = (newLocation: any) => {
-    // In a real app, this would call an API to save the location
     toast.success(`New location "${newLocation.name}" created successfully!`);
     setIsAddLocationModalOpen(false);
   };
-  
-  // Helper function to get opening hours safely
-  const getOpeningHoursValue = (day: keyof OpeningHours): string => {
-    if (!currentLocation?.openingHours) return "Closed";
+
+  const getOpeningHoursDisplay = (location: any) => {
+    if (!location?.openingHours) return 'Not set';
     
-    const hours = currentLocation.openingHours as OpeningHours;
-    return hours[day] || "Closed";
+    const hours = parseOpeningHours(location.openingHours);
+    
+    return (
+      <div className="space-y-1 text-sm">
+        <p><span className="font-medium">Monday:</span> {hours.monday}</p>
+        <p><span className="font-medium">Tuesday:</span> {hours.tuesday}</p>
+        <p><span className="font-medium">Wednesday:</span> {hours.wednesday}</p>
+        <p><span className="font-medium">Thursday:</span> {hours.thursday}</p>
+        <p><span className="font-medium">Friday:</span> {hours.friday}</p>
+        <p><span className="font-medium">Saturday:</span> {hours.saturday}</p>
+        <p><span className="font-medium">Sunday:</span> {hours.sunday}</p>
+      </div>
+    );
   };
-  
+
   return (
     <div className="container mx-auto space-y-6">
       <div className="flex flex-col gap-2">
@@ -106,28 +117,7 @@ const Settings: React.FC = () => {
                           Opening Hours
                         </h4>
                         
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>Monday:</div>
-                          <div>{getOpeningHoursValue('monday')}</div>
-                          
-                          <div>Tuesday:</div>
-                          <div>{getOpeningHoursValue('tuesday')}</div>
-                          
-                          <div>Wednesday:</div>
-                          <div>{getOpeningHoursValue('wednesday')}</div>
-                          
-                          <div>Thursday:</div>
-                          <div>{getOpeningHoursValue('thursday')}</div>
-                          
-                          <div>Friday:</div>
-                          <div>{getOpeningHoursValue('friday')}</div>
-                          
-                          <div>Saturday:</div>
-                          <div>{getOpeningHoursValue('saturday')}</div>
-                          
-                          <div>Sunday:</div>
-                          <div>{getOpeningHoursValue('sunday')}</div>
-                        </div>
+                        {getOpeningHoursDisplay(currentLocation)}
                       </div>
                     </div>
                     

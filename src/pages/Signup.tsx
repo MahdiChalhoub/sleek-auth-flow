@@ -53,9 +53,9 @@ const Signup: React.FC = () => {
       } else {
         // 3. Create a default location for the business
         // Safe access to data using optional chaining and type guard
-        const businessId = businessResponse.data?.id;
-        
-        if (businessId) {
+        if (businessResponse.data && businessResponse.data.id) {
+          const businessId = businessResponse.data.id;
+          
           const locationResponse = await fromTable('locations')
             .insert({
               name: 'Main Store',

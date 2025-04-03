@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { CircleCheck, CircleX, CircleDashed } from 'lucide-react';
+import { CircleCheck, CircleX, CircleDashed, CircleSlash } from 'lucide-react';
 
 interface LocationStatusBadgeProps {
-  status: 'active' | 'inactive' | 'pending';
+  status: 'active' | 'inactive' | 'pending' | 'closed';
 }
 
 export const LocationStatusBadge: React.FC<LocationStatusBadgeProps> = ({ status }) => {
@@ -28,6 +28,13 @@ export const LocationStatusBadge: React.FC<LocationStatusBadgeProps> = ({ status
         <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 flex items-center gap-1">
           <CircleDashed className="h-3 w-3" />
           Pending
+        </Badge>
+      );
+    case 'closed':
+      return (
+        <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200 flex items-center gap-1">
+          <CircleSlash className="h-3 w-3" />
+          Closed
         </Badge>
       );
     default:

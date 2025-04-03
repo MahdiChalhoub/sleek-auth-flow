@@ -12,6 +12,7 @@ import { PlusCircle, MapPin } from "lucide-react";
 import { AddLocationModal } from "./AddLocationModal";
 import { LocationList } from "./location/LocationList";
 import { useLocationManagement } from "@/hooks/useLocationManagement";
+import { Location } from "@/types/location";
 
 interface LocationManagementProps {
   businessId?: string;
@@ -26,6 +27,11 @@ export const LocationManagement: React.FC<LocationManagementProps> = ({ business
   } = useLocationManagement();
   
   const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false);
+
+  // This wrapper ensures type compatibility
+  const onSaveLocation = (location: Location) => {
+    handleAddLocation(location);
+  };
   
   return (
     <Card className="shadow-sm border-none">
@@ -61,7 +67,7 @@ export const LocationManagement: React.FC<LocationManagementProps> = ({ business
       <AddLocationModal 
         isOpen={isAddLocationModalOpen}
         onClose={() => setIsAddLocationModalOpen(false)}
-        onSave={handleAddLocation}
+        onSave={onSaveLocation}
       />
     </Card>
   );

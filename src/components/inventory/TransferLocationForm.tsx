@@ -2,7 +2,7 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Branch } from "@/models/interfaces/businessInterfaces";
+import { Location } from "@/types/location";
 
 interface TransferLocationFormProps {
   formData: {
@@ -12,9 +12,9 @@ interface TransferLocationFormProps {
     notes: string;
   };
   destinationLocations: string[];
-  availableLocations: Branch[];
+  availableLocations: Location[];
   reasons: string[];
-  currentLocation: Branch | null;
+  currentLocation: Location | null;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }
 

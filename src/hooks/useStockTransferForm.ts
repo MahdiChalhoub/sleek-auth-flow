@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Branch } from "@/models/interfaces/businessInterfaces";
+import { Location } from "@/types/location";
 import { toast } from "sonner";
 
 interface TransferFormData {
@@ -16,8 +16,8 @@ interface TransferItem {
 }
 
 export const useStockTransferForm = (
-  currentLocation: Branch | null,
-  availableLocations: Branch[]
+  currentLocation: Location | null,
+  availableLocations: Location[]
 ) => {
   const [formData, setFormData] = useState<TransferFormData>({
     source: currentLocation?.name || "",

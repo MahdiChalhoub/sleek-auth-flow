@@ -1,133 +1,59 @@
 
-import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { AuthContext } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import { User, UserRole, UserStatus } from "@/types/auth";
-import { supabase } from "@/lib/supabase";
-import { Session } from "@supabase/supabase-js";
-import { Business } from "@/models/interfaces/businessInterfaces";
-import { fromTable, isDataResponse, safeDataTransform } from "@/utils/supabaseServiceHelper";
+import React, { useState, useEffect, createContext, useContext } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/lib/supabase';
+import { Business } from '@/models/interfaces/businessInterfaces';
+import { toast } from 'sonner';
+import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
 
+// Define the authentication context type
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  isLoading: boolean;
+  businesses: Business[];
+  currentBusiness: Business | null;
+  login: (email: string, password: string, businessId?: string, rememberMe?: boolean) => Promise<void>;
+  logout: () => Promise<void>;
+  switchBusiness: (businessId: string) => void;
+}
+
+// Create the authentication context
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Custom hook to use the auth context
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
+
+// AuthProvider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userBusinesses, setUserBusinesses] = useState<Business[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
   const [currentBusiness, setCurrentBusiness] = useState<Business | null>(null);
   const navigate = useNavigate();
-  const location = useLocation();
-  
+
+  // Initialize authentication
   useEffect(() => {
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        setSession(newSession);
-        
-        if (newSession?.user) {
-          try {
-            const { data: extendedUser, error: extendedError } = await supabase
-              .from('extended_users')
-              .select('*')
-              .eq('id', newSession.user.id)
-              .single();
-            
-            if (extendedError) throw extendedError;
-            
-            if (extendedUser.status === 'pending') {
-              setUser({
-                id: newSession.user.id,
-                email: newSession.user.email || '',
-                status: 'pending' as UserStatus,
-                role: 'cashier'
-              });
-              return;
-            }
-            
-            if (extendedUser.status === 'denied' || extendedUser.status === 'inactive') {
-              await supabase.auth.signOut();
-              toast.error(`Account ${extendedUser.status}. Please contact an administrator.`);
-              setUser(null);
-              return;
-            }
-            
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', newSession.user.id)
-              .single();
-            
-            if (profileError && profileError.code !== 'PGRST116') {
-              throw profileError;
-            }
-            
-            const { data: userRole, error: roleError } = await supabase
-              .from('user_roles')
-              .select('*, role:roles(*)')
-              .eq('user_id', newSession.user.id)
-              .single();
-            
-            const role: UserRole = userRole?.role?.name === 'admin' 
-              ? 'admin' 
-              : userRole?.role?.name === 'manager'
-                ? 'manager'
-                : 'cashier';
-            
-            const { data: rolePermissions, error: permissionsError } = await supabase
-              .from('role_permissions')
-              .select('*, permission:permissions(*)')
-              .eq('role_id', userRole?.role_id);
-            
-            const permissions = rolePermissions?.map(rp => ({
-              id: rp.permission_id,
-              name: rp.permission.name,
-              description: rp.permission.description,
-              category: rp.permission.category,
-              enabled: rp.enabled
-            }));
-            
-            await supabase
-              .from('extended_users')
-              .update({ last_login: new Date().toISOString() })
-              .eq('id', newSession.user.id);
-            
-            const appUser: User = {
-              id: newSession.user.id,
-              email: newSession.user.email || '',
-              fullName: profile?.full_name || newSession.user.email?.split('@')[0] || 'User',
-              status: extendedUser.status as UserStatus,
-              role,
-              avatarUrl: profile?.avatar_url || `https://avatar.vercel.sh/${newSession.user.email}`,
-              permissions,
-              lastLogin: new Date().toISOString(),
-              createdAt: newSession.user.created_at
-            };
-            
-            setUser(appUser);
-            
-            fetchUserBusinesses(appUser.id);
-            
-          } catch (error) {
-            console.error("Error fetching user details:", error);
-            
-            setUser({
-              id: newSession.user.id,
-              email: newSession.user.email || '',
-              status: 'active' as UserStatus,
-              role: 'cashier',
-              lastLogin: new Date().toISOString()
-            });
-          }
-        } else {
-          setUser(null);
-          setUserBusinesses([]);
-          setCurrentBusiness(null);
-        }
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
-      setSession(existingSession);
-      setIsLoading(false);
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
     });
 
     return () => {
@@ -135,240 +61,120 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const fetchUserBusinesses = async (userId: string) => {
-    try {
-      const ownedBusinessesResponse = await fromTable('businesses')
-        .select('*')
-        .eq('owner_id', userId);
-      
-      if (!isDataResponse(ownedBusinessesResponse)) {
-        console.error('Error fetching owned businesses:', ownedBusinessesResponse.error);
-        return [];
-      }
-      
-      const ownedBusinesses = ownedBusinessesResponse.data || [];
-      
-      const memberBusinessesResponse = await fromTable('business_users')
-        .select('business:businesses(*)')
-        .eq('user_id', userId)
-        .eq('is_active', true);
-      
-      let memberBusinessesData: any[] = [];
-      
-      if (isDataResponse(memberBusinessesResponse)) {
-        memberBusinessesData = memberBusinessesResponse.data
-          .filter(item => item && typeof item === 'object' && 'business' in item)
-          .map(item => item.business)
-          .filter(Boolean);
-      } else {
-        console.error('Error fetching member businesses:', memberBusinessesResponse.error);
-      }
-      
-      const allBusinesses = [...ownedBusinesses, ...memberBusinessesData];
-      
-      const uniqueBusinesses = allBusinesses.reduce((acc, current) => {
-        const x = acc.find(item => item.id === current.id);
-        if (!x) {
-          return acc.concat([current]);
-        } else {
-          return acc;
-        }
-      }, [] as any[]);
-      
-      const mappedBusinesses: Business[] = uniqueBusinesses.map(business => ({
-        id: business.id,
-        name: business.name,
-        address: business.address,
-        phone: business.phone,
-        email: business.email,
-        status: business.status,
-        ownerId: business.owner_id,
-        createdAt: business.created_at,
-        updatedAt: business.updated_at,
-        logoUrl: business.logo_url,
-        description: business.description,
-        type: business.type,
-        country: business.country,
-        currency: business.currency,
-        active: business.active,
-        timezone: business.timezone
-      }));
-      
-      setUserBusinesses(mappedBusinesses);
-      
-      const businessId = localStorage.getItem("pos_current_business");
-      if (businessId) {
-        const savedBusiness = mappedBusinesses.find(b => b.id === businessId);
-        if (savedBusiness) {
-          setCurrentBusiness(savedBusiness);
-        } else if (mappedBusinesses.length > 0) {
-          setCurrentBusiness(mappedBusinesses[0]);
-          localStorage.setItem("pos_current_business", mappedBusinesses[0].id);
-        }
-      } else if (mappedBusinesses.length > 0) {
-        setCurrentBusiness(mappedBusinesses[0]);
-        localStorage.setItem("pos_current_business", mappedBusinesses[0].id);
-      }
-      
-      return mappedBusinesses;
-    } catch (error) {
-      console.error("Error fetching user businesses:", error);
-      toast.error("Failed to load businesses");
-      return [];
-    }
-  };
-
+  // Load businesses when user changes
   useEffect(() => {
-    if (!isLoading && user) {
-      if (user.status === 'pending') {
-        navigate('/waiting-approval');
-        return;
-      }
-      
-      if (userBusinesses.length === 0 && !location.pathname.includes('/business-selection') && !location.pathname.includes('/login')) {
-        navigate('/business-selection');
-        return;
-      }
-      
-      if (location.pathname === "/login") {
-        const redirectPath = localStorage.getItem("intended_redirect") || 
-          (user.role === 'admin' ? '/home' : user.role === 'manager' ? '/inventory' : '/pos-sales');
-        localStorage.removeItem("intended_redirect");
-        
-        navigate(redirectPath);
-      }
-    }
-  }, [user, isLoading, navigate, location.pathname, userBusinesses.length]);
+    const getBusinesses = async () => {
+      try {
+        if (!user) {
+          setBusinesses([]);
+          setCurrentBusiness(null);
+          setIsLoading(false);
+          return;
+        }
 
-  const login = async (email: string, password: string, businessId: string, rememberMe: boolean = true): Promise<void> => {
-    setIsLoading(true);
-    
+        // Fetch businesses for the current user
+        const response = await fromTable('businesses')
+          .select('*')
+          .eq('owner_id', user.id);
+
+        if (!isDataResponse(response)) {
+          console.error('Error fetching businesses:', response.error);
+          setBusinesses([]);
+          setCurrentBusiness(null);
+          setIsLoading(false);
+          return;
+        }
+
+        const fetchedBusinesses = response.data || [];
+        setBusinesses(fetchedBusinesses);
+
+        // Load the previously selected business or default to the first one
+        const savedBusinessId = localStorage.getItem('pos_current_business');
+        let selectedBusiness = null;
+
+        if (savedBusinessId && fetchedBusinesses.length > 0) {
+          selectedBusiness = fetchedBusinesses.find(b => b.id === savedBusinessId) || fetchedBusinesses[0];
+        } else if (fetchedBusinesses.length > 0) {
+          selectedBusiness = fetchedBusinesses[0];
+        }
+
+        setCurrentBusiness(selectedBusiness);
+        if (selectedBusiness) {
+          localStorage.setItem('pos_current_business', selectedBusiness.id);
+        }
+      } catch (error) {
+        console.error('Error in getBusinesses:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getBusinesses();
+  }, [user]);
+
+  // Login function
+  const login = async (email: string, password: string, businessId?: string, rememberMe = true) => {
     try {
-      if (!businessId || businessId.trim() === "") {
-        throw new Error("Please select a business to continue");
-      }
-
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
-      
-      if (error) {
-        throw new Error(error.message);
-      }
-      
+
+      if (error) throw error;
+
       if (!data.user) {
-        throw new Error("Login failed. No user data found.");
+        throw new Error('Login successful but no user returned');
       }
-      
-      const { data: extendedUser, error: extendedError } = await supabase
-        .from('extended_users')
-        .select('status')
-        .eq('id', data.user.id)
-        .single();
-      
-      if (extendedError) {
-        if (extendedError.code === 'PGRST116') {
-          await supabase
-            .from('extended_users')
-            .insert({ id: data.user.id, status: 'active' });
-        } else {
-          throw extendedError;
-        }
-      } else if (extendedUser.status === 'pending') {
-        navigate('/waiting-approval');
-        toast.info("Your account is pending approval");
-        return;
-      } else if (extendedUser.status === 'denied' || extendedUser.status === 'inactive') {
-        await supabase.auth.signOut();
-        throw new Error(`Your account has been ${extendedUser.status}. Please contact an administrator.`);
+
+      if (businessId) {
+        localStorage.setItem('pos_current_business', businessId);
       }
-      
-      localStorage.setItem("pos_current_business", businessId);
-      
-      toast.success(`Welcome back!`, {
-        description: "You have successfully logged in"
-      });
+
+      return;
     } catch (error) {
-      console.error("Login failed", error);
-      toast.error("Login failed", { 
-        description: error instanceof Error ? error.message : "Authentication failed. Please check your credentials."
-      });
+      console.error('Login error:', error);
       throw error;
-    } finally {
-      setIsLoading(false);
     }
   };
 
+  // Logout function
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
-      localStorage.removeItem("pos_current_business");
-      localStorage.removeItem("pos_current_location");
-      navigate("/login");
-      toast.info("You have been logged out");
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+      setSession(null);
+      setCurrentBusiness(null);
+      setBusinesses([]);
+      navigate('/login');
     } catch (error) {
-      console.error("Logout failed", error);
-      toast.error("Logout failed", {
-        description: "There was an issue with logging out. Please try again."
-      });
+      console.error('Logout error:', error);
+      toast.error('Failed to log out');
     }
   };
 
+  // Switch business function
   const switchBusiness = (businessId: string) => {
-    const business = userBusinesses.find(b => b.id === businessId);
+    const business = businesses.find(b => b.id === businessId);
     if (business) {
       setCurrentBusiness(business);
-      localStorage.setItem("pos_current_business", business.id);
-      localStorage.removeItem("pos_current_location");
-      toast.success(`Switched to ${business.name}`, {
-        description: "All data will now reflect this business."
-      });
+      localStorage.setItem('pos_current_business', business.id);
+      toast.success(`Switched to ${business.name}`);
     } else {
-      toast.error("Business not found", {
-        description: "The selected business is not available."
-      });
+      toast.error('Business not found');
     }
   };
 
-  const hasPermission = (permissionName: string): boolean => {
-    if (!user) return false;
-    
-    if (user.role === 'admin') return true;
-    
-    if (user.permissions) {
-      return user.permissions.some(
-        permission => permission.name === permissionName && permission.enabled
-      );
-    }
-    
-    if (permissionName === 'can_view_transactions' && user.role === 'cashier') {
-      return true;
-    }
-    
-    if (permissionName === 'can_edit_transactions' && user.role === 'cashier') {
-      return true;
-    }
-    
-    if (permissionName.startsWith('can_') && user.role === 'manager') {
-      return true;
-    }
-    
-    return false;
+  const value = {
+    user,
+    session,
+    isLoading,
+    businesses,
+    currentBusiness,
+    login,
+    logout,
+    switchBusiness,
   };
 
-  return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isLoading, 
-      login, 
-      logout, 
-      currentBusiness, 
-      userBusinesses,
-      switchBusiness,
-      hasPermission
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

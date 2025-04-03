@@ -1,4 +1,3 @@
-
 export interface Business {
   id: string;
   name: string;
@@ -26,28 +25,19 @@ export interface Branch {
   address?: string;
   phone?: string;
   businessId: string;
-  status: 'active' | 'inactive' | 'pending';
+  status: 'active' | 'inactive' | 'pending' | 'closed';
   createdAt?: string;
   updatedAt?: string;
   email?: string;
   type?: string;
   isDefault?: boolean;
   managerId?: string;
-  openingHours?: {
-    monday?: string;
-    tuesday?: string;
-    wednesday?: string;
-    thursday?: string;
-    friday?: string;
-    saturday?: string;
-    sunday?: string;
-  };
+  openingHours?: Record<string, string> | string;
   latitude?: number;
   longitude?: number;
   locationCode?: string;
 }
 
-// Adding mock businesses data
 export const mockBusinesses: Business[] = [
   {
     id: 'business-1',
