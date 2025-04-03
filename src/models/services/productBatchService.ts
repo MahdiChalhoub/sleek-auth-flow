@@ -1,8 +1,6 @@
-
 import { supabase } from '@/lib/supabase';
 import { ProductBatch, mapDbProductBatchToModel, mapModelProductBatchToDb } from '@/models/productBatch';
 import { callRPC } from '@/utils/rpcUtils';
-import { rpcParams } from '@/utils/rpcUtils';
 
 export const productBatchService = {
   getAllBatches: async (): Promise<ProductBatch[]> => {

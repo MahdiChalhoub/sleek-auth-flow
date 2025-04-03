@@ -1,7 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Supplier } from '@/models/supplier';
-import { tableSource } from '@/utils/supabaseUtils';
 import { assertType } from '@/utils/typeUtils';
 import { fromTable } from '@/utils/supabaseServiceHelper';
 

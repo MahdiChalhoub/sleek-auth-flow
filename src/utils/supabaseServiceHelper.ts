@@ -28,7 +28,14 @@ export function safeArray<T, R>(data: T[] | null, mapper: (item: T) => R): R[] {
   return data.map(mapper);
 }
 
+// Helper function to safely transform data with a mapping function
+export function safeDataTransform<T, R>(data: T[] | null, mapper: (item: T) => R | null): R[] {
+  if (!data || !Array.isArray(data)) return [];
+  return data.map(mapper).filter((item): item is R => item !== null);
+}
+
 // Helper function to access Supabase tables with better typing
 export function fromTable(tableName: string) {
-  return supabase.from(tableName);
+  // Use any to bypass the type checking here, as we need to support dynamic table names
+  return supabase.from(tableName as any);
 }

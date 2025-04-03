@@ -12,15 +12,8 @@ import { productTypesApi } from './services/productTypesApi';
 import { assertType, hasProperty, safeGet, hasRequiredProperties } from '@/utils/typeUtils';
 
 // Re-export Supabase utility functions
-import { 
-  safeArray, 
-  rpcParams, 
-  tableSource, 
-  formatSupabaseError, 
-  settleAll, 
-  safeQuery, 
-  safeTransaction 
-} from '@/utils/supabaseUtils';
+import { safeArray } from '@/utils/supabaseUtils';
+import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
 
 export {
   // API services
@@ -43,10 +36,6 @@ export {
   
   // Supabase utilities
   safeArray,
-  rpcParams,
-  tableSource,
-  formatSupabaseError,
-  settleAll,
-  safeQuery,
-  safeTransaction
+  fromTable,
+  isDataResponse
 };
