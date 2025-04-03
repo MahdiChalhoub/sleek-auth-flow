@@ -16,6 +16,7 @@ export type Database = {
           created_at: string | null
           currency: string
           description: string | null
+          email: string | null
           id: string
           logo_url: string | null
           name: string
@@ -30,6 +31,7 @@ export type Database = {
           created_at?: string | null
           currency: string
           description?: string | null
+          email?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -44,6 +46,7 @@ export type Database = {
           created_at?: string | null
           currency?: string
           description?: string | null
+          email?: string | null
           id?: string
           logo_url?: string | null
           name?: string
@@ -398,32 +401,46 @@ export type Database = {
       locations: {
         Row: {
           address: string | null
+          business_id: string | null
           created_at: string | null
           id: string
           is_active: boolean | null
           name: string
           phone: string | null
+          type: string | null
           updated_at: string | null
         }
         Insert: {
           address?: string | null
+          business_id?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
           name: string
           phone?: string | null
+          type?: string | null
           updated_at?: string | null
         }
         Update: {
           address?: string | null
+          business_id?: string | null
           created_at?: string | null
           id?: string
           is_active?: boolean | null
           name?: string
           phone?: string | null
+          type?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "locations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permissions: {
         Row: {
