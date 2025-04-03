@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
@@ -60,27 +61,34 @@ import FinancialYearManagement from './pages/FinancialYearManagement';
 import BusinessSelection from './pages/BusinessSelection';
 import WaitingApproval from './pages/WaitingApproval';
 import { LocationProvider } from './contexts/LocationContext';
-import { checkSetupStatus } from './services/setupService';
+import { checkSetupStatus, SetupStatus } from './services/setupService';
 import SetupWizard from './pages/SetupWizard';
 
 function App() {
   const [isCheckingSetup, setIsCheckingSetup] = useState(true);
-  const [setupComplete, setSetupComplete] = useState(true);
+  const [setupStatus, setSetupStatus] = useState<SetupStatus>({
+    isComplete: true,
+    businessExists: true
+  });
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Check if app is set up on initial load
   useEffect(() => {
     const checkSetup = async () => {
       try {
-        const { isComplete } = await checkSetupStatus();
-        setSetupComplete(isComplete);
+        const status = await checkSetupStatus();
+        setSetupStatus(status);
         
-        if (!isComplete && location.pathname !== '/setup') {
-          navigate('/setup');
+        // Only redirect if not already on the setup page and setup is not complete
+        if (!status.isComplete && location.pathname !== ROUTES.SETUP) {
+          navigate(ROUTES.SETUP, { replace: true });
         }
       } catch (error) {
         console.error('Error checking setup status:', error);
         toast.error('Failed to check system setup status');
+        // Default to complete so users can still use the app
+        setSetupStatus({ isComplete: true, businessExists: true });
       } finally {
         setIsCheckingSetup(false);
       }
@@ -103,22 +111,27 @@ function App() {
         <AuthProvider>
           <LocationProvider>
             <Routes>
+              {/* Public Routes */}
               <Route 
-                path="/setup" 
-                element={setupComplete ? <Navigate to="/login" replace /> : <SetupWizard />} 
+                path={ROUTES.SETUP} 
+                element={setupStatus.isComplete 
+                  ? <Navigate to={ROUTES.LOGIN} replace /> 
+                  : <SetupWizard />} 
               />
-              
               <Route path="/" element={<Index />} />
               <Route path="/index" element={<Navigate to="/" replace />} />
               <Route path={ROUTES.LOGIN} element={<Login />} />
               <Route path={ROUTES.SIGNUP} element={
-                setupComplete ? <Navigate to="/login" replace /> : <Signup />
+                setupStatus.isComplete 
+                  ? <Navigate to={ROUTES.LOGIN} replace /> 
+                  : <Signup />
               } />
               <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ForgotPassword />} />
-              <Route path="/business-selection" element={<BusinessSelection />} />
+              <Route path={ROUTES.BUSINESS_SELECTION} element={<BusinessSelection />} />
               <Route path="/waiting-approval" element={<WaitingApproval />} />
               
+              {/* Protected Routes */}
               <Route path="/" element={
                 <PrivateRoute>
                   <AppLayout />
@@ -171,8 +184,12 @@ function App() {
                 <Route path={ROUTES.EXPIRATION_MANAGEMENT} element={<ExpirationManagement />} />
                 <Route path={ROUTES.TRANSACTION_PERMISSIONS} element={<TransactionPermissions />} />
                 <Route path={ROUTES.RECURRING_EXPENSES} element={<RecurringExpenses />} />
+                
+                {/* Protected routes fallback - catches any non-matched protected route */}
+                <Route path="*" element={<NotFound />} />
               </Route>
               
+              {/* Global fallback - catches anything else */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </LocationProvider>

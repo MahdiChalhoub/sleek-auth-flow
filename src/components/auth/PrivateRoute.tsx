@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocationContext } from '@/contexts/LocationContext';
 import { toast } from 'sonner';
 import { UserRole } from '@/types/auth';
+import { ROUTES } from '@/constants/routes';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
@@ -42,7 +43,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   // If not authenticated, redirect to login
   if (!user) {
     toast.error("Please log in to access this page");
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
   }
 
   // If user is pending approval or denied, redirect to waiting page
@@ -56,12 +57,12 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     
     // Redirect to appropriate page based on role
     const roleDefaultPage = {
-      admin: "/home",
-      manager: "/inventory",
-      cashier: "/pos-sales"
+      admin: ROUTES.HOME,
+      manager: ROUTES.INVENTORY,
+      cashier: ROUTES.POS_SALES
     };
     
-    const redirectTo = roleDefaultPage[user.role] || "/home";
+    const redirectTo = roleDefaultPage[user.role] || ROUTES.HOME;
     return <Navigate to={redirectTo} replace />;
   }
 
@@ -73,20 +74,22 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     
     if (missingPermissions.length > 0) {
       toast.error("You don't have the required permissions to access this page");
-      return <Navigate to="/home" replace />;
+      return <Navigate to={ROUTES.HOME} replace />;
     }
   }
 
   // If no business is selected but we're logged in
-  if (!currentBusiness && !location.pathname.includes('/login') && !location.pathname.includes('/business-selection')) {
+  if (!currentBusiness && 
+      !location.pathname.includes(ROUTES.LOGIN) && 
+      !location.pathname.includes(ROUTES.BUSINESS_SELECTION)) {
     toast.error("Please select a business to continue");
-    return <Navigate to="/business-selection" replace />;
+    return <Navigate to={ROUTES.BUSINESS_SELECTION} replace />;
   }
 
   // Check if location access is required and user has access to the current location
   if (requiredLocationAccess && currentLocation && !userHasAccessToLocation(currentLocation.id)) {
     toast.error("You don't have access to this location");
-    return <Navigate to="/home" replace />;
+    return <Navigate to={ROUTES.HOME} replace />;
   }
 
   // If authenticated and has the required role/permissions, render the children components

@@ -5,6 +5,8 @@ export const ROUTES = {
   SIGNUP: '/signup',
   FORGOT_PASSWORD: '/forgot-password',
   BUSINESS_SELECTION: '/business-selection',
+  SETUP: '/setup',
+  WAITING_APPROVAL: '/waiting-approval',
   
   // Main navigation
   HOME: '/home',
