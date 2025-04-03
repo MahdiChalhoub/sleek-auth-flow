@@ -42,42 +42,40 @@ export interface OpeningHours {
 
 // Helper function to convert string to OpeningHours object
 export const parseOpeningHours = (hours: string | Record<string, string> | undefined): OpeningHours => {
+  const defaultHours: OpeningHours = {
+    monday: '9:00-18:00',
+    tuesday: '9:00-18:00',
+    wednesday: '9:00-18:00',
+    thursday: '9:00-18:00',
+    friday: '9:00-18:00',
+    saturday: '10:00-16:00',
+    sunday: 'closed'
+  };
+  
   if (!hours) {
-    return {
-      monday: '9:00-18:00',
-      tuesday: '9:00-18:00',
-      wednesday: '9:00-18:00',
-      thursday: '9:00-18:00',
-      friday: '9:00-18:00',
-      saturday: '10:00-16:00',
-      sunday: 'closed'
-    };
+    return defaultHours;
   }
   
   if (typeof hours === 'string') {
     try {
-      return JSON.parse(hours) as OpeningHours;
-    } catch (e) {
+      const parsed = JSON.parse(hours);
       return {
-        monday: '9:00-18:00',
-        tuesday: '9:00-18:00',
-        wednesday: '9:00-18:00',
-        thursday: '9:00-18:00',
-        friday: '9:00-18:00',
-        saturday: '10:00-16:00',
-        sunday: 'closed'
+        ...defaultHours,
+        ...parsed
       };
+    } catch (e) {
+      return defaultHours;
     }
   }
   
   // If it's already a record, ensure it has all required fields
   return {
-    monday: hours.monday || '9:00-18:00',
-    tuesday: hours.tuesday || '9:00-18:00',
-    wednesday: hours.wednesday || '9:00-18:00',
-    thursday: hours.thursday || '9:00-18:00',
-    friday: hours.friday || '9:00-18:00',
-    saturday: hours.saturday || '10:00-16:00',
-    sunday: hours.sunday || 'closed'
+    monday: hours.monday || defaultHours.monday,
+    tuesday: hours.tuesday || defaultHours.tuesday,
+    wednesday: hours.wednesday || defaultHours.wednesday,
+    thursday: hours.thursday || defaultHours.thursday,
+    friday: hours.friday || defaultHours.friday,
+    saturday: hours.saturday || defaultHours.saturday,
+    sunday: hours.sunday || defaultHours.sunday
   };
 };

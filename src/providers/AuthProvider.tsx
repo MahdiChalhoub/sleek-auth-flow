@@ -1,8 +1,12 @@
+
 import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/auth';
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { fromTable, isDataResponse, safeDataTransform } from '@/utils/supabaseServiceHelper';
+import { mapAuthUserToUser } from '@/utils/authUtils';
 
 interface AuthContextType {
   user: User | null;
@@ -33,7 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<any | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [userBusinesses, setUserBusinesses] = useState<Business[]>([]);
   const [currentBusiness, setCurrentBusiness] = useState<Business | null>(null);
   const navigate = useNavigate();
 
@@ -105,14 +109,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
-        setUser(session?.user ?? null);
+        if (session?.user) {
+          const appUser = mapAuthUserToUser(session.user, { 
+            role: 'cashier', 
+            status: 'active' 
+          });
+          setUser(appUser);
+        } else {
+          setUser(null);
+        }
       }
     );
 
     // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
+      if (session?.user) {
+        const appUser = mapAuthUserToUser(session.user, { 
+          role: 'cashier', 
+          status: 'active' 
+        });
+        setUser(appUser);
+      } else {
+        setUser(null);
+      }
     });
 
     return () => {
@@ -125,27 +145,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const getBusinesses = async () => {
       try {
         if (!user) {
-          setBusinesses([]);
+          setUserBusinesses([]);
           setCurrentBusiness(null);
           setIsLoading(false);
           return;
         }
 
         // Fetch businesses for the current user
-        const response = await fromTable('businesses')
-          .select('*')
-          .eq('owner_id', user.id);
-
-        if (!isDataResponse(response)) {
-          console.error('Error fetching businesses:', response.error);
-          setBusinesses([]);
-          setCurrentBusiness(null);
-          setIsLoading(false);
-          return;
-        }
-
-        const fetchedBusinesses = response.data || [];
-        setBusinesses(fetchedBusinesses);
+        const fetchedBusinesses = await loadUserBusinesses(user.id);
+        setUserBusinesses(fetchedBusinesses);
 
         // Load the previously selected business or default to the first one
         const savedBusinessId = localStorage.getItem('pos_current_business');
@@ -169,7 +177,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     getBusinesses();
-  }, [user]);
+  }, [user, loadUserBusinesses]);
 
   // Login function
   const login = async (email: string, password: string, businessId?: string, rememberMe = true) => {
@@ -204,7 +212,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setSession(null);
       setCurrentBusiness(null);
-      setBusinesses([]);
+      setUserBusinesses([]);
       navigate('/login');
     } catch (error) {
       console.error('Logout error:', error);
@@ -214,7 +222,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Switch business function
   const switchBusiness = (businessId: string) => {
-    const business = businesses.find(b => b.id === businessId);
+    const business = userBusinesses.find(b => b.id === businessId);
     if (business) {
       setCurrentBusiness(business);
       localStorage.setItem('pos_current_business', business.id);
@@ -224,15 +232,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Check if user has a specific permission
+  const hasPermission = (permissionName: string): boolean => {
+    if (!user) return false;
+    
+    // Admin role has all permissions
+    if (user.role === 'admin') return true;
+    
+    // Check specific permissions if available
+    if (user.permissions) {
+      return user.permissions.some(
+        permission => permission.name === permissionName && permission.enabled
+      );
+    }
+    
+    // Default role-based permissions for backward compatibility
+    if (permissionName === 'can_view_transactions' && user.role === 'cashier') {
+      return true;
+    }
+    
+    if (permissionName === 'can_edit_transactions' && user.role === 'cashier') {
+      return true;
+    }
+    
+    if (permissionName.startsWith('can_') && user.role === 'manager') {
+      return true;
+    }
+    
+    return false;
+  };
+
   const value = {
     user,
-    session,
     isLoading,
-    businesses,
     currentBusiness,
+    userBusinesses,
     login,
     logout,
     switchBusiness,
+    hasPermission
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

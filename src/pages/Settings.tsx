@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { LocationManagement } from '@/components/settings/LocationManagement';
-import { parseOpeningHours } from '@/types/location';
+import { parseOpeningHours, OpeningHours } from '@/types/location';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,17 +12,6 @@ import { Building, MapPin, Phone, Mail, CalendarDays, Check, X } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { AddLocationModal } from "@/components/settings/AddLocationModal";
 import { toast } from "sonner";
-
-interface OpeningHours {
-  monday?: string;
-  tuesday?: string;
-  wednesday?: string;
-  thursday?: string;
-  friday?: string;
-  saturday?: string;
-  sunday?: string;
-  [key: string]: string | undefined;
-}
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
@@ -41,7 +29,7 @@ const Settings: React.FC = () => {
     if (!location?.openingHours) return 'Not set';
     
     // Use the parseOpeningHours function to handle different types of openingHours data
-    const hours = parseOpeningHours(location.openingHours);
+    const hours: OpeningHours = parseOpeningHours(location.openingHours);
     
     return (
       <div className="space-y-1 text-sm">

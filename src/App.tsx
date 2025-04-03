@@ -1,8 +1,8 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './components/theme-provider';
+import { toast } from 'sonner';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
@@ -59,26 +59,66 @@ import ClientEditForm from './pages/ClientEditForm';
 import FinancialYearManagement from './pages/FinancialYearManagement';
 import BusinessSelection from './pages/BusinessSelection';
 import WaitingApproval from './pages/WaitingApproval';
-import { LocationProvider } from './contexts/LocationContext'; // Import LocationProvider
+import { LocationProvider } from './contexts/LocationContext';
+import { checkSetupStatus } from './services/setupService';
+import SetupWizard from './pages/SetupWizard';
 
 function App() {
+  const [isCheckingSetup, setIsCheckingSetup] = useState(true);
+  const [setupComplete, setSetupComplete] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const checkSetup = async () => {
+      try {
+        const { isComplete } = await checkSetupStatus();
+        setSetupComplete(isComplete);
+        
+        if (!isComplete && location.pathname !== '/setup') {
+          navigate('/setup');
+        }
+      } catch (error) {
+        console.error('Error checking setup status:', error);
+        toast.error('Failed to check system setup status');
+      } finally {
+        setIsCheckingSetup(false);
+      }
+    };
+    
+    checkSetup();
+  }, [navigate, location.pathname]);
+  
+  if (isCheckingSetup) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="animate-pulse text-2xl">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <QueryProvider>
         <AuthProvider>
-          <LocationProvider> {/* Add LocationProvider here */}
+          <LocationProvider>
             <Routes>
-              {/* Public routes */}
+              <Route 
+                path="/setup" 
+                element={setupComplete ? <Navigate to="/login" replace /> : <SetupWizard />} 
+              />
+              
               <Route path="/" element={<Index />} />
               <Route path="/index" element={<Navigate to="/" replace />} />
               <Route path={ROUTES.LOGIN} element={<Login />} />
-              <Route path={ROUTES.SIGNUP} element={<Signup />} />
+              <Route path={ROUTES.SIGNUP} element={
+                setupComplete ? <Navigate to="/login" replace /> : <Signup />
+              } />
               <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ForgotPassword />} />
               <Route path="/business-selection" element={<BusinessSelection />} />
               <Route path="/waiting-approval" element={<WaitingApproval />} />
               
-              {/* Main layout with protected routes */}
               <Route path="/" element={
                 <PrivateRoute>
                   <AppLayout />
@@ -133,10 +173,9 @@ function App() {
                 <Route path={ROUTES.RECURRING_EXPENSES} element={<RecurringExpenses />} />
               </Route>
               
-              {/* Catch all for 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </LocationProvider> {/* Close LocationProvider */}
+          </LocationProvider>
         </AuthProvider>
       </QueryProvider>
     </ThemeProvider>
