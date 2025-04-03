@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/lib/supabase';
@@ -39,7 +40,32 @@ export const useLocationContext = () => useContext(LocationContext);
 
 export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   console.log('🏙️ LocationProvider rendering');
-  const { user, currentBusiness, isLoading } = useAuth();
+  
+  // Try to access auth context, but don't throw if it's not available
+  let auth;
+  try {
+    auth = useAuth();
+  } catch (error) {
+    console.error('Auth context not available in LocationProvider:', error);
+    // Return a basic provider that won't attempt to use auth functionality
+    return (
+      <LocationContext.Provider
+        value={{
+          currentLocation: null,
+          availableLocations: [],
+          isLoadingLocations: false,
+          switchLocation: () => {
+            console.warn('Location switching not available: Auth context missing');
+          },
+          userHasAccessToLocation: () => false
+        }}
+      >
+        {children}
+      </LocationContext.Provider>
+    );
+  }
+  
+  const { user, currentBusiness, isLoading } = auth;
   const [currentLocation, setCurrentLocation] = useState<Location | null>(null);
   const [availableLocations, setAvailableLocations] = useState<Location[]>([]);
   const [isLoadingLocations, setIsLoadingLocations] = useState(true);

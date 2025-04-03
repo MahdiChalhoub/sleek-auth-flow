@@ -80,73 +80,76 @@ function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <QueryProvider>
-        <LocationProvider>
-          <Routes>
-            <Route path={ROUTES.SETUP} element={<Navigate to={ROUTES.HOME} replace />} />
-            <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />
-            <Route path="/index" element={<Navigate to={ROUTES.HOME} replace />} />
-            <Route path={ROUTES.LOGIN} element={<Login />} />
-            <Route path={ROUTES.SIGNUP} element={<Navigate to={ROUTES.HOME} replace />} />
-            <Route path={ROUTES.FORGOT_PASSWORD} element={<Navigate to={ROUTES.HOME} replace />} />
-            <Route path="/reset-password" element={<Navigate to={ROUTES.HOME} replace />} />
-            <Route path={ROUTES.BUSINESS_SELECTION} element={<Navigate to={ROUTES.HOME} replace />} />
-            <Route path="/waiting-approval" element={<Navigate to={ROUTES.HOME} replace />} />
-            
-            <Route path="/" element={<AppLayout />}>
-              <Route path={ROUTES.HOME} element={<Dashboard />} />
-              <Route path={ROUTES.DASHBOARD} element={<FinanceDashboard />} />
-              <Route path={ROUTES.INVENTORY} element={<Inventory />} />
-              <Route path={ROUTES.PURCHASE_ORDERS} element={<PurchaseOrders />} />
-              <Route path={ROUTES.PURCHASE_REQUESTS} element={<PurchaseRequestManagement />} />
-              <Route path={ROUTES.PURCHASE_ANALYTICS} element={<PurchaseAnalytics />} />
-              <Route path={ROUTES.SUPPLIERS} element={<Suppliers />} />
-              <Route path={ROUTES.STOCK_TRANSFERS} element={<StockTransfers />} />
-              <Route path={ROUTES.POS_SALES} element={<POSSales />} />
-              <Route path={ROUTES.REGISTER} element={<POSRegister />} />
-              <Route path={ROUTES.CATEGORIES} element={<Categories />} />
-              <Route path={ROUTES.STOCK_ADJUSTMENTS} element={<StockAdjustments />} />
-              <Route path={ROUTES.UNITS} element={<Units />} />
-              <Route path={ROUTES.CONTACTS} element={<Contacts />} />
-              <Route path="/clients" element={<ClientsList />} />
-              <Route path="/clients/:clientId" element={<ClientProfile />} />
-              <Route path="/clients/:clientId/edit" element={<ClientEditForm />} />
-              <Route path="/clients/new" element={<ClientEditForm />} />
-              <Route path="/financial-years" element={<FinancialYearManagement />} />
-              <Route path={ROUTES.EXPENSES} element={<Expenses />} />
-              <Route path={ROUTES.RETURNS} element={<Returns />} />
-              <Route path={ROUTES.TRANSACTIONS} element={<Transactions />} />
-              <Route path="/transactions-page" element={<TransactionsPage />} />
-              <Route path={ROUTES.AUDIT_TRAIL} element={<AuditTrail />} />
-              <Route path={ROUTES.USER_ACTIVITY} element={<UserActivity />} />
-              <Route path={ROUTES.ROLES} element={<RoleManagement />} />
-              <Route path="/role-management" element={<RoleManagement />} />
-              <Route path={ROUTES.USERS} element={<Users />} />
-              <Route path={ROUTES.REGISTER_SESSIONS} element={<RegisterSessions />} />
-              <Route path={ROUTES.LOYALTY} element={<Loyalty />} />
-              <Route path={ROUTES.STAFF_FINANCE} element={<StaffFinance />} />
-              <Route path={ROUTES.SHIFT_REPORTS} element={<ShiftReports />} />
-              <Route path={ROUTES.NOTIFICATIONS} element={<Notifications />} />
-              <Route path={ROUTES.BACKUP_RESTORE} element={<BackupRestore />} />
-              <Route path={ROUTES.EXPORTS} element={<Exports />} />
-              <Route path={ROUTES.SETTINGS} element={<Settings />} />
-              <Route path={ROUTES.GENERAL_LEDGER} element={<GeneralLedger />} />
-              <Route path={ROUTES.LEDGER} element={<GeneralLedger />} />
-              <Route path="/journal-entries" element={<JournalEntries />} />
-              <Route path={ROUTES.ACCOUNTS_RECEIVABLE} element={<AccountsReceivable />} />
-              <Route path={ROUTES.ACCOUNTS_PAYABLE} element={<AccountsPayable />} />
-              <Route path={ROUTES.PROFIT_LOSS} element={<ProfitLoss />} />
-              <Route path={ROUTES.PACKAGING_MANAGEMENT} element={<PackagingManagement />} />
-              <Route path={ROUTES.BARCODE_PRINTING} element={<BarcodePrinting />} />
-              <Route path={ROUTES.EXPIRATION_MANAGEMENT} element={<ExpirationManagement />} />
-              <Route path={ROUTES.TRANSACTION_PERMISSIONS} element={<TransactionPermissions />} />
-              <Route path={ROUTES.RECURRING_EXPENSES} element={<RecurringExpenses />} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Route>
+        {/* LocationProvider must be inside the QueryProvider but outside Routes */}
+        <Routes>
+          <Route path={ROUTES.SETUP} element={<Navigate to={ROUTES.HOME} replace />} />
+          <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />
+          <Route path="/index" element={<Navigate to={ROUTES.HOME} replace />} />
+          <Route path={ROUTES.LOGIN} element={<Login />} />
+          <Route path={ROUTES.SIGNUP} element={<Navigate to={ROUTES.HOME} replace />} />
+          <Route path={ROUTES.FORGOT_PASSWORD} element={<Navigate to={ROUTES.HOME} replace />} />
+          <Route path="/reset-password" element={<Navigate to={ROUTES.HOME} replace />} />
+          <Route path={ROUTES.BUSINESS_SELECTION} element={<Navigate to={ROUTES.HOME} replace />} />
+          <Route path="/waiting-approval" element={<Navigate to={ROUTES.HOME} replace />} />
+          
+          <Route path="/" element={
+            <LocationProvider>
+              <AppLayout />
+            </LocationProvider>
+          }>
+            <Route path={ROUTES.HOME} element={<Dashboard />} />
+            <Route path={ROUTES.DASHBOARD} element={<FinanceDashboard />} />
+            <Route path={ROUTES.INVENTORY} element={<Inventory />} />
+            <Route path={ROUTES.PURCHASE_ORDERS} element={<PurchaseOrders />} />
+            <Route path={ROUTES.PURCHASE_REQUESTS} element={<PurchaseRequestManagement />} />
+            <Route path={ROUTES.PURCHASE_ANALYTICS} element={<PurchaseAnalytics />} />
+            <Route path={ROUTES.SUPPLIERS} element={<Suppliers />} />
+            <Route path={ROUTES.STOCK_TRANSFERS} element={<StockTransfers />} />
+            <Route path={ROUTES.POS_SALES} element={<POSSales />} />
+            <Route path={ROUTES.REGISTER} element={<POSRegister />} />
+            <Route path={ROUTES.CATEGORIES} element={<Categories />} />
+            <Route path={ROUTES.STOCK_ADJUSTMENTS} element={<StockAdjustments />} />
+            <Route path={ROUTES.UNITS} element={<Units />} />
+            <Route path={ROUTES.CONTACTS} element={<Contacts />} />
+            <Route path="/clients" element={<ClientsList />} />
+            <Route path="/clients/:clientId" element={<ClientProfile />} />
+            <Route path="/clients/:clientId/edit" element={<ClientEditForm />} />
+            <Route path="/clients/new" element={<ClientEditForm />} />
+            <Route path="/financial-years" element={<FinancialYearManagement />} />
+            <Route path={ROUTES.EXPENSES} element={<Expenses />} />
+            <Route path={ROUTES.RETURNS} element={<Returns />} />
+            <Route path={ROUTES.TRANSACTIONS} element={<Transactions />} />
+            <Route path="/transactions-page" element={<TransactionsPage />} />
+            <Route path={ROUTES.AUDIT_TRAIL} element={<AuditTrail />} />
+            <Route path={ROUTES.USER_ACTIVITY} element={<UserActivity />} />
+            <Route path={ROUTES.ROLES} element={<RoleManagement />} />
+            <Route path="/role-management" element={<RoleManagement />} />
+            <Route path={ROUTES.USERS} element={<Users />} />
+            <Route path={ROUTES.REGISTER_SESSIONS} element={<RegisterSessions />} />
+            <Route path={ROUTES.LOYALTY} element={<Loyalty />} />
+            <Route path={ROUTES.STAFF_FINANCE} element={<StaffFinance />} />
+            <Route path={ROUTES.SHIFT_REPORTS} element={<ShiftReports />} />
+            <Route path={ROUTES.NOTIFICATIONS} element={<Notifications />} />
+            <Route path={ROUTES.BACKUP_RESTORE} element={<BackupRestore />} />
+            <Route path={ROUTES.EXPORTS} element={<Exports />} />
+            <Route path={ROUTES.SETTINGS} element={<Settings />} />
+            <Route path={ROUTES.GENERAL_LEDGER} element={<GeneralLedger />} />
+            <Route path={ROUTES.LEDGER} element={<GeneralLedger />} />
+            <Route path="/journal-entries" element={<JournalEntries />} />
+            <Route path={ROUTES.ACCOUNTS_RECEIVABLE} element={<AccountsReceivable />} />
+            <Route path={ROUTES.ACCOUNTS_PAYABLE} element={<AccountsPayable />} />
+            <Route path={ROUTES.PROFIT_LOSS} element={<ProfitLoss />} />
+            <Route path={ROUTES.PACKAGING_MANAGEMENT} element={<PackagingManagement />} />
+            <Route path={ROUTES.BARCODE_PRINTING} element={<BarcodePrinting />} />
+            <Route path={ROUTES.EXPIRATION_MANAGEMENT} element={<ExpirationManagement />} />
+            <Route path={ROUTES.TRANSACTION_PERMISSIONS} element={<TransactionPermissions />} />
+            <Route path={ROUTES.RECURRING_EXPENSES} element={<RecurringExpenses />} />
             
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </LocationProvider>
+          </Route>
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </QueryProvider>
     </ThemeProvider>
   );
