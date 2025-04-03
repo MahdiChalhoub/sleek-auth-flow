@@ -47,7 +47,7 @@ export interface UserPermission {
 
 // Define Role interface
 export interface Role {
-  id: string;
+  id?: string; // Made optional to fix TS error
   name: string;
   description?: string;
   permissions: UserPermission[];

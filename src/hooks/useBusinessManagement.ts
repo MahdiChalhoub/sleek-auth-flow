@@ -1,121 +1,132 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
 import { Business } from '@/models/interfaces/businessInterfaces';
-import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
-import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export const useBusinessManagement = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
 
   const fetchBusinesses = useCallback(async () => {
-    if (!user) return;
-    
     setLoading(true);
     try {
-      const response = await fromTable('businesses')
+      const { data, error } = await supabase
+        .from('businesses')
         .select('*')
-        .eq('owner_id', user.id);
-      
-      if (!isDataResponse(response)) {
-        console.error('Error fetching businesses:', response.error);
-        return;
+        .order('name');
+
+      if (error) {
+        throw error;
       }
-      
-      const fetchedBusinesses: Business[] = [];
-      
-      if (Array.isArray(response.data)) {
-        for (const itemData of response.data) {
-          if (!itemData) continue;
-          
-          // Type safely process business data
-          const typedItemData = itemData as Record<string, unknown>;
-          
-          const business: Business = {
-            id: String(typedItemData.id || ''),
-            name: String(typedItemData.name || ''),
-            address: typedItemData.address ? String(typedItemData.address) : undefined,
-            phone: typedItemData.phone ? String(typedItemData.phone) : undefined,
-            email: typedItemData.email ? String(typedItemData.email) : undefined,
-            status: String(typedItemData.status || 'inactive'),
-            ownerId: String(typedItemData.owner_id || ''),
-            createdAt: typedItemData.created_at ? String(typedItemData.created_at) : undefined,
-            updatedAt: typedItemData.updated_at ? String(typedItemData.updated_at) : undefined,
-            logoUrl: typedItemData.logo_url ? String(typedItemData.logo_url) : undefined,
-            description: typedItemData.description ? String(typedItemData.description) : undefined,
-            type: typedItemData.type ? String(typedItemData.type) : undefined,
-            country: typedItemData.country ? String(typedItemData.country) : undefined,
-            currency: typedItemData.currency ? String(typedItemData.currency) : undefined,
-            active: typedItemData.active ? Boolean(typedItemData.active) : undefined,
-            timezone: typedItemData.timezone ? String(typedItemData.timezone) : undefined,
-          };
-          
-          fetchedBusinesses.push(business);
-        }
+
+      if (data) {
+        const mappedBusinesses: Business[] = data.map((business: any) => ({
+          id: business.id,
+          name: business.name,
+          address: business.address,
+          phone: business.phone,
+          email: business.email,
+          status: business.status,
+          ownerId: business.owner_id,
+          createdAt: business.created_at,
+          updatedAt: business.updated_at,
+          logoUrl: business.logo_url,
+          description: business.description,
+          type: business.type,
+          country: business.country,
+          currency: business.currency,
+          active: business.active,
+          timezone: business.timezone
+        }));
+        
+        setBusinesses(mappedBusinesses);
       }
-      
-      setBusinesses(fetchedBusinesses);
     } catch (error) {
-      console.error('Error in fetchBusinesses:', error);
+      console.error('Error fetching businesses:', error);
       toast.error('Failed to load businesses');
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
-  useEffect(() => {
-    fetchBusinesses();
-  }, [fetchBusinesses]);
+  const createBusiness = async (businessData: Partial<Business>): Promise<Business> => {
+    // Map the businessData from frontend model to database schema
+    const dbBusinessData = {
+      name: businessData.name,
+      address: businessData.address,
+      phone: businessData.phone,
+      email: businessData.email,
+      status: businessData.status || 'active',
+      owner_id: businessData.ownerId,
+      logo_url: businessData.logoUrl,
+      description: businessData.description,
+      type: businessData.type,
+      country: businessData.country,
+      currency: businessData.currency,
+      active: businessData.active !== undefined ? businessData.active : true,
+      timezone: businessData.timezone
+    };
 
-  const createBusiness = async (businessData: Partial<Business>): Promise<Business | null> => {
-    if (!user) {
-      toast.error('User must be logged in to create a business');
-      return null;
-    }
+    const { data, error } = await supabase
+      .from('businesses')
+      .insert(dbBusinessData)
+      .select()
+      .single();
+
+    if (error) throw error;
     
-    setLoading(true);
-    try {
-      const { data, error } = await fromTable('businesses')
-        .insert({
-          ...businessData,
-          owner_id: user.id,
-          status: 'active',
-          created_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-      
-      if (error) {
-        throw error;
-      }
-      
-      const newBusiness: Business = {
-        id: data.id,
-        name: data.name,
-        status: data.status,
-        ownerId: data.owner_id,
-        ...businessData,
-      };
-      
-      setBusinesses(prev => [...prev, newBusiness]);
-      
-      toast.success('Business created successfully');
-      return newBusiness;
-    } catch (error: any) {
-      console.error('Error creating business:', error.message);
-      toast.error('Failed to create business');
-      return null;
-    } finally {
-      setLoading(false);
-    }
+    // Map the response back to our frontend model
+    const newBusiness: Business = {
+      id: data.id,
+      name: data.name,
+      status: data.status,
+      ownerId: data.owner_id,
+      address: data.address,
+      phone: data.phone,
+      email: data.email,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      logoUrl: data.logo_url,
+      description: data.description,
+      type: data.type,
+      country: data.country,
+      currency: data.currency,
+      active: data.active,
+      timezone: data.timezone
+    };
+
+    await fetchBusinesses(); // Refresh the list
+    return newBusiness;
+  };
+
+  const deleteBusiness = async (id: string): Promise<void> => {
+    const { error } = await supabase
+      .from('businesses')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchBusinesses(); // Refresh the list
+  };
+
+  const toggleBusinessStatus = async (id: string, active: boolean): Promise<void> => {
+    const { error } = await supabase
+      .from('businesses')
+      .update({ active })
+      .eq('id', id);
+
+    if (error) throw error;
+    await fetchBusinesses(); // Refresh the list
   };
 
   return {
     businesses,
-    loading,
+    isLoading: loading,
     fetchBusinesses,
-    createBusiness,
+    handleAddBusiness: createBusiness,
+    handleDeleteBusiness: deleteBusiness,
+    handleToggleBusinessStatus: toggleBusinessStatus,
+    refreshBusinesses: fetchBusinesses
   };
 };
