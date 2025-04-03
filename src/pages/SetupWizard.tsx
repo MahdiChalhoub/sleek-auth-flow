@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -45,7 +44,6 @@ const SetupWizard: React.FC = () => {
   });
 
   const handleStepChange = (step: string) => {
-    // Validate current step before proceeding
     if (activeStep === 'business' && step === 'location') {
       if (!businessData.name || !businessData.type || !businessData.currency) {
         toast.error('Please fill in all required business information');
@@ -87,7 +85,6 @@ const SetupWizard: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // 1. Create the admin user account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: adminData.email,
         password: adminData.password,
@@ -104,7 +101,6 @@ const SetupWizard: React.FC = () => {
         throw new Error('Failed to create admin account');
       }
       
-      // 2. Create the business
       const businessResponse = await fromTable('businesses')
         .insert({
           name: businessData.name,
@@ -123,20 +119,17 @@ const SetupWizard: React.FC = () => {
         throw new Error('Failed to create business');
       }
       
-      // Safely access the business ID
       if (!businessResponse.data || businessResponse.data.length === 0) {
         throw new Error('Failed to retrieve created business ID');
       }
       
-      // Make sure we have a valid business object with an id before trying to access it
       const businessObj = businessResponse.data[0];
       if (!businessObj || typeof businessObj !== 'object' || !('id' in businessObj)) {
         throw new Error('Invalid business data returned from database');
       }
       
-      const businessId = businessObj.id;
+      const businessId = (businessObj as { id: string }).id;
       
-      // 3. Create the main location
       const locationResponse = await fromTable('locations')
         .insert({
           name: locationData.name,
@@ -155,12 +148,10 @@ const SetupWizard: React.FC = () => {
         throw new Error('Failed to create location');
       }
       
-      // 4. Set the user as a SuperAdmin
       await fromTable('extended_users')
         .update({ status: 'active' })
         .eq('id', authData.user.id);
         
-      // Create SuperAdmin role if it doesn't exist
       const roleResponse = await fromTable('roles')
         .select()
         .eq('name', 'SuperAdmin')
@@ -174,15 +165,12 @@ const SetupWizard: React.FC = () => {
           });
       }
       
-      // Mark setup as complete
       await saveSetupStatus(true);
       
       toast.success('Setup complete! You can now log in to your POS system.');
       
-      // Log out any session that might have been created
       await supabase.auth.signOut();
       
-      // Redirect to login page
       navigate('/login');
     } catch (error) {
       console.error('Setup error:', error);

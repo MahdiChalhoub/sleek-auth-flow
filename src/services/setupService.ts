@@ -17,11 +17,11 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
     
     // If the setting exists and is complete, return it
     if (isDataResponse(settingsResponse) && settingsResponse.data) {
-      // Safely access value property after checking it's a data response
-      const setupCompleted = settingsResponse.data.value && 
-                            typeof settingsResponse.data.value === 'object' && 
-                            'completed' in settingsResponse.data.value &&
-                            settingsResponse.data.value.completed === true;
+      const dataValue = settingsResponse.data as any; // Use type assertion to safely access value
+      const setupCompleted = dataValue.value && 
+                          typeof dataValue.value === 'object' && 
+                          'completed' in dataValue.value &&
+                          dataValue.value.completed === true;
       return { isComplete: setupCompleted, businessExists: true };
     }
     

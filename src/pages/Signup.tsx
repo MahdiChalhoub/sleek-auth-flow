@@ -56,7 +56,8 @@ const Signup: React.FC = () => {
           // Make sure we have a valid business object with an id before trying to access it
           const businessObj = businessResponse.data[0];
           if (businessObj && typeof businessObj === 'object' && 'id' in businessObj) {
-            const businessId = businessObj.id;
+            // Now we can safely access businessObj.id
+            const businessId = (businessObj as { id: string }).id;
             
             const locationResponse = await fromTable('locations')
               .insert({
