@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,7 +8,7 @@ import { ROUTES } from '@/constants/routes';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
-  requiredRole?: UserRole | null;
+  requiredRole?: string | null;
   requiredPermissions?: string[];
   requiredLocationAccess?: boolean;
 }
@@ -24,14 +23,12 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   const { currentLocation, userHasAccessToLocation } = useLocationContext();
   const location = useLocation();
 
-  // Store the current location to redirect back after login
   useEffect(() => {
     if (!user && !isLoading) {
       localStorage.setItem("intended_redirect", location.pathname);
     }
   }, [user, isLoading, location.pathname]);
 
-  // If we're still loading, show a loading indicator
   if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -40,22 +37,18 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     );
   }
 
-  // If not authenticated, redirect to login
   if (!user) {
     toast.error("Please log in to access this page");
     return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
   }
 
-  // If user is pending approval or denied, redirect to waiting page
   if (user.status === 'pending' || user.status === 'denied' || user.status === 'inactive') {
     return <Navigate to="/waiting-approval" replace />;
   }
 
-  // If role checking is required and user doesn't have the required role
   if (requiredRole && user.role !== requiredRole && user.role !== "admin") {
     toast.error(`Access denied. This page requires ${requiredRole} privileges.`);
     
-    // Redirect to appropriate page based on role
     const roleDefaultPage = {
       admin: ROUTES.HOME,
       manager: ROUTES.INVENTORY,
@@ -66,7 +59,6 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     return <Navigate to={redirectTo} replace />;
   }
 
-  // Check for specific permissions
   if (requiredPermissions.length > 0) {
     const missingPermissions = requiredPermissions.filter(
       permission => !hasPermission(permission)
@@ -78,7 +70,6 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     }
   }
 
-  // If no business is selected but we're logged in
   if (!currentBusiness && 
       !location.pathname.includes(ROUTES.LOGIN) && 
       !location.pathname.includes(ROUTES.BUSINESS_SELECTION)) {
@@ -86,13 +77,11 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     return <Navigate to={ROUTES.BUSINESS_SELECTION} replace />;
   }
 
-  // Check if location access is required and user has access to the current location
   if (requiredLocationAccess && currentLocation && !userHasAccessToLocation(currentLocation.id)) {
     toast.error("You don't have access to this location");
     return <Navigate to={ROUTES.HOME} replace />;
   }
 
-  // If authenticated and has the required role/permissions, render the children components
   return <>{children}</>;
 };
 

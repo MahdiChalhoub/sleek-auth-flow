@@ -1,6 +1,6 @@
 
 import { Business } from '@/models/interfaces/businessInterfaces';
-import { User, UserRole } from '@/models/interfaces/userInterfaces';
+import { User, UserPermission } from '@/models/interfaces/userInterfaces';
 import { Branch } from '@/types/location';
 
 export interface AuthContextType {
@@ -16,8 +16,8 @@ export interface AuthContextType {
   hasPermission: (permission: string) => boolean;
 }
 
-// Export User and UserRole from the interfaces
-export { User, UserRole } from '@/models/interfaces/userInterfaces';
+// Export type User and UserRole from the interfaces
+export type { User, UserRole } from '@/models/interfaces/userInterfaces';
 
 // Add UserPermission interface
 export interface UserPermission {

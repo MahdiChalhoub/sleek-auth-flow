@@ -4,7 +4,7 @@ import { User, UserRole, UserStatus } from '@/types/auth';
 /**
  * Convert a Supabase auth user to our internal User type
  */
-export function mapAuthUserToUser(authUser: any, additionalData: { role?: UserRole, status?: UserStatus } = {}): User {
+export function mapAuthUserToUser(authUser: any, additionalData: { role?: string, status?: UserStatus } = {}): User {
   if (!authUser) return null as unknown as User;
   
   const email = authUser.email || '';
@@ -18,8 +18,9 @@ export function mapAuthUserToUser(authUser: any, additionalData: { role?: UserRo
     fullName: displayName,
     name: displayName, // Add name property for backward compatibility
     avatarUrl: authUser.user_metadata?.avatar_url,
+    avatar_url: authUser.user_metadata?.avatar_url,
     status: additionalData.status || 'active' as UserStatus,
-    role: additionalData.role || 'cashier',
+    role: additionalData.role as UserRole || 'cashier',
     lastLogin: authUser.last_sign_in_at,
     createdAt: authUser.created_at,
     isGlobalAdmin: false // Default value
@@ -37,7 +38,7 @@ export function getUserDisplayName(user: User | null): string {
 /**
  * Check if a user has a specific role
  */
-export function hasRole(user: User | null, role: UserRole): boolean {
+export function hasRole(user: User | null, role: string): boolean {
   if (!user) return false;
   return user.role === role || (role !== 'admin' && user.role === 'admin');
 }
