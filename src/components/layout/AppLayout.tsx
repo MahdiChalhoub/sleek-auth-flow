@@ -50,7 +50,7 @@ const LoadingIndicator = () => (
 );
 
 const AppLayout: React.FC = () => {
-  const { user, isLoading, currentBusiness } = useAuth();
+  const { user, isLoading, currentBusiness, bypassAuth } = useAuth();
   const { isMobile } = useScreenSize();
   const location = useLocation();
 
@@ -59,14 +59,18 @@ const AppLayout: React.FC = () => {
     return <LoadingIndicator />;
   }
 
-  // Redirect if not authenticated
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+  // Skip authentication checks if bypassAuth is true
+  if (!bypassAuth) {
+    // Only perform these checks if not in bypass mode
+    // Redirect if not authenticated
+    if (!user) {
+      return <Navigate to="/login" state={{ from: location }} replace />;
+    }
 
-  // Redirect to business selection if no business is selected
-  if (!currentBusiness) {
-    return <Navigate to="/business-selection" replace />;
+    // Redirect to business selection if no business is selected
+    if (!currentBusiness) {
+      return <Navigate to="/business-selection" replace />;
+    }
   }
 
   return (

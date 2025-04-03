@@ -1,9 +1,7 @@
-
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ROUTES } from '@/constants/routes';
-import { toast } from 'sonner';
 
 /**
  * Hook for handling auth redirects based on user status and role
@@ -23,7 +21,7 @@ export const useAuthRedirect = (options: {
     redirectPath,
   } = options;
   
-  const { user, isLoading, hasPermission } = useAuth();
+  const { user, isLoading, hasPermission, bypassAuth } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -40,6 +38,9 @@ export const useAuthRedirect = (options: {
   // Handle redirects based on authentication
   useEffect(() => {
     if (isLoading) return;
+    
+    // Skip all redirects if bypassAuth is true
+    if (bypassAuth) return;
     
     try {
       // Case 1: If user needs to be authenticated but is not
@@ -80,15 +81,15 @@ export const useAuthRedirect = (options: {
       // Fallback to login page on unexpected errors
       navigate(ROUTES.LOGIN, { replace: true });
     }
-  }, [user, isLoading, location, navigate, redirectIfAuthenticated, redirectPath, requiredRole, requiredPermissions, hasPermission]);
+  }, [user, isLoading, location, navigate, redirectIfAuthenticated, redirectPath, requiredRole, requiredPermissions, hasPermission, bypassAuth]);
   
   // Return auth-related values and utility functions
   return {
     user,
     isLoading,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user || bypassAuth, // Consider authenticated if bypassAuth is true
     redirectIfAuthenticated: (path: string = ROUTES.HOME) => {
-      if (user && !isLoading) {
+      if ((user && !isLoading) || bypassAuth) {
         navigate(path, { replace: true });
         return true;
       }

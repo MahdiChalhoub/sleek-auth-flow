@@ -1,24 +1,39 @@
 
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Logo } from '@/components/Logo';
 import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+import { toast } from 'sonner';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, bypassAuth } = useAuth();
   const { redirectIfAuthenticated } = useAuthRedirect({ redirectIfAuthenticated: true, redirectPath: '/home' });
+  const navigate = useNavigate();
+
+  // Redirect to dashboard if bypassAuth is enabled
+  useEffect(() => {
+    if (bypassAuth) {
+      toast.info('Direct access mode enabled - No login required');
+      navigate('/home', { replace: true });
+    }
+  }, [bypassAuth, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (bypassAuth) {
+      toast.info('Direct access mode enabled - No login required');
+      navigate('/home', { replace: true });
+      return;
+    }
     
     if (!email || !password) {
       return;
@@ -32,14 +47,39 @@ const Login: React.FC = () => {
     }
   };
 
+  // If bypassAuth is true, we won't even render the login form
+  if (bypassAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
+        <Card className="shadow-lg w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Direct Access Enabled</CardTitle>
+            <CardDescription>
+              You're using the system in direct access mode. No login required.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-center">
+            <p>All features are fully available without authentication.</p>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <Button 
+              onClick={() => navigate('/home')}
+              className="w-full"
+            >
+              Go to Dashboard
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  // Regular login form for when bypassAuth is false
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-lg">
           <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <Logo size="lg" />
-            </div>
             <CardTitle className="text-2xl">Welcome Back</CardTitle>
             <CardDescription>
               Sign in to access your dashboard

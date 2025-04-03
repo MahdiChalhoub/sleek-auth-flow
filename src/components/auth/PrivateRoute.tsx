@@ -19,15 +19,14 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   requiredPermissions = [],
   requiredLocationAccess = false
 }) => {
-  const { user, isLoading, currentBusiness, hasPermission } = useAuth();
+  const { user, isLoading, currentBusiness, hasPermission, bypassAuth } = useAuth();
   const { currentLocation, userHasAccessToLocation } = useLocationContext();
   const location = useLocation();
 
-  useEffect(() => {
-    if (!user && !isLoading) {
-      localStorage.setItem("intended_redirect", location.pathname);
-    }
-  }, [user, isLoading, location.pathname]);
+  // In bypass mode, always render children
+  if (bypassAuth) {
+    return <>{children}</>;
+  }
 
   if (isLoading) {
     return (
@@ -36,6 +35,13 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
       </div>
     );
   }
+
+  // Rest of the PrivateRoute component is kept for when bypassAuth is false
+  useEffect(() => {
+    if (!user && !isLoading) {
+      localStorage.setItem("intended_redirect", location.pathname);
+    }
+  }, [user, isLoading, location.pathname]);
 
   if (!user) {
     toast.error("Please log in to access this page");

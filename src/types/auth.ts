@@ -13,6 +13,7 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
+  bypassAuth?: boolean; // Added bypass flag
 }
 
 // Define UserRole type

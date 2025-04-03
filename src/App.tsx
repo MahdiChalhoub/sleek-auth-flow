@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './components/theme-provider';
 import { toast } from 'sonner';
 import AppLayout from './components/layout/AppLayout';
-import { checkSetupStatus, SetupStatus } from './services/setupService';
+import { SetupStatus } from './services/setupService';
 import { ROUTES } from './constants/routes';
 import { QueryProvider } from './providers/QueryProvider';
 import { AuthProvider } from './providers/AuthProvider';
@@ -67,57 +66,13 @@ import WaitingApproval from './pages/WaitingApproval';
 import SetupWizard from './pages/SetupWizard';
 
 function App() {
-  const [isCheckingSetup, setIsCheckingSetup] = useState(true);
+  const [isCheckingSetup, setIsCheckingSetup] = useState(false);
   const [setupStatus, setSetupStatus] = useState<SetupStatus>({
-    isComplete: false,
-    businessExists: false
+    isComplete: true,
+    businessExists: true
   });
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    const checkSetup = async () => {
-      try {
-        console.log('Checking setup status');
-        const status = await checkSetupStatus();
-        console.log('Setup status:', status);
-        setSetupStatus(status);
-        
-        // Handle redirections based on setup status and current path
-        if (status.isComplete && location.pathname === ROUTES.SETUP) {
-          console.log('Setup is complete, redirecting to home');
-          navigate(ROUTES.HOME, { replace: true });
-        } else if (!status.isComplete && 
-                  location.pathname !== ROUTES.SETUP && 
-                  location.pathname !== ROUTES.LOGIN && 
-                  location.pathname !== ROUTES.SIGNUP && 
-                  location.pathname !== ROUTES.FORGOT_PASSWORD) {
-          console.log('Setup is not complete, redirecting to setup');
-          navigate(ROUTES.SETUP, { replace: true });
-        }
-      } catch (error) {
-        console.error('Error checking setup status:', error);
-        toast.error('Failed to check system setup status');
-        // Default to true to prevent endless redirects in case of error
-        setSetupStatus({ isComplete: true, businessExists: true });
-      } finally {
-        setIsCheckingSetup(false);
-      }
-    };
-    
-    checkSetup();
-  }, [navigate, location.pathname]);
-  
-  if (isCheckingSetup) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Checking system status...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
@@ -125,32 +80,17 @@ function App() {
         <AuthProvider>
           <LocationProvider>
             <Routes>
-              <Route 
-                path={ROUTES.SETUP} 
-                element={
-                  setupStatus.isComplete && !isCheckingSetup ? 
-                    <Navigate to={ROUTES.HOME} replace /> : 
-                    <SetupWizard />
-                } 
-              />
-              <Route path="/" element={<Index />} />
-              <Route path="/index" element={<Navigate to="/" replace />} />
+              <Route path={ROUTES.SETUP} element={<Navigate to={ROUTES.HOME} replace />} />
+              <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />
+              <Route path="/index" element={<Navigate to={ROUTES.HOME} replace />} />
               <Route path={ROUTES.LOGIN} element={<Login />} />
-              <Route path={ROUTES.SIGNUP} element={
-                setupStatus.isComplete 
-                  ? <Navigate to={ROUTES.LOGIN} replace /> 
-                  : <Signup />
-              } />
-              <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ForgotPassword />} />
-              <Route path={ROUTES.BUSINESS_SELECTION} element={<BusinessSelection />} />
-              <Route path="/waiting-approval" element={<WaitingApproval />} />
+              <Route path={ROUTES.SIGNUP} element={<Navigate to={ROUTES.HOME} replace />} />
+              <Route path={ROUTES.FORGOT_PASSWORD} element={<Navigate to={ROUTES.HOME} replace />} />
+              <Route path="/reset-password" element={<Navigate to={ROUTES.HOME} replace />} />
+              <Route path={ROUTES.BUSINESS_SELECTION} element={<Navigate to={ROUTES.HOME} replace />} />
+              <Route path="/waiting-approval" element={<Navigate to={ROUTES.HOME} replace />} />
               
-              <Route path="/" element={
-                <PrivateRoute>
-                  <AppLayout />
-                </PrivateRoute>
-              }>
+              <Route path="/" element={<AppLayout />}>
                 <Route path={ROUTES.HOME} element={<Dashboard />} />
                 <Route path={ROUTES.DASHBOARD} element={<FinanceDashboard />} />
                 <Route path={ROUTES.INVENTORY} element={<Inventory />} />
