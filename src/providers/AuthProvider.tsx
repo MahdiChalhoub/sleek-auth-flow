@@ -1,9 +1,9 @@
-import React from "react";
+
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth, AuthContext } from "@/contexts/AuthContext";
+import { AuthContext } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { User, UserRole, UserStatus } from "@/types/auth";
-import { useBusinessSelection } from "@/hooks/useBusinessSelection";
 import { supabase } from "@/lib/supabase";
 import { Session } from "@supabase/supabase-js";
 import { Business } from "@/models/interfaces/businessInterfaces";
@@ -137,24 +137,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserBusinesses = async (userId: string) => {
     try {
-      const { data: ownedBusinesses, error: ownedError } = await fromTable('businesses')
+      const ownedBusinessesResponse = await fromTable('businesses')
         .select('*')
         .eq('owner_id', userId);
       
-      if (ownedError) throw ownedError;
+      if (!isDataResponse(ownedBusinessesResponse)) {
+        console.error('Error fetching owned businesses:', ownedBusinessesResponse.error);
+        return [];
+      }
       
-      const { data: memberBusinesses, error: memberError } = await fromTable('business_users')
+      const ownedBusinesses = ownedBusinessesResponse.data || [];
+      
+      const memberBusinessesResponse = await fromTable('business_users')
         .select('business:businesses(*)')
         .eq('user_id', userId)
         .eq('is_active', true);
       
-      if (memberError) throw memberError;
+      if (!isDataResponse(memberBusinessesResponse)) {
+        console.error('Error fetching member businesses:', memberBusinessesResponse.error);
+        return [];
+      }
       
-      const memberBusinessesData = memberBusinesses
-        .map(item => (item as any).business)
+      const memberBusinessesData = memberBusinessesResponse.data
+        .map(item => item.business)
         .filter(Boolean);
       
-      const allBusinesses = [...(ownedBusinesses || []), ...memberBusinessesData];
+      const allBusinesses = [...ownedBusinesses, ...memberBusinessesData];
       
       const uniqueBusinesses = allBusinesses.reduce((acc, current) => {
         const x = acc.find(item => item.id === current.id);

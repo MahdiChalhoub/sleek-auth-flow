@@ -50,14 +50,13 @@ const Signup: React.FC = () => {
       if (!isDataResponse(businessResponse)) {
         console.error('Error creating business:', businessResponse.error);
         // Continue anyway, user can create business later
-      }
-      
-      // 3. Create a default location for the business
-      if (businessResponse && isDataResponse(businessResponse) && businessResponse.data) {
+      } else {
+        // 3. Create a default location for the business
+        const businessData = businessResponse.data;
         const locationResponse = await fromTable('locations')
           .insert({
             name: 'Main Store',
-            business_id: businessResponse.data.id,
+            business_id: businessData.id,
             type: 'retail',
             status: 'active',
             is_default: true
