@@ -1,5 +1,5 @@
-import React from 'react';
-import { Card } from '@/components/ui/card';
+
+import React, { useState } from 'react';
 import { LocationManagement } from '@/components/settings/LocationManagement';
 import { parseOpeningHours } from '@/types/location';
 
@@ -40,6 +40,7 @@ const Settings: React.FC = () => {
   const getOpeningHoursDisplay = (location: any) => {
     if (!location?.openingHours) return 'Not set';
     
+    // Use the parseOpeningHours function to handle different types of openingHours data
     const hours = parseOpeningHours(location.openingHours);
     
     return (
