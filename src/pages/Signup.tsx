@@ -47,15 +47,12 @@ const Signup: React.FC = () => {
         .select();
       
       if (!isDataResponse(businessResponse)) {
-        console.error('Error creating business:', businessResponse.error);
+        console.error('Error creating business:', businessResponse);
         // Continue anyway, user can create business later
       } else {
         // 3. Create a default location for the business
-        // Safe access to data
-        const businessData = businessResponse.data;
-        if (businessData && businessData.length > 0 && businessData[0]?.id) {
-          const businessId = businessData[0].id;
-          
+        const businessId = businessResponse.data[0]?.id;
+        if (businessId) {
           const locationResponse = await fromTable('locations')
             .insert({
               name: 'Main Store',
@@ -66,7 +63,7 @@ const Signup: React.FC = () => {
             });
           
           if (!isDataResponse(locationResponse)) {
-            console.error('Error creating location:', locationResponse.error);
+            console.error('Error creating location:', locationResponse);
             // Continue anyway, user can create locations later
           }
         }

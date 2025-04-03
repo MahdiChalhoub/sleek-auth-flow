@@ -17,7 +17,7 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
     
     // If the setting exists and is complete, return it
     if (isDataResponse(settingsResponse) && settingsResponse.data) {
-      const setupComplete = settingsResponse.data.value?.completed === true;
+      const setupComplete = settingsResponse.data?.value?.completed === true;
       return { isComplete: setupComplete, businessExists: true };
     }
     

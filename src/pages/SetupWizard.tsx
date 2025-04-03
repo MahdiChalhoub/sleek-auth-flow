@@ -137,6 +137,7 @@ const SetupWizard: React.FC = () => {
           business_id: businessId,
           phone: locationData.phone,
           email: locationData.email,
+          timezone: locationData.timezone,
           status: 'active',
           is_default: locationData.isDefault
         })
