@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -69,7 +68,7 @@ const Signup: React.FC = () => {
           // Only proceed if we definitely have a business object with an id
           if (businessObj && typeof businessObj === 'object' && 'id' in businessObj) {
             // Safe type assertion after validation
-            const businessId = businessObj.id as string;
+            const businessId = String(businessObj.id);
             
             try {
               const locationResponse = await fromTable('locations')

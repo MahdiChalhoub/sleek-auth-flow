@@ -65,11 +65,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const business: Business = {
               id: item.id ? String(item.id) : 'unknown',
               name: item.name ? String(item.name) : 'Unknown Business',
+              status: item.status ? String(item.status) : 'inactive',
+              ownerId: item.owner_id ? String(item.owner_id) : userId,
+              // Optional properties
               address: item.address ? String(item.address) : undefined,
               phone: item.phone ? String(item.phone) : undefined,
               email: item.email ? String(item.email) : undefined,
-              status: item.status ? String(item.status) : 'inactive',
-              ownerId: item.owner_id ? String(item.owner_id) : userId,
               createdAt: item.created_at ? String(item.created_at) : undefined,
               updatedAt: item.updated_at ? String(item.updated_at) : undefined,
               logoUrl: item.logo_url ? String(item.logo_url) : undefined,

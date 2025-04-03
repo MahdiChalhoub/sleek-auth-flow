@@ -27,19 +27,21 @@ const Login: React.FC = () => {
           .limit(10);
           
         if (isDataResponse(response) && Array.isArray(response.data)) {
+          // Filter and map business data
           const businesses: Business[] = response.data
-            .filter(business => business !== null)
+            .filter((business): business is object => 
+              business !== null && typeof business === 'object')
             .map(business => {
-              if (business && typeof business === 'object' &&
+              if (business && 
                   'id' in business && 
                   'name' in business && 
                   'status' in business && 
                   'owner_id' in business) {
                 return {
-                  id: business.id as string,
-                  name: business.name as string,
-                  status: business.status as string,
-                  ownerId: business.owner_id as string,
+                  id: String(business.id),
+                  name: String(business.name),
+                  status: String(business.status),
+                  ownerId: String(business.owner_id),
                   // Safely include optional properties with null checks
                   address: business.address ? String(business.address) : undefined,
                   phone: business.phone ? String(business.phone) : undefined,

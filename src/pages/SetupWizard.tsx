@@ -140,9 +140,10 @@ const SetupWizard: React.FC = () => {
       
       const businessObj = businessResponse.data[0];
       
+      // Safely access business ID with null checks
       if (businessObj && typeof businessObj === 'object' && 'id' in businessObj) {
         // Safe type assertion after validation
-        const businessId = businessObj.id as string;
+        const businessId = String(businessObj.id);
         
         try {
           // 2. Create location
