@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -121,16 +120,16 @@ const SetupWizard: React.FC = () => {
       }
       
       if (!businessResponse.data || businessResponse.data.length === 0) {
-        throw new Error('Failed to retrieve created business ID');
+        throw new Error('No business data returned');
       }
       
       const businessObj = businessResponse.data[0];
+      
       if (!businessObj || typeof businessObj !== 'object' || !('id' in businessObj)) {
         throw new Error('Invalid business data returned from database');
       }
       
-      // Add non-null assertion (!) after checking businessObj is valid
-      const businessId = (businessObj as { id: string }).id;
+      const businessId = businessObj.id;
       
       const locationResponse = await fromTable('locations')
         .insert({
