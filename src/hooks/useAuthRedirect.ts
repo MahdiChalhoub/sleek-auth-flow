@@ -41,41 +41,46 @@ export const useAuthRedirect = (options: {
   useEffect(() => {
     if (isLoading) return;
     
-    // Case 1: If user needs to be authenticated but is not
-    if (!user && !redirectIfAuthenticated) {
-      storeIntendedRedirect();
-      toast.error("Please log in to access this page");
-      navigate(ROUTES.LOGIN, { state: { from: location } });
-      return;
-    }
-    
-    // Case 2: If user is authenticated but should be redirected (login page case)
-    if (user && redirectIfAuthenticated && redirectPath) {
-      const intended = localStorage.getItem("intended_redirect") || redirectPath;
-      navigate(intended, { replace: true });
-      return;
-    }
-    
-    // Case 3: If user needs specific role but doesn't have it
-    if (user && requiredRole && user.role !== requiredRole && user.role !== "admin") {
-      toast.error(`Access denied. This page requires ${requiredRole} privileges.`);
-      navigate(ROUTES.HOME);
-      return;
-    }
-    
-    // Case 4: If user needs specific permissions but doesn't have them
-    if (user && requiredPermissions.length > 0) {
-      const hasMissingPermissions = requiredPermissions.some(
-        permission => !hasPermission(permission)
-      );
-      
-      if (hasMissingPermissions) {
-        toast.error("You don't have the required permissions to access this page");
-        navigate(ROUTES.HOME);
+    try {
+      // Case 1: If user needs to be authenticated but is not
+      if (!user && !redirectIfAuthenticated) {
+        storeIntendedRedirect();
+        navigate(ROUTES.LOGIN, { state: { from: location }, replace: true });
         return;
       }
+      
+      // Case 2: If user is authenticated but should be redirected (login page case)
+      if (user && redirectIfAuthenticated && redirectPath) {
+        const intended = localStorage.getItem("intended_redirect") || redirectPath;
+        navigate(intended, { replace: true });
+        return;
+      }
+      
+      // Case 3: If user needs specific role but doesn't have it
+      if (user && requiredRole && user.role !== requiredRole && user.role !== "admin") {
+        toast.error(`Access denied. This page requires ${requiredRole} privileges.`);
+        navigate(ROUTES.HOME, { replace: true });
+        return;
+      }
+      
+      // Case 4: If user needs specific permissions but doesn't have them
+      if (user && requiredPermissions.length > 0) {
+        const hasMissingPermissions = requiredPermissions.some(
+          permission => !hasPermission(permission)
+        );
+        
+        if (hasMissingPermissions) {
+          toast.error("You don't have the required permissions to access this page");
+          navigate(ROUTES.HOME, { replace: true });
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("Auth redirect error:", error);
+      // Fallback to login page on unexpected errors
+      navigate(ROUTES.LOGIN, { replace: true });
     }
-  }, [user, isLoading, location, navigate, redirectIfAuthenticated, redirectPath, requiredRole, requiredPermissions]);
+  }, [user, isLoading, location, navigate, redirectIfAuthenticated, redirectPath, requiredRole, requiredPermissions, hasPermission]);
   
   // Return auth-related values and utility functions
   return {

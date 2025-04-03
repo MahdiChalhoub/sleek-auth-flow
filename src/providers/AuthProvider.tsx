@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -39,8 +40,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentBusiness, setCurrentBusiness] = useState<Business | null>(null);
   const navigate = useNavigate();
 
+  // Load user's businesses
   const loadUserBusinesses = useCallback(async (userId: string): Promise<Business[]> => {
     try {
+      // Fetch businesses where user is the owner
       const ownedResponse = await fromTable('businesses')
         .select('*')
         .eq('owner_id', userId);
@@ -131,51 +134,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // Setup auth state listener
   useEffect(() => {
+    console.log('Setting up auth state listener');
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
+        console.log('Auth state changed:', _event, !!session);
         setSession(session);
+        
         if (session?.user) {
-          const appUser = mapAuthUserToUser(session.user, { 
-            role: 'cashier', 
-            status: 'active' 
-          });
-          setUser(appUser);
+          try {
+            const appUser = mapAuthUserToUser(session.user, { 
+              role: 'cashier', 
+              status: 'active' 
+            });
+            setUser(appUser);
+          } catch (error) {
+            console.error('Error mapping auth user:', error);
+            setUser(null);
+          }
         } else {
           setUser(null);
         }
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        const appUser = mapAuthUserToUser(session.user, { 
-          role: 'cashier', 
-          status: 'active' 
-        });
-        setUser(appUser);
-      } else {
-        setUser(null);
+    // Initial session check
+    const checkSession = async () => {
+      try {
+        console.log('Checking initial session');
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        console.log('Initial session:', !!session);
+        setSession(session);
+        
+        if (session?.user) {
+          const appUser = mapAuthUserToUser(session.user, { 
+            role: 'cashier', 
+            status: 'active' 
+          });
+          setUser(appUser);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setIsLoading(false);
       }
-    });
+    };
+
+    checkSession();
 
     return () => {
+      console.log('Cleaning up auth subscription');
       subscription.unsubscribe();
     };
   }, []);
 
+  // Load businesses when user changes
   useEffect(() => {
     const getBusinesses = async () => {
       try {
         if (!user) {
           setUserBusinesses([]);
           setCurrentBusiness(null);
-          setIsLoading(false);
           return;
         }
 
+        console.log('Loading businesses for user:', user.id);
+        setIsLoading(true);
+        
         const fetchedBusinesses = await loadUserBusinesses(user.id);
+        console.log('Fetched businesses:', fetchedBusinesses.length);
+        
         setUserBusinesses(fetchedBusinesses);
 
         const savedBusinessId = localStorage.getItem('pos_current_business');
@@ -187,8 +218,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           selectedBusiness = fetchedBusinesses[0];
         }
 
-        setCurrentBusiness(selectedBusiness);
         if (selectedBusiness) {
+          console.log('Setting current business:', selectedBusiness.name);
+          setCurrentBusiness(selectedBusiness);
           localStorage.setItem('pos_current_business', selectedBusiness.id);
         }
       } catch (error) {
@@ -203,6 +235,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string, businessId?: string, rememberMe = true) => {
     try {
+      console.log('Attempting login for:', email);
+      setIsLoading(true);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -214,52 +249,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Login successful but no user returned');
       }
 
+      console.log('Login successful:', data.user.id);
+      
+      // We don't need to manually set user state here as it will be handled by the auth state listener
+      
       if (businessId) {
-        const businessResponse = await fromTable('businesses')
-          .select('*')
-          .eq('id', businessId)
-          .eq('owner_id', data.user.id)
-          .maybeSingle();
-          
-        if (!isDataResponse(businessResponse) || !businessResponse.data) {
-          throw new Error('Selected business not found or doesn\'t belong to you');
-        }
-        
         localStorage.setItem('pos_current_business', businessId);
-      } else {
-        throw new Error('Please select a business to continue');
       }
-
+      
       toast.success('Login successful');
       
-      navigate('/dashboard');
+      // Navigation will be handled by the Auth redirect system
       
-      return;
     } catch (error) {
       console.error('Login error:', error);
       toast.error('Login failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const logout = async () => {
     try {
+      console.log('Logging out');
+      setIsLoading(true);
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      
       setUser(null);
       setSession(null);
       setCurrentBusiness(null);
       setUserBusinesses([]);
-      navigate('/login');
+      localStorage.removeItem('pos_current_business');
+      
+      navigate('/login', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
       toast.error('Failed to log out');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const switchBusiness = (businessId: string) => {
     const business = userBusinesses.find(b => b.id === businessId);
     if (business) {
+      console.log('Switching to business:', business.name);
       setCurrentBusiness(business);
       localStorage.setItem('pos_current_business', business.id);
       toast.success(`Switched to ${business.name}`);

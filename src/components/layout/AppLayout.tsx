@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { Suspense } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AppSidebar from "./AppSidebar";
@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TabsProvider, useTabs } from "@/contexts/tabs";
 import TabNavigation from "./TabNavigation";
 import TabContent from "./TabContent";
+import { Loader2 } from "lucide-react";
 
 // Component for tab-based layout
 const TabsLayout: React.FC = () => {
@@ -29,27 +30,43 @@ const TabsLayout: React.FC = () => {
       ) : (
         // When no tabs are active, use the router's outlet directly
         <main className="flex-1 overflow-auto p-4 md:p-6">
-          <Outlet />
+          <Suspense fallback={<LoadingIndicator />}>
+            <Outlet />
+          </Suspense>
         </main>
       )}
     </>
   );
 };
 
-const AppLayout: React.FC = () => {
-  const { user, isLoading } = useAuth();
-  const { isMobile } = useScreenSize();
+// Extracted loading component for reuse
+const LoadingIndicator = () => (
+  <div className="flex h-full w-full items-center justify-center p-8">
+    <div className="flex flex-col items-center gap-2">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <p className="text-sm text-muted-foreground">Loading...</p>
+    </div>
+  </div>
+);
 
+const AppLayout: React.FC = () => {
+  const { user, isLoading, currentBusiness } = useAuth();
+  const { isMobile } = useScreenSize();
+  const location = useLocation();
+
+  // Show loading indicator during auth check
   if (isLoading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="animate-pulse text-2xl">Loading...</div>
-      </div>
-    );
+    return <LoadingIndicator />;
   }
 
+  // Redirect if not authenticated
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Redirect to business selection if no business is selected
+  if (!currentBusiness) {
+    return <Navigate to="/business-selection" replace />;
   }
 
   return (
