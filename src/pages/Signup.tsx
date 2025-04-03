@@ -71,24 +71,26 @@ const Signup: React.FC = () => {
             console.warn('Invalid business data returned from database');
           } else {
             // After validation, we can safely use businessObj.id
-            const businessId = String(businessObj.id);
+            const businessId = businessObj && 'id' in businessObj ? String(businessObj.id) : '';
             
-            try {
-              const locationResponse = await fromTable('locations')
-                .insert({
-                  name: 'Main Store',
-                  business_id: businessId,
-                  type: 'retail',
-                  status: 'active',
-                  is_default: true
-                });
-              
-              if (!isDataResponse(locationResponse)) {
-                console.error('Error creating location:', locationResponse);
+            if (businessId) {
+              try {
+                const locationResponse = await fromTable('locations')
+                  .insert({
+                    name: 'Main Store',
+                    business_id: businessId,
+                    type: 'retail',
+                    status: 'active',
+                    is_default: true
+                  });
+                
+                if (!isDataResponse(locationResponse)) {
+                  console.error('Error creating location:', locationResponse);
+                }
+              } catch (locationError) {
+                console.error('Failed to create location:', locationError);
+                // Continue anyway, user can create locations later
               }
-            } catch (locationError) {
-              console.error('Failed to create location:', locationError);
-              // Continue anyway, user can create locations later
             }
           }
         }

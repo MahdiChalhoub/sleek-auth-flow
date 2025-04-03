@@ -146,7 +146,7 @@ const SetupWizard: React.FC = () => {
       }
       
       // After validating, we can safely use businessObj.id
-      const businessId = String(businessObj.id);
+      const businessId = businessObj && 'id' in businessObj ? String(businessObj.id) : '';
       
       try {
         // 2. Create location

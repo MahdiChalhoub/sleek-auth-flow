@@ -51,20 +51,20 @@ const Login: React.FC = () => {
             };
             
             // Safely add optional properties if they exist
-            if ('address' in business && business.address) businessItem.address = String(business.address);
-            if ('phone' in business && business.phone) businessItem.phone = String(business.phone);
-            if ('email' in business && business.email) businessItem.email = String(business.email);
-            if ('tax_id' in business && business.tax_id) businessItem.taxId = String(business.tax_id);
-            if ('website' in business && business.website) businessItem.website = String(business.website);
-            if ('created_at' in business && business.created_at) businessItem.createdAt = String(business.created_at);
-            if ('updated_at' in business && business.updated_at) businessItem.updatedAt = String(business.updated_at);
-            if ('logo_url' in business && business.logo_url) businessItem.logoUrl = String(business.logo_url);
-            if ('description' in business && business.description) businessItem.description = String(business.description);
-            if ('type' in business && business.type) businessItem.type = String(business.type);
-            if ('country' in business && business.country) businessItem.country = String(business.country);
-            if ('currency' in business && business.currency) businessItem.currency = String(business.currency);
-            if ('active' in business) businessItem.active = Boolean(business.active);
-            if ('timezone' in business && business.timezone) businessItem.timezone = String(business.timezone);
+            if (business && 'address' in business && business.address) businessItem.address = String(business.address);
+            if (business && 'phone' in business && business.phone) businessItem.phone = String(business.phone);
+            if (business && 'email' in business && business.email) businessItem.email = String(business.email);
+            if (business && 'tax_id' in business && business.tax_id) businessItem.taxId = String(business.tax_id);
+            if (business && 'website' in business && business.website) businessItem.website = String(business.website);
+            if (business && 'created_at' in business && business.created_at) businessItem.createdAt = String(business.created_at);
+            if (business && 'updated_at' in business && business.updated_at) businessItem.updatedAt = String(business.updated_at);
+            if (business && 'logo_url' in business && business.logo_url) businessItem.logoUrl = String(business.logo_url);
+            if (business && 'description' in business && business.description) businessItem.description = String(business.description);
+            if (business && 'type' in business && business.type) businessItem.type = String(business.type);
+            if (business && 'country' in business && business.country) businessItem.country = String(business.country);
+            if (business && 'currency' in business && business.currency) businessItem.currency = String(business.currency);
+            if (business && 'active' in business) businessItem.active = Boolean(business.active);
+            if (business && 'timezone' in business && business.timezone) businessItem.timezone = String(business.timezone);
             
             businesses.push(businessItem);
           }
