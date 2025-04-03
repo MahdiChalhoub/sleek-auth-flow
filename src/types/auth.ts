@@ -15,3 +15,28 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
 }
+
+// Export User and UserRole from the interfaces
+export { User, UserRole } from '@/models/interfaces/userInterfaces';
+
+// Add UserPermission interface
+export interface UserPermission {
+  id: string;
+  name: string;
+  description?: string;
+  category?: string;
+  enabled: boolean;
+}
+
+// Add Role interface
+export interface Role {
+  id: string;
+  name: string;
+  description?: string;
+  permissions: UserPermission[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Add UserStatus enum
+export type UserStatus = 'active' | 'pending' | 'inactive' | 'denied';
