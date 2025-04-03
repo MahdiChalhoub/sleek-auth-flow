@@ -1,5 +1,4 @@
-
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 type ChangeHandler<T> = (payload: RealtimePostgresChangesPayload<T>) => void;
@@ -89,11 +88,15 @@ export async function broadcast(channelName: string, event: string, payload: any
 }
 
 /**
- * Unsubscribe from all active subscriptions
+ * Unsubscribe from all active subscriptions using a more modern cleanup approach
  */
 export function unsubscribeAll(): void {
-  activeSubscriptions.forEach((channel) => {
-    supabase.removeChannel(channel);
+  activeSubscriptions.forEach((channel, key) => {
+    try {
+      supabase.removeChannel(channel);
+    } catch (error) {
+      console.warn(`Error unsubscribing from channel ${key}:`, error);
+    }
   });
   activeSubscriptions.clear();
 }
@@ -128,4 +131,12 @@ export function createBroadcastChannel<T>(
       unsubscribe: () => {}
     };
   }
+}
+
+// Optional: Add a cleanup hook for React applications
+export function useCleanupSubscriptions() {
+  // This function can be used in a useEffect hook in React components
+  return () => {
+    unsubscribeAll();
+  };
 }
