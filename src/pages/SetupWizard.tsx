@@ -124,7 +124,11 @@ const SetupWizard: React.FC = () => {
       }
       
       // Safely access the business ID
-      const businessId = businessResponse.data?.[0]?.id;
+      if (!businessResponse.data || businessResponse.data.length === 0) {
+        throw new Error('Failed to retrieve created business ID');
+      }
+      
+      const businessId = businessResponse.data[0]?.id;
       if (!businessId) {
         throw new Error('Failed to retrieve created business ID');
       }

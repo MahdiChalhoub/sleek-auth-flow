@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,20 +52,23 @@ const Signup: React.FC = () => {
       } else {
         // 3. Create a default location for the business
         // Safely access the business ID
-        const businessId = businessResponse.data?.[0]?.id;
-        if (businessId) {
-          const locationResponse = await fromTable('locations')
-            .insert({
-              name: 'Main Store',
-              business_id: businessId,
-              type: 'retail',
-              status: 'active',
-              is_default: true
-            });
+        if (businessResponse.data && businessResponse.data.length > 0) {
+          const businessId = businessResponse.data[0]?.id;
           
-          if (!isDataResponse(locationResponse)) {
-            console.error('Error creating location:', locationResponse);
-            // Continue anyway, user can create locations later
+          if (businessId) {
+            const locationResponse = await fromTable('locations')
+              .insert({
+                name: 'Main Store',
+                business_id: businessId,
+                type: 'retail',
+                status: 'active',
+                is_default: true
+              });
+            
+            if (!isDataResponse(locationResponse)) {
+              console.error('Error creating location:', locationResponse);
+              // Continue anyway, user can create locations later
+            }
           }
         }
       }
