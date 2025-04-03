@@ -4,27 +4,37 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Users, LogOut, ShoppingCart, Package, FileText } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/providers/AuthProvider";
 import { ROUTES } from "@/constants/routes";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, logout, isLoading } = useAuth();
+  const { user, logout, isLoading, bypassAuth } = useAuth();
+
+  console.log('🖥️ Index page rendered:', { 
+    hasUser: !!user, 
+    isLoading,
+    bypassAuth
+  });
 
   useEffect(() => {
-    // If the user has already logged in, redirect to appropriate dashboard
-    if (user && !isLoading) {
+    // Always redirect to appropriate dashboard in one of these cases:
+    // 1. If bypass auth is enabled
+    // 2. If the user has already logged in
+    if ((user && !isLoading) || bypassAuth) {
+      console.log('🚀 Redirecting to appropriate dashboard');
+      
       // Get the appropriate page based on role
       let redirectPath = ROUTES.HOME;
-      if (user.role === 'cashier') {
+      if (user?.role === 'cashier') {
         redirectPath = ROUTES.POS_SALES;
-      } else if (user.role === 'manager') {
+      } else if (user?.role === 'manager') {
         redirectPath = ROUTES.INVENTORY;
       }
 
-      navigate(redirectPath);
+      navigate(redirectPath, { replace: true });
     }
-  }, [user, isLoading, navigate]);
+  }, [user, isLoading, navigate, bypassAuth]);
 
   const handleLogout = () => {
     logout();
@@ -34,16 +44,28 @@ const Index = () => {
   };
 
   if (isLoading) {
+    console.log('⏳ Showing loading indicator on Index page');
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <div className="animate-pulse text-2xl">Loading...</div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          <p className="text-muted-foreground">Loading application...</p>
+        </div>
       </div>
     );
   }
 
-  if (user) {
+  if (user || bypassAuth) {
+    console.log('⏳ User detected, waiting for redirect...');
     // This is a fallback, but useEffect should handle redirection
-    return null;
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          <p className="text-muted-foreground">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/providers/AuthProvider'; // Updated import to use the provider
+import { useAuth } from '@/providers/AuthProvider'; // Updated import
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,13 +14,17 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [loginInProgress, setLoginInProgress] = useState(false);
   const { login, isLoading, bypassAuth } = useAuth();
-  const { redirectIfAuthenticated } = useAuthRedirect({ redirectIfAuthenticated: true, redirectPath: '/home' });
   const navigate = useNavigate();
+  
+  console.log('🖥️ Login page rendered:', { isLoading, bypassAuth });
 
   // Redirect to dashboard if bypassAuth is enabled
   useEffect(() => {
+    console.log('🔍 Checking auth bypass status:', bypassAuth);
     if (bypassAuth) {
+      console.log('🚀 Redirecting to home due to bypass auth');
       toast.info('Direct access mode enabled - No login required');
       navigate('/home', { replace: true });
     }
@@ -30,24 +34,54 @@ const Login: React.FC = () => {
     e.preventDefault();
     
     if (bypassAuth) {
+      console.log('🚀 Redirecting to home due to bypass auth');
       toast.info('Direct access mode enabled - No login required');
       navigate('/home', { replace: true });
       return;
     }
     
     if (!email || !password) {
+      toast.error('Please enter both email and password');
       return;
     }
     
     try {
-      await login(email, password);
+      console.log('🔑 Attempting login...');
+      setLoginInProgress(true);
+      const success = await login(email, password);
+      
+      if (success) {
+        console.log('✅ Login successful, redirecting to home');
+        // Redirect is handled by the auth provider through the session change
+        navigate('/home', { replace: true });
+      }
     } catch (error) {
-      // Error handling is done in the login function
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
+    } finally {
+      setLoginInProgress(false);
     }
   };
 
-  // If bypassAuth is true, we won't even render the login form
+  // Show loading indicator when auth state is being determined
+  if (isLoading && !loginInProgress) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
+        <Card className="shadow-lg w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Loading</CardTitle>
+            <CardDescription>
+              Please wait while we check your authentication status...
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-center p-8">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // If bypassAuth is true, we'll redirect in the useEffect
   if (bypassAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
@@ -55,20 +89,12 @@ const Login: React.FC = () => {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">Direct Access Enabled</CardTitle>
             <CardDescription>
-              You're using the system in direct access mode. No login required.
+              You're using the system in direct access mode. Redirecting to dashboard...
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 text-center">
-            <p>All features are fully available without authentication.</p>
+          <CardContent className="flex items-center justify-center p-8">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
           </CardContent>
-          <CardFooter className="flex justify-center">
-            <Button 
-              onClick={() => navigate('/home')}
-              className="w-full"
-            >
-              Go to Dashboard
-            </Button>
-          </CardFooter>
         </Card>
       </div>
     );
@@ -129,9 +155,9 @@ const Login: React.FC = () => {
               <Button 
                 className="w-full mb-4" 
                 type="submit" 
-                disabled={isLoading}
+                disabled={loginInProgress}
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {loginInProgress ? 'Signing in...' : 'Sign in'}
               </Button>
               <p className="text-sm text-center text-muted-foreground">
                 Don't have an account?{' '}

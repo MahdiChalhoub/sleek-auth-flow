@@ -53,24 +53,46 @@ const AppLayout: React.FC = () => {
   const { user, isLoading, currentBusiness, bypassAuth } = useAuth();
   const { isMobile } = useScreenSize();
   const location = useLocation();
+  
+  console.log('🖥️ AppLayout rendered:', { 
+    user: !!user, 
+    isLoading, 
+    hasBusiness: !!currentBusiness, 
+    bypassAuth,
+    location: location.pathname
+  });
 
-  // Show loading indicator during auth check
-  if (isLoading) {
-    return <LoadingIndicator />;
+  // Show loading indicator during auth check, but only if not in bypass mode
+  if (isLoading && !bypassAuth) {
+    console.log('⏳ Showing loading indicator due to auth loading state');
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <LoadingIndicator />
+          <p className="text-sm text-muted-foreground">Initializing application...</p>
+        </div>
+      </div>
+    );
   }
 
   // Skip authentication checks if bypassAuth is true
   if (!bypassAuth) {
     // Only perform these checks if not in bypass mode
+    console.log('🔍 Performing authentication checks');
+    
     // Redirect if not authenticated
     if (!user) {
+      console.log('❌ Not authenticated, redirecting to login');
       return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     // Redirect to business selection if no business is selected
     if (!currentBusiness) {
+      console.log('❌ No business selected, redirecting to business selection');
       return <Navigate to="/business-selection" replace />;
     }
+  } else {
+    console.log('🚫 Bypassing authentication checks');
   }
 
   return (
