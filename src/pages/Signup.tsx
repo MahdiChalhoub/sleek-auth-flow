@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,7 +50,8 @@ const Signup: React.FC = () => {
         // Continue anyway, user can create business later
       } else {
         // 3. Create a default location for the business
-        const businessId = businessResponse.data[0]?.id;
+        // Safely access the business ID
+        const businessId = businessResponse.data?.[0]?.id;
         if (businessId) {
           const locationResponse = await fromTable('locations')
             .insert({

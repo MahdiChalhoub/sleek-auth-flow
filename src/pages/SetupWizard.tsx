@@ -123,7 +123,8 @@ const SetupWizard: React.FC = () => {
         throw new Error('Failed to create business');
       }
       
-      const businessId = businessResponse.data[0]?.id;
+      // Safely access the business ID
+      const businessId = businessResponse.data?.[0]?.id;
       if (!businessId) {
         throw new Error('Failed to retrieve created business ID');
       }
