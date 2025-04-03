@@ -86,6 +86,7 @@ const SetupWizard: React.FC = () => {
         throw new Error('You must be logged in to complete setup');
       }
       
+      // Check if business exists with same name
       const businessNameCheck = await fromTable('businesses')
         .select('id')
         .eq('name', businessData.name)
@@ -95,6 +96,7 @@ const SetupWizard: React.FC = () => {
         throw new Error('A business with this name already exists. Please choose a different name.');
       }
       
+      // Check phone if provided
       if (businessData.phone) {
         const phoneCheck = await fromTable('businesses')
           .select('id')
@@ -106,7 +108,8 @@ const SetupWizard: React.FC = () => {
         }
       }
       
-      const businessResponse = await fromTable('businesses')
+      // Create business with better error handling
+      const businessResult = await fromTable('businesses')
         .insert({
           name: businessData.name,
           type: businessData.type,
@@ -119,22 +122,23 @@ const SetupWizard: React.FC = () => {
         })
         .select();
       
-      if (!isDataResponse(businessResponse)) {
-        throw new Error('Failed to create business');
+      if (!isDataResponse(businessResult)) {
+        console.error('Business creation error:', businessResult.error);
+        throw new Error(`Failed to create business: ${businessResult.error?.message || 'Unknown error'}`);
       }
       
-      if (!businessResponse.data || businessResponse.data.length === 0) {
-        throw new Error('No business data returned');
+      if (!businessResult.data || businessResult.data.length === 0) {
+        throw new Error('No business data returned from database');
       }
       
-      const businessObj = businessResponse.data[0];
+      const businessObj = businessResult.data[0];
       
-      // Type assertion to help TypeScript
+      // Add better type safety
       if (!businessObj || typeof businessObj !== 'object') {
         throw new Error('Invalid business data returned from database');
       }
 
-      // Safe type assertion
+      // Get business ID
       const typedBusinessObj = businessObj as Record<string, unknown>;
       
       if (!('id' in typedBusinessObj)) {
@@ -147,8 +151,9 @@ const SetupWizard: React.FC = () => {
         throw new Error('Could not retrieve business ID');
       }
       
+      // Create location with better error handling
       try {
-        const locationResponse = await fromTable('locations')
+        const locationResult = await fromTable('locations')
           .insert({
             name: locationData.name,
             type: locationData.type,
@@ -156,20 +161,25 @@ const SetupWizard: React.FC = () => {
             business_id: businessId,
             status: 'active',
             is_default: true
-          });
+          })
+          .select();
         
-        if (!isDataResponse(locationResponse)) {
-          console.error('Error creating location:', locationResponse);
+        if (!isDataResponse(locationResult)) {
+          console.error('Location creation error:', locationResult.error);
+          throw new Error(`Failed to create location: ${locationResult.error?.message || 'Unknown error'}`);
         }
       } catch (locationError) {
         console.error('Failed to create location:', locationError);
+        // Continue with setup even if location creation fails
       }
       
+      // Save setup status as complete
       await saveSetupStatus(true);
       
       toast.success('Setup completed successfully!');
       
-      navigate('/dashboard');
+      // Navigate to dashboard after setup completes
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error('Setup error:', error);
       toast.error('Setup failed', {

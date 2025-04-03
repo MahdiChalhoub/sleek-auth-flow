@@ -21,15 +21,15 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
     
     // If the setting exists and is complete, return it
     if (isDataResponse(settingsResponse) && settingsResponse.data) {
-      // We've checked that data exists here, so it's safe to use
       const data = settingsResponse.data;
       console.log('System setup data:', data);
 
-      // First check if value exists and is non-null
       if (data && 'value' in data && data.value !== null) {
         try {
-          // Now check if value is an object and has the completed property
-          const valueObject = data.value as Record<string, unknown>;
+          // Parse value if it's a string
+          const valueObject = typeof data.value === 'string' 
+            ? JSON.parse(data.value) 
+            : data.value as Record<string, unknown>;
           
           if (
             valueObject && 
@@ -51,6 +51,7 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
     
     // If the setting doesn't exist, check if any businesses exist
     console.log('Checking if any businesses exist');
+    
     const businessResponse = await fromTable('businesses')
       .select('id')
       .limit(1);
@@ -62,6 +63,16 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
                         businessResponse.data.length > 0;
     
     console.log('Business exists:', businessExists);
+    
+    // If businesses exist but no setting, save the setup status
+    if (businessExists) {
+      try {
+        await saveSetupStatus(true);
+        console.log('Setup status saved since businesses exist');
+      } catch (error) {
+        console.error('Failed to save setup status:', error);
+      }
+    }
     
     return {
       isComplete: businessExists, // If business exists but no setting, assume setup is complete
@@ -78,15 +89,22 @@ export const saveSetupStatus = async (completed: boolean): Promise<void> => {
   try {
     console.log('Saving setup status:', completed);
     
+    // Ensure value is properly formatted
+    const setupValue = {
+      completed,
+      completed_at: new Date().toISOString()
+    };
+    
     const response = await fromTable('settings')
       .upsert({
         key: 'system_setup',
-        value: { completed, completed_at: new Date().toISOString() },
+        value: setupValue,
         description: 'System setup status'
       });
     
     if (!isDataResponse(response)) {
-      throw new Error(`Failed to save setup status: ${response.error?.message}`);
+      console.error('Error saving setup status:', response.error);
+      throw new Error(`Failed to save setup status: ${response.error?.message || 'Unknown error'}`);
     }
     
     console.log('Setup status saved successfully');

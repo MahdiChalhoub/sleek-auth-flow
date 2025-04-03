@@ -84,6 +84,8 @@ function App() {
         
         if (!status.isComplete && location.pathname !== ROUTES.SETUP) {
           navigate(ROUTES.SETUP, { replace: true });
+        } else if (status.isComplete && location.pathname === ROUTES.SETUP) {
+          navigate(ROUTES.HOME, { replace: true });
         }
       } catch (error) {
         console.error('Error checking setup status:', error);
@@ -116,9 +118,11 @@ function App() {
             <Routes>
               <Route 
                 path={ROUTES.SETUP} 
-                element={setupStatus.isComplete 
-                  ? <Navigate to={ROUTES.LOGIN} replace /> 
-                  : <SetupWizard />} 
+                element={
+                  setupStatus.isComplete && !isCheckingSetup ? 
+                    <Navigate to={ROUTES.HOME} replace /> : 
+                    <SetupWizard />
+                } 
               />
               <Route path="/" element={<Index />} />
               <Route path="/index" element={<Navigate to="/" replace />} />
