@@ -8,7 +8,6 @@ import AppLayout from './components/layout/AppLayout';
 import { SetupStatus } from './services/setupService';
 import { ROUTES } from './constants/routes';
 import { QueryProvider } from './providers/QueryProvider';
-import { LocationProvider } from './contexts/LocationContext';
 import { Loader2 } from 'lucide-react';
 import PrivateRoute from './components/auth/PrivateRoute';
 
@@ -64,6 +63,7 @@ import FinancialYearManagement from './pages/FinancialYearManagement';
 import BusinessSelection from './pages/BusinessSelection';
 import WaitingApproval from './pages/WaitingApproval';
 import SetupWizard from './pages/SetupWizard';
+import { LocationProvider } from './contexts/LocationContext';
 
 function App() {
   const [isCheckingSetup, setIsCheckingSetup] = useState(false);
@@ -80,7 +80,6 @@ function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <QueryProvider>
-        {/* LocationProvider must be inside the QueryProvider but outside Routes */}
         <Routes>
           <Route path={ROUTES.SETUP} element={<Navigate to={ROUTES.HOME} replace />} />
           <Route path="/" element={<Navigate to={ROUTES.HOME} replace />} />

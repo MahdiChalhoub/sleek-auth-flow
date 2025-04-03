@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/providers/AuthProvider'; // Ensure this path is correct
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
@@ -45,6 +45,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   let auth;
   try {
     auth = useAuth();
+    console.log('🏙️ Auth context accessed successfully in LocationProvider');
   } catch (error) {
     console.error('Auth context not available in LocationProvider:', error);
     // Return a basic provider that won't attempt to use auth functionality

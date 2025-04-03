@@ -12,7 +12,7 @@ import {
   Store,
   ShoppingCart
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/providers/AuthProvider"; // Fix: Updated import path
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +32,8 @@ const AppTopbar: React.FC = () => {
   const { setTheme } = useTheme();
   const { isMobile } = useScreenSize();
   const navigate = useNavigate();
+
+  console.log('🔝 AppTopbar rendering with user:', !!user);
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
