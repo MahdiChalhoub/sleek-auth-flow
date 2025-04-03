@@ -59,7 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Filter out any null or undefined business_id values
       const validMemberBusinesses = (membershipResponse.data || [])
-        .filter(item => item && typeof item === 'object' && 'business_id' in item && item.business_id);
+        .filter(item => item && typeof item === 'object' && 'business_id' in item && item.business_id !== null);
       
       let businessesFromMembership: any[] = [];
       if (validMemberBusinesses.length > 0) {
