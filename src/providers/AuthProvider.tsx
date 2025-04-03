@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -74,18 +73,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             };
             
             // Add optional properties if they exist
-            if (itemData && 'address' in itemData && itemData.address) business.address = String(itemData.address);
-            if (itemData && 'phone' in itemData && itemData.phone) business.phone = String(itemData.phone);
-            if (itemData && 'email' in itemData && itemData.email) business.email = String(itemData.email);
-            if (itemData && 'created_at' in itemData && itemData.created_at) business.createdAt = String(itemData.created_at);
-            if (itemData && 'updated_at' in itemData && itemData.updated_at) business.updatedAt = String(itemData.updated_at);
-            if (itemData && 'logo_url' in itemData && itemData.logo_url) business.logoUrl = String(itemData.logo_url);
-            if (itemData && 'description' in itemData && itemData.description) business.description = String(itemData.description);
-            if (itemData && 'type' in itemData && itemData.type) business.type = String(itemData.type);
-            if (itemData && 'country' in itemData && itemData.country) business.country = String(itemData.country);
-            if (itemData && 'currency' in itemData && itemData.currency) business.currency = String(itemData.currency);
-            if (itemData && 'active' in itemData) business.active = Boolean(itemData.active);
-            if (itemData && 'timezone' in itemData && itemData.timezone) business.timezone = String(itemData.timezone);
+            if (itemData && typeof itemData === 'object' && 'address' in itemData && itemData.address) {
+              business.address = String(itemData.address);
+            }
+            if (itemData && typeof itemData === 'object' && 'phone' in itemData && itemData.phone) {
+              business.phone = String(itemData.phone);
+            }
+            if (itemData && typeof itemData === 'object' && 'email' in itemData && itemData.email) {
+              business.email = String(itemData.email);
+            }
+            if (itemData && typeof itemData === 'object' && 'created_at' in itemData && itemData.created_at) {
+              business.createdAt = String(itemData.created_at);
+            }
+            if (itemData && typeof itemData === 'object' && 'updated_at' in itemData && itemData.updated_at) {
+              business.updatedAt = String(itemData.updated_at);
+            }
+            if (itemData && typeof itemData === 'object' && 'logo_url' in itemData && itemData.logo_url) {
+              business.logoUrl = String(itemData.logo_url);
+            }
+            if (itemData && typeof itemData === 'object' && 'description' in itemData && itemData.description) {
+              business.description = String(itemData.description);
+            }
+            if (itemData && typeof itemData === 'object' && 'type' in itemData && itemData.type) {
+              business.type = String(itemData.type);
+            }
+            if (itemData && typeof itemData === 'object' && 'country' in itemData && itemData.country) {
+              business.country = String(itemData.country);
+            }
+            if (itemData && typeof itemData === 'object' && 'currency' in itemData && itemData.currency) {
+              business.currency = String(itemData.currency);
+            }
+            if (itemData && typeof itemData === 'object' && 'active' in itemData) {
+              business.active = Boolean(itemData.active);
+            }
+            if (itemData && typeof itemData === 'object' && 'timezone' in itemData && itemData.timezone) {
+              business.timezone = String(itemData.timezone);
+            }
             
             businesses.push(business);
           }

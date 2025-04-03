@@ -71,7 +71,8 @@ const Signup: React.FC = () => {
             console.warn('Invalid business data returned from database');
           } else {
             // After validation, we can safely use businessObj.id
-            const businessId = businessObj && 'id' in businessObj ? String(businessObj.id) : '';
+            const businessId = businessObj && typeof businessObj === 'object' && 'id' in businessObj ? 
+              String(businessObj.id) : '';
             
             if (businessId) {
               try {

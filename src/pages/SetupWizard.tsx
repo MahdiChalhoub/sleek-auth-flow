@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -146,7 +145,12 @@ const SetupWizard: React.FC = () => {
       }
       
       // After validating, we can safely use businessObj.id
-      const businessId = businessObj && 'id' in businessObj ? String(businessObj.id) : '';
+      const businessId = businessObj && typeof businessObj === 'object' && 'id' in businessObj ? 
+        String(businessObj.id) : '';
+      
+      if (!businessId) {
+        throw new Error('Could not retrieve business ID');
+      }
       
       try {
         // 2. Create location

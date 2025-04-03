@@ -30,41 +30,69 @@ const Login: React.FC = () => {
           // Filter and map business data
           const businesses: Business[] = [];
           
-          for (const business of response.data) {
+          for (const businessData of response.data) {
             // Skip null or non-object entries
-            if (!business || typeof business !== 'object') continue;
+            if (!businessData || typeof businessData !== 'object') continue;
             
             // Ensure required fields exist
-            if (!('id' in business) || 
-                !('name' in business) || 
-                !('status' in business) || 
-                !('owner_id' in business)) {
+            if (!('id' in businessData) || 
+                !('name' in businessData) || 
+                !('status' in businessData) || 
+                !('owner_id' in businessData)) {
               continue;
             }
             
             // Create a valid Business object with the required fields
             const businessItem: Business = {
-              id: String(business.id),
-              name: String(business.name),
-              status: String(business.status),
-              ownerId: String(business.owner_id),
+              id: String(businessData.id),
+              name: String(businessData.name),
+              status: String(businessData.status),
+              ownerId: String(businessData.owner_id),
             };
             
             // Safely add optional properties if they exist
-            if (business && 'address' in business && business.address) businessItem.address = String(business.address);
-            if (business && 'phone' in business && business.phone) businessItem.phone = String(business.phone);
-            if (business && 'email' in business && business.email) businessItem.email = String(business.email);
-            if (business && 'tax_id' in business && business.tax_id) businessItem.taxId = String(business.tax_id);
-            if (business && 'website' in business && business.website) businessItem.website = String(business.website);
-            if (business && 'created_at' in business && business.created_at) businessItem.createdAt = String(business.created_at);
-            if (business && 'updated_at' in business && business.updated_at) businessItem.updatedAt = String(business.updated_at);
-            if (business && 'logo_url' in business && business.logo_url) businessItem.logoUrl = String(business.logo_url);
-            if (business && 'description' in business && business.description) businessItem.description = String(business.description);
-            if (business && 'type' in business && business.type) businessItem.type = String(business.type);
-            if (business && 'country' in business && business.country) businessItem.country = String(business.country);
-            if (business && 'currency' in business && business.currency) businessItem.currency = String(business.currency);
-            if (business && 'active' in business) businessItem.active = Boolean(business.active);
-            if (business && 'timezone' in business && business.timezone) businessItem.timezone = String(business.timezone);
+            if (businessData && 'address' in businessData && businessData.address) {
+              businessItem.address = String(businessData.address);
+            }
+            if (businessData && 'phone' in businessData && businessData.phone) {
+              businessItem.phone = String(businessData.phone);
+            }
+            if (businessData && 'email' in businessData && businessData.email) {
+              businessItem.email = String(businessData.email);
+            }
+            if (businessData && 'tax_id' in businessData && businessData.tax_id) {
+              businessItem.taxId = String(businessData.tax_id);
+            }
+            if (businessData && 'website' in businessData && businessData.website) {
+              businessItem.website = String(businessData.website);
+            }
+            if (businessData && 'created_at' in businessData && businessData.created_at) {
+              businessItem.createdAt = String(businessData.created_at);
+            }
+            if (businessData && 'updated_at' in businessData && businessData.updated_at) {
+              businessItem.updatedAt = String(businessData.updated_at);
+            }
+            if (businessData && 'logo_url' in businessData && businessData.logo_url) {
+              businessItem.logoUrl = String(businessData.logo_url);
+            }
+            if (businessData && 'description' in businessData && businessData.description) {
+              businessItem.description = String(businessData.description);
+            }
+            if (businessData && 'type' in businessData && businessData.type) {
+              businessItem.type = String(businessData.type);
+            }
+            if (businessData && 'country' in businessData && businessData.country) {
+              businessItem.country = String(businessData.country);
+            }
+            if (businessData && 'currency' in businessData && businessData.currency) {
+              businessItem.currency = String(businessData.currency);
+            }
+            if (businessData && 'active' in businessData) {
+              businessItem.active = Boolean(businessData.active);
+            }
+            if (businessData && 'timezone' in businessData && businessData.timezone) {
+              businessItem.timezone = String(businessData.timezone);
+            }
             
             businesses.push(businessItem);
           }
