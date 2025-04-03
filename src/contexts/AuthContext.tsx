@@ -37,41 +37,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadUserBusinesses = useCallback(async (userId: string): Promise<Business[]> => {
     try {
-      const { data: ownedBusinesses, error: ownedError } = await supabase
-        .from('businesses')
+      const ownedResponse = await fromTable('businesses')
         .select('*')
         .eq('owner_id', userId);
       
-      if (ownedError) {
-        console.error('Error fetching owned businesses:', ownedError);
+      if (!isDataResponse(ownedResponse)) {
+        console.error('Error fetching owned businesses:', ownedResponse.error);
+        return [];
       }
       
-      const { data: memberBusinesses, error: memberError } = await supabase
-        .from('business_users' as any)
+      const ownedBusinesses = ownedResponse.data || [];
+      
+      const membershipResponse = await fromTable('business_users')
         .select('business_id')
         .eq('user_id', userId);
       
-      if (memberError) {
-        console.error('Error fetching member businesses:', memberError);
+      if (!isDataResponse(membershipResponse)) {
+        console.error('Error fetching member businesses:', membershipResponse.error);
+        return ownedBusinesses.map(mapBusinessData);
       }
-
+      
+      const memberBusinesses = membershipResponse.data || [];
+      
       let businessesFromMembership: any[] = [];
-      if (Array.isArray(memberBusinesses) && memberBusinesses.length > 0) {
+      if (memberBusinesses.length > 0) {
         const businessIds = memberBusinesses.map(item => item.business_id);
         
-        const { data: memberBusinessDetails, error: memberDetailsError } = await supabase
-          .from('businesses')
+        const memberDetailsResponse = await fromTable('businesses')
           .select('*')
           .in('id', businessIds);
           
-        if (memberDetailsError) {
-          console.error('Error fetching member business details:', memberDetailsError);
+        if (isDataResponse(memberDetailsResponse)) {
+          businessesFromMembership = memberDetailsResponse.data || [];
         } else {
-          businessesFromMembership = memberBusinessDetails || [];
+          console.error('Error fetching member business details:', memberDetailsResponse.error);
         }
       }
       
-      const allBusinesses = [...(ownedBusinesses || []), ...businessesFromMembership];
+      const allBusinesses = [...ownedBusinesses, ...businessesFromMembership];
       
       const uniqueBusinessMap = new Map<string, any>();
       allBusinesses.forEach(business => {
@@ -80,31 +83,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
-      const mappedBusinesses: Business[] = Array.from(uniqueBusinessMap.values()).map(business => ({
-        id: business.id,
-        name: business.name,
-        address: business.address,
-        phone: business.phone,
-        email: business.email,
-        status: business.status,
-        ownerId: business.owner_id,
-        createdAt: business.created_at,
-        updatedAt: business.updated_at,
-        logoUrl: business.logo_url,
-        description: business.description,
-        type: business.type,
-        country: business.country,
-        currency: business.currency,
-        active: business.active,
-        timezone: business.timezone
-      }));
-      
-      return mappedBusinesses;
+      return Array.from(uniqueBusinessMap.values()).map(mapBusinessData);
     } catch (error) {
       console.error('Error loading user businesses:', error);
       return [];
     }
   }, []);
+
+  const mapBusinessData = (business: any): Business => ({
+    id: business.id,
+    name: business.name,
+    address: business.address,
+    phone: business.phone,
+    email: business.email,
+    status: business.status,
+    ownerId: business.owner_id,
+    createdAt: business.created_at,
+    updatedAt: business.updated_at,
+    logoUrl: business.logo_url,
+    description: business.description,
+    type: business.type,
+    country: business.country,
+    currency: business.currency,
+    active: business.active,
+    timezone: business.timezone
+  });
 
   useEffect(() => {
     const fetchUser = async () => {

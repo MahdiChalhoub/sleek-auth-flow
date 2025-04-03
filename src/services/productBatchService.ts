@@ -2,7 +2,7 @@
 import { supabase } from '@/lib/supabase';
 import { ProductBatch, mapDbProductBatchToModel, mapModelProductBatchToDb } from '@/models/productBatch';
 import { callRPC } from '@/utils/rpcUtils';
-import { fromTable } from '@/utils/supabaseServiceHelper';
+import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
 
 export const productBatchService = {
   getAllBatches: async (): Promise<ProductBatch[]> => {
@@ -18,16 +18,16 @@ export const productBatchService = {
         return [];
       }
       
-      const { data, error } = await fromTable('product_batches')
+      const batchesResponse = await fromTable('product_batches')
         .select('*');
         
-      if (error) {
-        console.error('Error fetching product batches:', error);
+      if (!isDataResponse(batchesResponse)) {
+        console.error('Error fetching product batches:', batchesResponse.error);
         return [];
       }
       
       // Fetch product names separately for better type safety
-      const batches = (data || []).map(mapDbProductBatchToModel);
+      const batches = (batchesResponse.data || []).map(mapDbProductBatchToModel);
       
       // Get unique product IDs
       const productIds = [...new Set(batches.map(batch => batch.product_id))];
@@ -36,15 +36,17 @@ export const productBatchService = {
       const productNames: Record<string, string> = {};
       
       if (productIds.length > 0) {
-        const { data: productsData, error: productsError } = await supabase
+        const productsResponse = await supabase
           .from('products')
           .select('id, name')
           .in('id', productIds);
           
-        if (!productsError && productsData) {
-          productsData.forEach(product => {
+        if (isDataResponse(productsResponse) && productsResponse.data) {
+          productsResponse.data.forEach(product => {
             productNames[product.id] = product.name;
           });
+        } else if (productsResponse.error) {
+          console.error('Error fetching product names:', productsResponse.error);
         }
       }
       

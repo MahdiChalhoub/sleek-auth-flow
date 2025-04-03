@@ -1,49 +1,34 @@
 
-import { supabase } from '@/lib/supabase';
 import { PostgrestError } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
-/**
- * A helper function to ensure type safety when accessing tables
- * This avoids TS errors when the Database type is not up to date
- */
-export const fromTable = (tableName: string) => {
-  // Use type assertion and any to bypass TypeScript's type checking for table names
-  // This is necessary when working with tables that might not be in the generated types
-  return supabase.from(tableName as any);
-};
+// Type for successful data response
+export interface DataResponse<T> {
+  data: T;
+  error: null;
+}
 
-/**
- * Type guard to check if a response contains a data object or is an error
- */
-export function isDataResponse<T>(response: { data: T | null; error: PostgrestError | null }): response is { data: T; error: null } {
+// Type for error response
+export interface ErrorResponse {
+  data: null;
+  error: PostgrestError;
+}
+
+// Combined response type
+export type QueryResponse<T> = DataResponse<T> | ErrorResponse;
+
+// Helper function to check if response contains data
+export function isDataResponse<T>(response: QueryResponse<T>): response is DataResponse<T> {
   return response.error === null && response.data !== null;
 }
 
-/**
- * Type guard to check if an object is a PostgrestError
- */
-export function isPostgrestError(obj: any): obj is PostgrestError {
-  return obj && typeof obj === 'object' && 'code' in obj && 'message' in obj;
+// Helper function to safely convert array data or return empty array on error
+export function safeArray<T, R>(data: T[] | null, mapper: (item: T) => R): R[] {
+  if (!data || !Array.isArray(data)) return [];
+  return data.map(mapper);
 }
 
-/**
- * Safely transform data from Supabase, handling potential errors
- */
-export function safeDataTransform<T, R>(data: T[] | null, transform: (item: any) => R): R[] {
-  if (!data || !Array.isArray(data)) return [];
-  
-  return data.map(item => {
-    // Check if item is an error or valid data
-    if (isPostgrestError(item) || !item) {
-      console.error("Error in data transformation:", item);
-      return null;
-    }
-    
-    try {
-      return transform(item);
-    } catch (error) {
-      console.error("Error transforming item:", error, item);
-      return null;
-    }
-  }).filter((item): item is R => item !== null);
+// Helper function to access Supabase tables with better typing
+export function fromTable(tableName: string) {
+  return supabase.from(tableName);
 }
