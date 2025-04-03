@@ -1,10 +1,9 @@
-
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/auth';
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { toast } from 'sonner';
-import { fromTable } from '@/utils/supabaseServiceHelper';
+import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
 
 interface AuthContextType {
   user: User | null;
@@ -17,7 +16,6 @@ interface AuthContextType {
   hasPermission: (permissionName: string) => boolean;
 }
 
-// Export the AuthContext so it can be imported in other files
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
@@ -37,10 +35,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentBusiness, setCurrentBusiness] = useState<Business | null>(null);
   const [userBusinesses, setUserBusinesses] = useState<Business[]>([]);
 
-  // Load user's businesses
   const loadUserBusinesses = useCallback(async (userId: string): Promise<Business[]> => {
     try {
-      // Fetch businesses where user is the owner
       const { data: ownedBusinesses, error: ownedError } = await supabase
         .from('businesses')
         .select('*')
@@ -50,25 +46,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error fetching owned businesses:', ownedError);
       }
       
-      // Fetch businesses where user is a member
-      const { data: memberBusinesses, error: memberError } = await fromTable('business_users')
-        .select('*, business:businesses(*)')
+      const { data: memberBusinesses, error: memberError } = await supabase
+        .from('business_users' as any)
+        .select('business_id')
         .eq('user_id', userId);
       
       if (memberError) {
         console.error('Error fetching member businesses:', memberError);
       }
-      
-      // Combine and deduplicate businesses
-      const businessesFromMembership = Array.isArray(memberBusinesses) 
-        ? memberBusinesses
-            .filter(item => item.business)
-            .map(item => item.business)
-        : [];
+
+      let businessesFromMembership: any[] = [];
+      if (Array.isArray(memberBusinesses) && memberBusinesses.length > 0) {
+        const businessIds = memberBusinesses.map(item => item.business_id);
+        
+        const { data: memberBusinessDetails, error: memberDetailsError } = await supabase
+          .from('businesses')
+          .select('*')
+          .in('id', businessIds);
+          
+        if (memberDetailsError) {
+          console.error('Error fetching member business details:', memberDetailsError);
+        } else {
+          businessesFromMembership = memberBusinessDetails || [];
+        }
+      }
       
       const allBusinesses = [...(ownedBusinesses || []), ...businessesFromMembership];
       
-      // Remove duplicates based on business ID
       const uniqueBusinessMap = new Map<string, any>();
       allBusinesses.forEach(business => {
         if (business && business.id) {
@@ -76,7 +80,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
-      // Map to our Business interface
       const mappedBusinesses: Business[] = Array.from(uniqueBusinessMap.values()).map(business => ({
         id: business.id,
         name: business.name,
@@ -109,22 +112,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: authData } = await supabase.auth.getSession();
       
         if (authData && authData.session?.user) {
-          // Create a User object that matches our app's User type
           const appUser: User = {
             id: authData.session.user.id,
             email: authData.session.user.email || '',
-            role: 'admin', // Default role for now
-            status: 'active', // Default status
+            role: 'admin',
+            status: 'active',
             lastLogin: new Date().toISOString()
           };
           
           const userBusinessesData = await loadUserBusinesses(authData.session.user.id);
           
-          // Set state
           setUser(appUser);
           setUserBusinesses(userBusinessesData);
           
-          // Get the saved business or use the first one
           const savedBusinessId = localStorage.getItem('pos_current_business');
           if (savedBusinessId) {
             const savedBusiness = userBusinessesData.find(b => b.id === savedBusinessId);
@@ -148,14 +148,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     fetchUser();
     
-    // Subscribe to auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user) {
           const appUser: User = {
             id: session.user.id,
             email: session.user.email || '',
-            role: 'admin', // Default role
+            role: 'admin',
             status: 'active',
             lastLogin: new Date().toISOString()
           };
@@ -194,11 +193,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) {
         toast.success('Logged in successfully');
         
-        // Create a User object that matches our app's User type
         const appUser: User = {
           id: data.user.id,
           email: data.user.email || '',
-          role: 'admin', // Default role
+          role: 'admin',
           status: 'active',
           lastLogin: new Date().toISOString()
         };
@@ -208,7 +206,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(appUser);
         setUserBusinesses(userBusinessesData);
         
-        // Set current business
         if (businessId) {
           const selectedBusiness = userBusinessesData.find(b => b.id === businessId);
           if (selectedBusiness) {
@@ -262,17 +259,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const hasPermission = (permissionName: string): boolean => {
     if (!user) return false;
     
-    // Admin role has all permissions
     if (user.role === 'admin') return true;
     
-    // Check specific permissions if available
     if (user.permissions) {
       return user.permissions.some(
         permission => permission.name === permissionName && permission.enabled
       );
     }
     
-    // Default role-based permissions for backward compatibility
     if (permissionName === 'can_view_transactions' && user.role === 'cashier') {
       return true;
     }

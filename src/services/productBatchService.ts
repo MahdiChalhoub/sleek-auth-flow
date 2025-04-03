@@ -19,16 +19,39 @@ export const productBatchService = {
       }
       
       const { data, error } = await fromTable('product_batches')
-        .select('*, products(name)');
+        .select('*');
         
       if (error) {
         console.error('Error fetching product batches:', error);
         return [];
       }
       
-      return (data || []).map(item => ({
-        ...mapDbProductBatchToModel(item),
-        productName: item.products?.name || 'Unknown'
+      // Fetch product names separately for better type safety
+      const batches = (data || []).map(mapDbProductBatchToModel);
+      
+      // Get unique product IDs
+      const productIds = [...new Set(batches.map(batch => batch.product_id))];
+      
+      // Create a map of product IDs to names
+      const productNames: Record<string, string> = {};
+      
+      if (productIds.length > 0) {
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('id, name')
+          .in('id', productIds);
+          
+        if (!productsError && productsData) {
+          productsData.forEach(product => {
+            productNames[product.id] = product.name;
+          });
+        }
+      }
+      
+      // Add product names to batches
+      return batches.map(batch => ({
+        ...batch,
+        productName: productNames[batch.product_id] || 'Unknown'
       }));
     } catch (error) {
       console.error('Error fetching all product batches:', error);
