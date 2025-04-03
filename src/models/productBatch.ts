@@ -1,3 +1,4 @@
+
 // Import required dependencies
 import { format, parseISO } from 'date-fns';
 
@@ -14,6 +15,7 @@ export interface ProductBatch {
   purchase_date?: string;
   cost_per_unit?: number;
   status: string;
+  notes?: string;
   created_at: string;
   createdAt?: string; // For compatibility
   updated_at: string;
@@ -27,18 +29,14 @@ export function createProductBatch(
   batchNumber: string,
   quantity: number,
   expiryDate: string
-): Omit<ProductBatch, "id"> {
-  const now = new Date().toISOString();
-  
+): Omit<ProductBatch, "id" | "created_at" | "updated_at"> {
   return {
     product_id: productId,
     batch_number: batchNumber,
     quantity: quantity,
     expiry_date: expiryDate,
-    purchase_date: now,
+    purchase_date: new Date().toISOString(),
     cost_per_unit: 0,
-    created_at: now,
-    updated_at: now,
     status: 'active'
   };
 }
@@ -56,22 +54,22 @@ export function mapDbProductBatchToModel(dbBatch: any): ProductBatch {
     created_at: dbBatch.created_at,
     updated_at: dbBatch.updated_at,
     status: dbBatch.status || 'active',
-    productName: dbBatch.product_name
+    notes: dbBatch.notes,
+    productName: dbBatch.productName
   };
 }
 
 // Mapper function to convert model to database object
-export function mapModelProductBatchToDb(modelBatch: Omit<ProductBatch, "id">): any {
+export function mapModelProductBatchToDb(modelBatch: Omit<ProductBatch, "id" | "created_at" | "updated_at">): any {
   return {
-    product_id: modelBatch.product_id,
-    batch_number: modelBatch.batch_number,
+    product_id: modelBatch.product_id || modelBatch.productId,
+    batch_number: modelBatch.batch_number || modelBatch.batchNumber,
     quantity: modelBatch.quantity,
-    expiry_date: modelBatch.expiry_date,
+    expiry_date: modelBatch.expiry_date || modelBatch.expiryDate,
     purchase_date: modelBatch.purchase_date,
     cost_per_unit: modelBatch.cost_per_unit,
     status: modelBatch.status,
-    created_at: modelBatch.created_at,
-    updated_at: modelBatch.updated_at
+    notes: modelBatch.notes
   };
 }
 

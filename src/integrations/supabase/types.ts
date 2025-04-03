@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      business_users: {
+        Row: {
+          business_id: string
+          created_at: string | null
+          id: string
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string | null
+          id?: string
+          role?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string | null
+          id?: string
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_users_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           active: boolean | null
@@ -403,10 +438,15 @@ export type Database = {
           address: string | null
           business_id: string | null
           created_at: string | null
+          email: string | null
           id: string
           is_active: boolean | null
+          is_default: boolean | null
+          location_code: string | null
           name: string
+          opening_hours: string | null
           phone: string | null
+          status: string | null
           type: string | null
           updated_at: string | null
         }
@@ -414,10 +454,15 @@ export type Database = {
           address?: string | null
           business_id?: string | null
           created_at?: string | null
+          email?: string | null
           id?: string
           is_active?: boolean | null
+          is_default?: boolean | null
+          location_code?: string | null
           name: string
+          opening_hours?: string | null
           phone?: string | null
+          status?: string | null
           type?: string | null
           updated_at?: string | null
         }
@@ -425,10 +470,15 @@ export type Database = {
           address?: string | null
           business_id?: string | null
           created_at?: string | null
+          email?: string | null
           id?: string
           is_active?: boolean | null
+          is_default?: boolean | null
+          location_code?: string | null
           name?: string
+          opening_hours?: string | null
           phone?: string | null
+          status?: string | null
           type?: string | null
           updated_at?: string | null
         }
@@ -468,6 +518,47 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      product_batches: {
+        Row: {
+          batch_number: string
+          created_at: string | null
+          expiry_date: string
+          id: string
+          notes: string | null
+          product_id: string
+          quantity: number
+          updated_at: string | null
+        }
+        Insert: {
+          batch_number: string
+          created_at?: string | null
+          expiry_date: string
+          id?: string
+          notes?: string | null
+          product_id: string
+          quantity?: number
+          updated_at?: string | null
+        }
+        Update: {
+          batch_number?: string
+          created_at?: string | null
+          expiry_date?: string
+          id?: string
+          notes?: string | null
+          product_id?: string
+          quantity?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_batches_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_location_stock: {
         Row: {
@@ -1292,6 +1383,25 @@ export type Database = {
           user_id: string
         }
         Returns: boolean
+      }
+      check_table_exists: {
+        Args: {
+          table_name: string
+        }
+        Returns: boolean
+      }
+      get_all_product_batches: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          batch_number: string
+          created_at: string | null
+          expiry_date: string
+          id: string
+          notes: string | null
+          product_id: string
+          quantity: number
+          updated_at: string | null
+        }[]
       }
     }
     Enums: {

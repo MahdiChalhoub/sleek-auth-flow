@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
@@ -75,15 +74,17 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       try {
         setIsLoadingLocations(true);
         
-        const response = await fromTable('locations')
+        const { data, error } = await supabase
+          .from('locations')
           .select('*')
           .eq('business_id', currentBusiness.id);
         
-        if (!isDataResponse(response)) {
-          throw new Error('Failed to fetch locations');
+        if (error) {
+          console.error('Error fetching locations:', error);
+          throw error;
         }
         
-        const locations = response.data.map(mapDatabaseLocationToLocation);
+        const locations = (data || []).map(mapDatabaseLocationToLocation);
         
         setAvailableLocations(locations);
         
