@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
@@ -11,7 +10,6 @@ import { QueryProvider } from './providers/QueryProvider';
 import { AuthProvider } from './providers/AuthProvider';
 import { LocationProvider } from './contexts/LocationContext';
 import { Loader2 } from 'lucide-react';
-// Ensure PrivateRoute is correctly imported
 import PrivateRoute from './components/auth/PrivateRoute';
 
 import Dashboard from './pages/Dashboard';
