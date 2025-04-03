@@ -28,40 +28,46 @@ const Login: React.FC = () => {
           
         if (isDataResponse(response) && Array.isArray(response.data)) {
           // Filter and map business data
-          const businesses: Business[] = response.data
-            .filter((business): business is object => 
-              business !== null && typeof business === 'object')
-            .map(business => {
-              if (business && 
-                  'id' in business && 
-                  'name' in business && 
-                  'status' in business && 
-                  'owner_id' in business) {
-                return {
-                  id: String(business.id),
-                  name: String(business.name),
-                  status: String(business.status),
-                  ownerId: String(business.owner_id),
-                  // Safely include optional properties with null checks
-                  address: business.address ? String(business.address) : undefined,
-                  phone: business.phone ? String(business.phone) : undefined,
-                  email: business.email ? String(business.email) : undefined,
-                  taxId: business.tax_id ? String(business.tax_id) : undefined,
-                  website: business.website ? String(business.website) : undefined,
-                  createdAt: business.created_at ? String(business.created_at) : undefined,
-                  updatedAt: business.updated_at ? String(business.updated_at) : undefined,
-                  logoUrl: business.logo_url ? String(business.logo_url) : undefined,
-                  description: business.description ? String(business.description) : undefined,
-                  type: business.type ? String(business.type) : undefined,
-                  country: business.country ? String(business.country) : undefined,
-                  currency: business.currency ? String(business.currency) : undefined,
-                  active: business.active !== undefined ? Boolean(business.active) : undefined,
-                  timezone: business.timezone ? String(business.timezone) : undefined
-                };
-              }
-              return null;
-            })
-            .filter((business): business is Business => business !== null);
+          const businesses: Business[] = [];
+          
+          for (const business of response.data) {
+            // Skip null or non-object entries
+            if (!business || typeof business !== 'object') continue;
+            
+            // Ensure required fields exist
+            if (!('id' in business) || 
+                !('name' in business) || 
+                !('status' in business) || 
+                !('owner_id' in business)) {
+              continue;
+            }
+            
+            // Create a valid Business object with the required fields
+            const businessItem: Business = {
+              id: String(business.id),
+              name: String(business.name),
+              status: String(business.status),
+              ownerId: String(business.owner_id),
+            };
+            
+            // Safely add optional properties if they exist
+            if ('address' in business && business.address) businessItem.address = String(business.address);
+            if ('phone' in business && business.phone) businessItem.phone = String(business.phone);
+            if ('email' in business && business.email) businessItem.email = String(business.email);
+            if ('tax_id' in business && business.tax_id) businessItem.taxId = String(business.tax_id);
+            if ('website' in business && business.website) businessItem.website = String(business.website);
+            if ('created_at' in business && business.created_at) businessItem.createdAt = String(business.created_at);
+            if ('updated_at' in business && business.updated_at) businessItem.updatedAt = String(business.updated_at);
+            if ('logo_url' in business && business.logo_url) businessItem.logoUrl = String(business.logo_url);
+            if ('description' in business && business.description) businessItem.description = String(business.description);
+            if ('type' in business && business.type) businessItem.type = String(business.type);
+            if ('country' in business && business.country) businessItem.country = String(business.country);
+            if ('currency' in business && business.currency) businessItem.currency = String(business.currency);
+            if ('active' in business) businessItem.active = Boolean(business.active);
+            if ('timezone' in business && business.timezone) businessItem.timezone = String(business.timezone);
+            
+            businesses.push(businessItem);
+          }
           
           setAvailableBusinesses(businesses);
         } else {

@@ -141,32 +141,32 @@ const SetupWizard: React.FC = () => {
       const businessObj = businessResponse.data[0];
       
       // Safely access business ID with null checks
-      if (businessObj && typeof businessObj === 'object' && 'id' in businessObj) {
-        // Safe type assertion after validation
-        const businessId = String(businessObj.id);
+      if (!businessObj || typeof businessObj !== 'object' || !('id' in businessObj)) {
+        throw new Error('Invalid business data returned');
+      }
+      
+      // After validating, we can safely use businessObj.id
+      const businessId = String(businessObj.id);
+      
+      try {
+        // 2. Create location
+        const locationResponse = await fromTable('locations')
+          .insert({
+            name: locationData.name,
+            type: locationData.type,
+            address: locationData.address,
+            business_id: businessId,
+            status: 'active',
+            is_default: true
+          });
         
-        try {
-          // 2. Create location
-          const locationResponse = await fromTable('locations')
-            .insert({
-              name: locationData.name,
-              type: locationData.type,
-              address: locationData.address,
-              business_id: businessId,
-              status: 'active',
-              is_default: true
-            });
-          
-          if (!isDataResponse(locationResponse)) {
-            console.error('Error creating location:', locationResponse);
-            // Continue anyway, user can create locations later
-          }
-        } catch (locationError) {
-          console.error('Failed to create location:', locationError);
+        if (!isDataResponse(locationResponse)) {
+          console.error('Error creating location:', locationResponse);
           // Continue anyway, user can create locations later
         }
-      } else {
-        console.warn('Invalid business data returned from database');
+      } catch (locationError) {
+        console.error('Failed to create location:', locationError);
+        // Continue anyway, user can create locations later
       }
       
       // 3. Mark setup as complete

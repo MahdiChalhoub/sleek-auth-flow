@@ -59,28 +59,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Only process the data if it exists and is an array
       if (Array.isArray(ownedResponse.data)) {
-        for (const item of ownedResponse.data) {
-          // Type checking to ensure we have a valid business object
-          if (item && typeof item === 'object') {
+        for (const itemData of ownedResponse.data) {
+          // Skip null or non-object entries
+          if (!itemData || typeof itemData !== 'object') continue;
+          
+          // Create a Business object with mandatory fields
+          // checking each property exists before accessing
+          if ('id' in itemData && 'name' in itemData && 'status' in itemData && 'owner_id' in itemData) {
             const business: Business = {
-              id: item.id ? String(item.id) : 'unknown',
-              name: item.name ? String(item.name) : 'Unknown Business',
-              status: item.status ? String(item.status) : 'inactive',
-              ownerId: item.owner_id ? String(item.owner_id) : userId,
-              // Optional properties
-              address: item.address ? String(item.address) : undefined,
-              phone: item.phone ? String(item.phone) : undefined,
-              email: item.email ? String(item.email) : undefined,
-              createdAt: item.created_at ? String(item.created_at) : undefined,
-              updatedAt: item.updated_at ? String(item.updated_at) : undefined,
-              logoUrl: item.logo_url ? String(item.logo_url) : undefined,
-              description: item.description ? String(item.description) : undefined,
-              type: item.type ? String(item.type) : undefined,
-              country: item.country ? String(item.country) : undefined,
-              currency: item.currency ? String(item.currency) : undefined,
-              active: item.active !== undefined ? Boolean(item.active) : undefined,
-              timezone: item.timezone ? String(item.timezone) : undefined
+              id: String(itemData.id || 'unknown'),
+              name: String(itemData.name || 'Unknown Business'),
+              status: String(itemData.status || 'inactive'),
+              ownerId: String(itemData.owner_id || userId),
             };
+            
+            // Add optional properties if they exist
+            if ('address' in itemData && itemData.address) business.address = String(itemData.address);
+            if ('phone' in itemData && itemData.phone) business.phone = String(itemData.phone);
+            if ('email' in itemData && itemData.email) business.email = String(itemData.email);
+            if ('created_at' in itemData && itemData.created_at) business.createdAt = String(itemData.created_at);
+            if ('updated_at' in itemData && itemData.updated_at) business.updatedAt = String(itemData.updated_at);
+            if ('logo_url' in itemData && itemData.logo_url) business.logoUrl = String(itemData.logo_url);
+            if ('description' in itemData && itemData.description) business.description = String(itemData.description);
+            if ('type' in itemData && itemData.type) business.type = String(itemData.type);
+            if ('country' in itemData && itemData.country) business.country = String(itemData.country);
+            if ('currency' in itemData && itemData.currency) business.currency = String(itemData.currency);
+            if ('active' in itemData) business.active = Boolean(itemData.active);
+            if ('timezone' in itemData && itemData.timezone) business.timezone = String(itemData.timezone);
+            
             businesses.push(business);
           }
         }

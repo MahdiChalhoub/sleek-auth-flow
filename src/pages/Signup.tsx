@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,9 +66,11 @@ const Signup: React.FC = () => {
         } else {
           const businessObj = businessResponse.data[0];
           
-          // Only proceed if we definitely have a business object with an id
-          if (businessObj && typeof businessObj === 'object' && 'id' in businessObj) {
-            // Safe type assertion after validation
+          // Only proceed if we definitely have a valid business object
+          if (!businessObj || typeof businessObj !== 'object' || !('id' in businessObj)) {
+            console.warn('Invalid business data returned from database');
+          } else {
+            // After validation, we can safely use businessObj.id
             const businessId = String(businessObj.id);
             
             try {
@@ -87,8 +90,6 @@ const Signup: React.FC = () => {
               console.error('Failed to create location:', locationError);
               // Continue anyway, user can create locations later
             }
-          } else {
-            console.warn('Invalid business data returned from database');
           }
         }
       }
