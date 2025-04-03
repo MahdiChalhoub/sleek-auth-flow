@@ -53,7 +53,7 @@ const Signup: React.FC = () => {
         // 3. Create a default location for the business
         // Safe access to data
         const businessData = businessResponse.data;
-        if (businessData && businessData.length > 0 && businessData[0].id) {
+        if (businessData && businessData.length > 0 && businessData[0]?.id) {
           const businessId = businessData[0].id;
           
           const locationResponse = await fromTable('locations')

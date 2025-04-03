@@ -11,6 +11,7 @@ import LocationInfoForm from '@/components/setup/LocationInfoForm';
 import AdminInfoForm from '@/components/setup/AdminInfoForm';
 import { supabase } from '@/lib/supabase';
 import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
+import { saveSetupStatus } from '@/services/setupService';
 
 const SetupWizard: React.FC = () => {
   const navigate = useNavigate();
@@ -116,11 +117,15 @@ const SetupWizard: React.FC = () => {
           status: 'active',
           active: true
         })
-        .select()
-        .single();
+        .select();
       
       if (!isDataResponse(businessResponse)) {
         throw new Error('Failed to create business');
+      }
+      
+      const businessId = businessResponse.data[0]?.id;
+      if (!businessId) {
+        throw new Error('Failed to retrieve created business ID');
       }
       
       // 3. Create the main location
@@ -129,14 +134,13 @@ const SetupWizard: React.FC = () => {
           name: locationData.name,
           type: locationData.type,
           address: locationData.address,
-          business_id: businessResponse.data.id,
+          business_id: businessId,
           phone: locationData.phone,
           email: locationData.email,
           status: 'active',
           is_default: locationData.isDefault
         })
-        .select()
-        .single();
+        .select();
         
       if (!isDataResponse(locationResponse)) {
         throw new Error('Failed to create location');
@@ -147,19 +151,22 @@ const SetupWizard: React.FC = () => {
         .update({ status: 'active' })
         .eq('id', authData.user.id);
         
-      await fromTable('roles')
-        .insert({
-          name: 'SuperAdmin',
-          description: 'System SuperAdmin with full access'
-        });
+      // Create SuperAdmin role if it doesn't exist
+      const roleResponse = await fromTable('roles')
+        .select()
+        .eq('name', 'SuperAdmin')
+        .maybeSingle();
+      
+      if (isDataResponse(roleResponse) && !roleResponse.data) {
+        await fromTable('roles')
+          .insert({
+            name: 'SuperAdmin',
+            description: 'System SuperAdmin with full access'
+          });
+      }
       
       // Mark setup as complete
-      await fromTable('settings')
-        .insert({
-          key: 'system_setup',
-          value: { completed: true, completed_at: new Date().toISOString() },
-          description: 'System setup status'
-        });
+      await saveSetupStatus(true);
       
       toast.success('Setup complete! You can now log in to your POS system.');
       
