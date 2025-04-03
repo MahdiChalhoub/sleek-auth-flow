@@ -51,46 +51,46 @@ const Login: React.FC = () => {
             };
             
             // Safely add optional properties if they exist
-            if (businessData && 'address' in businessData && businessData.address) {
+            if (businessData && typeof businessData === 'object' && 'address' in businessData && businessData.address) {
               businessItem.address = String(businessData.address);
             }
-            if (businessData && 'phone' in businessData && businessData.phone) {
+            if (businessData && typeof businessData === 'object' && 'phone' in businessData && businessData.phone) {
               businessItem.phone = String(businessData.phone);
             }
-            if (businessData && 'email' in businessData && businessData.email) {
+            if (businessData && typeof businessData === 'object' && 'email' in businessData && businessData.email) {
               businessItem.email = String(businessData.email);
             }
-            if (businessData && 'tax_id' in businessData && businessData.tax_id) {
+            if (businessData && typeof businessData === 'object' && 'tax_id' in businessData && businessData.tax_id) {
               businessItem.taxId = String(businessData.tax_id);
             }
-            if (businessData && 'website' in businessData && businessData.website) {
+            if (businessData && typeof businessData === 'object' && 'website' in businessData && businessData.website) {
               businessItem.website = String(businessData.website);
             }
-            if (businessData && 'created_at' in businessData && businessData.created_at) {
+            if (businessData && typeof businessData === 'object' && 'created_at' in businessData && businessData.created_at) {
               businessItem.createdAt = String(businessData.created_at);
             }
-            if (businessData && 'updated_at' in businessData && businessData.updated_at) {
+            if (businessData && typeof businessData === 'object' && 'updated_at' in businessData && businessData.updated_at) {
               businessItem.updatedAt = String(businessData.updated_at);
             }
-            if (businessData && 'logo_url' in businessData && businessData.logo_url) {
+            if (businessData && typeof businessData === 'object' && 'logo_url' in businessData && businessData.logo_url) {
               businessItem.logoUrl = String(businessData.logo_url);
             }
-            if (businessData && 'description' in businessData && businessData.description) {
+            if (businessData && typeof businessData === 'object' && 'description' in businessData && businessData.description) {
               businessItem.description = String(businessData.description);
             }
-            if (businessData && 'type' in businessData && businessData.type) {
+            if (businessData && typeof businessData === 'object' && 'type' in businessData && businessData.type) {
               businessItem.type = String(businessData.type);
             }
-            if (businessData && 'country' in businessData && businessData.country) {
+            if (businessData && typeof businessData === 'object' && 'country' in businessData && businessData.country) {
               businessItem.country = String(businessData.country);
             }
-            if (businessData && 'currency' in businessData && businessData.currency) {
+            if (businessData && typeof businessData === 'object' && 'currency' in businessData && businessData.currency) {
               businessItem.currency = String(businessData.currency);
             }
-            if (businessData && 'active' in businessData) {
+            if (businessData && typeof businessData === 'object' && 'active' in businessData) {
               businessItem.active = Boolean(businessData.active);
             }
-            if (businessData && 'timezone' in businessData && businessData.timezone) {
+            if (businessData && typeof businessData === 'object' && 'timezone' in businessData && businessData.timezone) {
               businessItem.timezone = String(businessData.timezone);
             }
             
