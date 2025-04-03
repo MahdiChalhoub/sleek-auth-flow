@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
 
@@ -17,29 +16,26 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
     
     // If the setting exists and is complete, return it
     if (isDataResponse(settingsResponse) && settingsResponse.data) {
-      // Make a non-null assertion after we've already checked it exists
+      // Non-null assertion is safe here because we've just checked for null
       const data = settingsResponse.data;
-      
-      // Properly check for null before accessing properties
-      if (data !== null && 
-          typeof data === 'object' && 
-          'value' in data && 
-          data.value !== null) {
-        
+
+      // Check if data has a value property that's not null
+      if ('value' in data && data.value !== null) {
         // Type assertion to help TypeScript understand the structure
         const valueObject = data.value as Record<string, unknown>;
         
         // Check if completed exists in the value object
-        const setupCompleted = 
-          valueObject && 
+        if (
           typeof valueObject === 'object' && 
+          valueObject !== null &&
           'completed' in valueObject && 
-          valueObject.completed === true;
-        
-        return { 
-          isComplete: setupCompleted, 
-          businessExists: true 
-        };
+          valueObject.completed === true
+        ) {
+          return { 
+            isComplete: true, 
+            businessExists: true 
+          };
+        }
       }
     }
     
