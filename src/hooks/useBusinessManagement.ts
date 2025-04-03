@@ -1,170 +1,121 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
 import { Business } from '@/models/interfaces/businessInterfaces';
-import { useAuth } from '@/contexts/AuthContext';
 import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export const useBusinessManagement = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
   const fetchBusinesses = useCallback(async () => {
-    if (!user?.id) return;
-
+    if (!user) return;
+    
+    setLoading(true);
     try {
-      setIsLoading(true);
-
       const response = await fromTable('businesses')
         .select('*')
-        .eq('owner_id', user.id)
-        .order('created_at', { ascending: false });
-
+        .eq('owner_id', user.id);
+      
       if (!isDataResponse(response)) {
-        throw new Error(response.error?.message || 'Failed to load businesses');
+        console.error('Error fetching businesses:', response.error);
+        return;
       }
-
-      // Type guard to ensure data is available
-      const businessesData = response.data || [];
-
-      const mappedBusinesses: Business[] = businessesData.map(business => {
-        // Make sure business is not null before accessing properties
-        if (!business) return null;
-
-        return {
-          id: business?.id || '',
-          name: business?.name || '',
-          address: business?.address || '',
-          phone: business?.phone || '',
-          email: business?.email || '',
-          status: (business?.status as 'active' | 'inactive' | 'pending') || 'active',
-          ownerId: business?.owner_id || '',
-          createdAt: business?.created_at || '',
-          updatedAt: business?.updated_at || '',
-          logoUrl: business?.logo_url || '',
-          description: business?.description || '',
-          type: business?.type || '',
-          country: business?.country || '',
-          currency: business?.currency || '',
-          active: business?.active || false,
-          timezone: business?.timezone || ''
-        };
-      }).filter(Boolean) as Business[]; // Filter out null values
-
-      setBusinesses(mappedBusinesses);
+      
+      const fetchedBusinesses: Business[] = [];
+      
+      if (Array.isArray(response.data)) {
+        for (const itemData of response.data) {
+          if (!itemData) continue;
+          
+          // Type safely process business data
+          const typedItemData = itemData as Record<string, unknown>;
+          
+          const business: Business = {
+            id: String(typedItemData.id || ''),
+            name: String(typedItemData.name || ''),
+            address: typedItemData.address ? String(typedItemData.address) : undefined,
+            phone: typedItemData.phone ? String(typedItemData.phone) : undefined,
+            email: typedItemData.email ? String(typedItemData.email) : undefined,
+            status: String(typedItemData.status || 'inactive'),
+            ownerId: String(typedItemData.owner_id || ''),
+            createdAt: typedItemData.created_at ? String(typedItemData.created_at) : undefined,
+            updatedAt: typedItemData.updated_at ? String(typedItemData.updated_at) : undefined,
+            logoUrl: typedItemData.logo_url ? String(typedItemData.logo_url) : undefined,
+            description: typedItemData.description ? String(typedItemData.description) : undefined,
+            type: typedItemData.type ? String(typedItemData.type) : undefined,
+            country: typedItemData.country ? String(typedItemData.country) : undefined,
+            currency: typedItemData.currency ? String(typedItemData.currency) : undefined,
+            active: typedItemData.active ? Boolean(typedItemData.active) : undefined,
+            timezone: typedItemData.timezone ? String(typedItemData.timezone) : undefined,
+          };
+          
+          fetchedBusinesses.push(business);
+        }
+      }
+      
+      setBusinesses(fetchedBusinesses);
     } catch (error) {
-      console.error('Error fetching businesses:', error);
+      console.error('Error in fetchBusinesses:', error);
       toast.error('Failed to load businesses');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, [user?.id]);
+  }, [user]);
 
   useEffect(() => {
     fetchBusinesses();
   }, [fetchBusinesses]);
 
-  const handleAddBusiness = useCallback(async (newBusiness: Business) => {
-    if (!user?.id) {
-      toast.error('User not authenticated');
-      return;
+  const createBusiness = async (businessData: Partial<Business>): Promise<Business | null> => {
+    if (!user) {
+      toast.error('User must be logged in to create a business');
+      return null;
     }
-
+    
+    setLoading(true);
     try {
-      const response = await fromTable('businesses')
+      const { data, error } = await fromTable('businesses')
         .insert({
-          name: newBusiness.name,
-          address: newBusiness.address,
-          phone: newBusiness.phone,
-          email: newBusiness.email,
-          status: newBusiness.status || 'active',
+          ...businessData,
           owner_id: user.id,
-          logo_url: newBusiness.logoUrl,
-          description: newBusiness.description,
-          type: newBusiness.type,
-          country: newBusiness.country,
-          currency: newBusiness.currency,
-          active: newBusiness.active || false,
-          timezone: newBusiness.timezone
+          status: 'active',
+          created_at: new Date().toISOString(),
         })
         .select()
         .single();
-
-      if (!isDataResponse(response)) {
-        throw new Error(response.error?.message || 'Failed to add business');
+      
+      if (error) {
+        throw error;
       }
-
-      toast.success('Business added successfully');
-      fetchBusinesses();
-    } catch (error) {
-      console.error('Error adding business:', error);
-      toast.error('Failed to add business');
+      
+      const newBusiness: Business = {
+        id: data.id,
+        name: data.name,
+        status: data.status,
+        ownerId: data.owner_id,
+        ...businessData,
+      };
+      
+      setBusinesses(prev => [...prev, newBusiness]);
+      
+      toast.success('Business created successfully');
+      return newBusiness;
+    } catch (error: any) {
+      console.error('Error creating business:', error.message);
+      toast.error('Failed to create business');
+      return null;
+    } finally {
+      setLoading(false);
     }
-  }, [user?.id, fetchBusinesses]);
-
-  const handleDeleteBusiness = useCallback(async (businessId: string) => {
-    try {
-      const response = await fromTable('businesses')
-        .delete()
-        .eq('id', businessId);
-
-      if (!isDataResponse(response)) {
-        throw new Error(response.error?.message || 'Failed to delete business');
-      }
-
-      setBusinesses(prev => prev.filter(business => business.id !== businessId));
-      toast.success('Business deleted successfully');
-    } catch (error) {
-      console.error('Error deleting business:', error);
-      toast.error('Failed to delete business');
-    }
-  }, []);
-
-  const handleToggleBusinessStatus = useCallback(async (businessId: string, isActive: boolean) => {
-    try {
-      const newStatus = isActive ? 'active' : 'inactive';
-
-      const response = await fromTable('businesses')
-        .update({ status: newStatus })
-        .eq('id', businessId);
-
-      if (!isDataResponse(response)) {
-        throw new Error(response.error?.message || 'Failed to update business status');
-      }
-
-      setBusinesses(prev =>
-        prev.map(business =>
-          business.id === businessId
-            ? { ...business, status: newStatus as 'active' | 'inactive' | 'pending' }
-            : business
-        )
-      );
-
-      toast.success(`Business ${isActive ? 'activated' : 'deactivated'} successfully`);
-    } catch (error) {
-      console.error('Error toggling business status:', error);
-      toast.error('Failed to update business status');
-    }
-  }, []);
-
-// Replace the problematic code with null-safe code
-export function safeBusinessTransform<T>(
-  data: T[] | null | undefined,
-  transformer: (item: T) => any
-): any[] {
-  if (!data) return [];
-  
-  return data
-    .map(item => (item !== null ? transformer(item) : null))
-    .filter(item => item !== null);
-}
+  };
 
   return {
     businesses,
-    isLoading,
-    handleAddBusiness,
-    handleDeleteBusiness,
-    handleToggleBusinessStatus,
-    refreshBusinesses: fetchBusinesses
+    loading,
+    fetchBusinesses,
+    createBusiness,
   };
 };

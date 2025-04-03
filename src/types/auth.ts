@@ -1,6 +1,5 @@
 
 import { Business } from '@/models/interfaces/businessInterfaces';
-import { User, UserPermission } from '@/models/interfaces/userInterfaces';
 import { Branch } from '@/types/location';
 
 export interface AuthContextType {
@@ -16,10 +15,27 @@ export interface AuthContextType {
   hasPermission: (permission: string) => boolean;
 }
 
-// Export type User and UserRole from the interfaces
-export type { User, UserRole } from '@/models/interfaces/userInterfaces';
+// Define UserRole type
+export type UserRole = 'admin' | 'manager' | 'cashier' | 'user';
 
-// Add UserPermission interface
+// Define User interface
+export interface User {
+  id: string;
+  email: string;
+  fullName?: string;
+  name?: string; // Adding name property for backward compatibility
+  avatar_url?: string;
+  avatarUrl?: string; // Adding avatarUrl property for backward compatibility
+  role?: UserRole;
+  isGlobalAdmin?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  status?: UserStatus;
+  lastLogin?: string;
+  permissions?: UserPermission[];
+}
+
+// Define UserPermission interface
 export interface UserPermission {
   id: string;
   name: string;
@@ -28,7 +44,7 @@ export interface UserPermission {
   enabled: boolean;
 }
 
-// Add Role interface
+// Define Role interface
 export interface Role {
   id: string;
   name: string;
@@ -38,5 +54,5 @@ export interface Role {
   updatedAt?: string;
 }
 
-// Add UserStatus enum
+// Define UserStatus type
 export type UserStatus = 'active' | 'pending' | 'inactive' | 'denied';

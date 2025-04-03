@@ -3,10 +3,11 @@ import React, { useState, useEffect, createContext, useContext, useCallback } fr
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
-import { User } from '@/types/auth';
+import { User, UserRole, UserStatus, UserPermission } from '@/types/auth';
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { fromTable, isDataResponse, safeDataTransform } from '@/utils/supabaseServiceHelper';
 import { mapAuthUserToUser } from '@/utils/authUtils';
+import { getMockPermissions } from '@/hooks/usePermissions';
 
 interface AuthContextType {
   user: User | null;
@@ -40,6 +41,113 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentBusiness, setCurrentBusiness] = useState<Business | null>(null);
   const navigate = useNavigate();
 
+  // Setup auth state listener
+  useEffect(() => {
+    console.log('Setting up auth state listener');
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        console.log('Auth state changed:', _event, !!session);
+        setSession(session);
+        
+        if (session?.user) {
+          try {
+            const appUser = mapAuthUserToUser(session.user, { 
+              role: 'cashier', 
+              status: 'active' 
+            });
+            
+            // Add mock permissions based on role for development
+            appUser.permissions = getMockPermissions(appUser.role);
+            
+            setUser(appUser);
+          } catch (error) {
+            console.error('Error mapping auth user:', error);
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    // Initial session check
+    const checkSession = async () => {
+      try {
+        console.log('Checking initial session');
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        console.log('Initial session:', !!session);
+        setSession(session);
+        
+        if (session?.user) {
+          const appUser = mapAuthUserToUser(session.user, { 
+            role: 'cashier', 
+            status: 'active' 
+          });
+          
+          // Add mock permissions based on role for development
+          appUser.permissions = getMockPermissions(appUser.role);
+          
+          setUser(appUser);
+        }
+      } catch (error) {
+        console.error('Error checking session:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+
+    return () => {
+      console.log('Cleaning up auth subscription');
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Load businesses when user changes
+  useEffect(() => {
+    const getBusinesses = async () => {
+      try {
+        if (!user) {
+          setUserBusinesses([]);
+          setCurrentBusiness(null);
+          return;
+        }
+
+        console.log('Loading businesses for user:', user.id);
+        setIsLoading(true);
+        
+        const fetchedBusinesses = await loadUserBusinesses(user.id);
+        console.log('Fetched businesses:', fetchedBusinesses.length);
+        
+        setUserBusinesses(fetchedBusinesses);
+
+        const savedBusinessId = localStorage.getItem('pos_current_business');
+        let selectedBusiness = null;
+
+        if (savedBusinessId && fetchedBusinesses.length > 0) {
+          selectedBusiness = fetchedBusinesses.find(b => b.id === savedBusinessId) || fetchedBusinesses[0];
+        } else if (fetchedBusinesses.length > 0) {
+          selectedBusiness = fetchedBusinesses[0];
+        }
+
+        if (selectedBusiness) {
+          console.log('Setting current business:', selectedBusiness.name);
+          setCurrentBusiness(selectedBusiness);
+          localStorage.setItem('pos_current_business', selectedBusiness.id);
+        }
+      } catch (error) {
+        console.error('Error in getBusinesses:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getBusinesses();
+  }, [user]);
+
   // Load user's businesses
   const loadUserBusinesses = useCallback(async (userId: string): Promise<Business[]> => {
     try {
@@ -57,16 +165,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (Array.isArray(ownedResponse.data)) {
         for (const itemData of ownedResponse.data) {
-          if (!itemData || typeof itemData !== 'object') continue;
-          
+          if (!itemData) continue;
           const typedItemData = itemData as Record<string, unknown>;
-          
-          if (!('id' in typedItemData) || 
-              !('name' in typedItemData) || 
-              !('status' in typedItemData) || 
-              !('owner_id' in typedItemData)) {
-            continue;
-          }
           
           const business: Business = {
             id: String(typedItemData.id || 'unknown'),
@@ -133,105 +233,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return [];
     }
   }, []);
-
-  // Setup auth state listener
-  useEffect(() => {
-    console.log('Setting up auth state listener');
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        console.log('Auth state changed:', _event, !!session);
-        setSession(session);
-        
-        if (session?.user) {
-          try {
-            const appUser = mapAuthUserToUser(session.user, { 
-              role: 'cashier', 
-              status: 'active' 
-            });
-            setUser(appUser);
-          } catch (error) {
-            console.error('Error mapping auth user:', error);
-            setUser(null);
-          }
-        } else {
-          setUser(null);
-        }
-      }
-    );
-
-    // Initial session check
-    const checkSession = async () => {
-      try {
-        console.log('Checking initial session');
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        console.log('Initial session:', !!session);
-        setSession(session);
-        
-        if (session?.user) {
-          const appUser = mapAuthUserToUser(session.user, { 
-            role: 'cashier', 
-            status: 'active' 
-          });
-          setUser(appUser);
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkSession();
-
-    return () => {
-      console.log('Cleaning up auth subscription');
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Load businesses when user changes
-  useEffect(() => {
-    const getBusinesses = async () => {
-      try {
-        if (!user) {
-          setUserBusinesses([]);
-          setCurrentBusiness(null);
-          return;
-        }
-
-        console.log('Loading businesses for user:', user.id);
-        setIsLoading(true);
-        
-        const fetchedBusinesses = await loadUserBusinesses(user.id);
-        console.log('Fetched businesses:', fetchedBusinesses.length);
-        
-        setUserBusinesses(fetchedBusinesses);
-
-        const savedBusinessId = localStorage.getItem('pos_current_business');
-        let selectedBusiness = null;
-
-        if (savedBusinessId && fetchedBusinesses.length > 0) {
-          selectedBusiness = fetchedBusinesses.find(b => b.id === savedBusinessId) || fetchedBusinesses[0];
-        } else if (fetchedBusinesses.length > 0) {
-          selectedBusiness = fetchedBusinesses[0];
-        }
-
-        if (selectedBusiness) {
-          console.log('Setting current business:', selectedBusiness.name);
-          setCurrentBusiness(selectedBusiness);
-          localStorage.setItem('pos_current_business', selectedBusiness.id);
-        }
-      } catch (error) {
-        console.error('Error in getBusinesses:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    getBusinesses();
-  }, [user, loadUserBusinesses]);
 
   const login = async (email: string, password: string, businessId?: string, rememberMe = true) => {
     try {

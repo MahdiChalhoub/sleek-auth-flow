@@ -48,7 +48,7 @@ interface UserFormDialogProps {
 const formSchema = z.object({
   email: z.string().email('Invalid email format').min(1, 'Email is required'),
   fullName: z.string().min(1, 'Full name is required'),
-  role: z.enum(['admin', 'manager', 'cashier']),
+  role: z.enum(['admin', 'manager', 'cashier', 'user'] as const),
 });
 
 export function UserFormDialog({
@@ -67,7 +67,7 @@ export function UserFormDialog({
     defaultValues: {
       email: user?.email || '',
       fullName: user?.fullName || '',
-      role: user?.role || 'cashier',
+      role: (user?.role || 'cashier') as UserRole,
     },
   });
 
@@ -144,6 +144,7 @@ export function UserFormDialog({
                       <SelectItem value="admin">Admin</SelectItem>
                       <SelectItem value="manager">Manager</SelectItem>
                       <SelectItem value="cashier">Cashier</SelectItem>
+                      <SelectItem value="user">User</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

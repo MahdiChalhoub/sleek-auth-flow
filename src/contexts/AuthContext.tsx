@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
 import { supabase } from '@/lib/supabase';
-import { User, Role } from '@/models/interfaces/userInterfaces';
+import { User, UserRole, UserPermission, Role } from '@/types/auth'; 
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { fromTable, isDataResponse, safeDataTransform } from '@/utils/supabaseServiceHelper';
 
@@ -21,6 +21,7 @@ interface AuthContextType {
   switchBusiness: (businessId: string) => Promise<void>;
   refreshUserBusinesses: () => Promise<void>;
   updateUser: (updates: { fullName?: string; avatar_url?: string }) => Promise<void>;
+  hasPermission: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -70,7 +71,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUserDetails = async (supabaseUser: SupabaseUser) => {
     setIsLoading(true);
     try {
-      // Fetch user details from the 'users' table
       const { data: userDetails, error: userError } = await fromTable('users')
         .select('*')
         .eq('id', supabaseUser.id)
@@ -82,14 +82,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!userDetails) {
         console.warn('User details not found in the users table, attempting to create...');
-        // Attempt to create a user profile if it doesn't exist
         const { data: newUserDetails, error: newUserError } = await fromTable('users')
           .insert({
             id: supabaseUser.id,
             email: supabaseUser.email,
             fullName: supabaseUser.email?.split('@')[0] || 'New User',
             avatar_url: supabaseUser.user_metadata.avatar_url || null,
-            role: 'user' // Default role
+            role: 'user'
           })
           .select('*')
           .single();
@@ -112,7 +111,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         }
       } else {
-        // If user details are found, update the state
         setUser({
           id: userDetails.id,
           email: userDetails.email || '',
@@ -125,7 +123,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
 
-      // Fetch the user's role
       const { data: roleData, error: roleError } = await fromTable('roles')
         .select('*')
         .eq('name', userDetails?.role || 'user')
@@ -133,7 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (roleError) {
         console.error('Error fetching user role:', roleError);
-        setRole({ name: 'user', permissions: [] }); // Default role
+        setRole({ name: 'user', permissions: [] });
       } else {
         setRole({
           name: roleData?.name || 'user',
@@ -141,7 +138,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
 
-      // Fetch user's businesses
       await fetchUserBusinesses(supabaseUser.id);
     } catch (error) {
       console.error('Error fetching user details:', error);
@@ -154,12 +150,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUserBusinesses = async (userId: string) => {
     setIsLoading(true);
     try {
-      // Fetch businesses where user is the owner
       const ownedResponse = await fromTable('businesses')
         .select('*')
         .eq('owner_id', userId);
 
-      // Fetch businesses where user is a member
       const memberResponse = await fromTable('business_users')
         .select('business:businesses(*)')
         .eq('user_id', userId);
@@ -170,7 +164,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Combine and deduplicate businesses
       const memberBusinessesData = safeDataTransform(memberResponse.data, item => {
         if (item && typeof item === 'object' && 'business' in item && item.business !== null) {
           return item.business;
@@ -180,7 +173,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const allBusinesses = [...(ownedResponse.data || []), ...memberBusinessesData];
 
-      // Remove duplicates based on business ID
       const uniqueBusinessMap = new Map<string, any>();
       allBusinesses.forEach(business => {
         if (business && business.id) {
@@ -190,7 +182,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const uniqueBusinesses = Array.from(uniqueBusinessMap.values());
 
-      // Map to our Business interface
       const mappedBusinesses: Business[] = uniqueBusinesses.map(business => ({
         id: business.id,
         name: business.name,
@@ -212,18 +203,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUserBusinesses(mappedBusinesses);
 
-      // Load the current business from local storage
       const storedBusinessId = localStorage.getItem('currentBusinessId');
       if (storedBusinessId) {
         const storedBusiness = mappedBusinesses.find(b => b.id === storedBusinessId);
         if (storedBusiness) {
           setCurrentBusiness(storedBusiness);
         } else {
-          // If the stored business is not found, default to the first business
           setCurrentBusiness(mappedBusinesses[0] || null);
         }
       } else {
-        // If no business in local storage, default to the first business
         setCurrentBusiness(mappedBusinesses[0] || null);
       }
     } catch (error) {
@@ -293,7 +281,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(error.message);
       }
 
-      // Clear currentBusinessId from local storage
       localStorage.removeItem('currentBusinessId');
       setCurrentBusiness(null);
       setUserBusinesses([]);
@@ -311,7 +298,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const businessToSwitchTo = userBusinesses.find(b => b.id === businessId);
       if (businessToSwitchTo) {
         setCurrentBusiness(businessToSwitchTo);
-        // Store the currentBusinessId in local storage
         localStorage.setItem('currentBusinessId', businessId);
         toast.success(`Switched to business: ${businessToSwitchTo.name}`);
       } else {
@@ -358,6 +344,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const hasPermission = (permissionName: string): boolean => {
+    if (!user) return false;
+    
+    if (user.role === 'admin' || user.isGlobalAdmin) return true;
+    
+    if (user.permissions) {
+      return user.permissions.some(
+        permission => permission.name === permissionName && permission.enabled
+      );
+    }
+    
+    if (permissionName === 'can_view_transactions' && user.role === 'cashier') {
+      return true;
+    }
+    
+    if (permissionName === 'can_edit_transactions' && user.role === 'cashier') {
+      return true;
+    }
+    
+    if (permissionName.startsWith('can_') && user.role === 'manager') {
+      return true;
+    }
+    
+    return false;
+  };
+
   const value: AuthContextType = {
     user,
     session,
@@ -371,6 +383,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     switchBusiness,
     refreshUserBusinesses,
     updateUser,
+    hasPermission
   };
 
   return (

@@ -1,155 +1,116 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
 import { Branch } from '@/types/location';
-import { useAuth } from '@/contexts/AuthContext';
 import { fromTable, isDataResponse } from '@/utils/supabaseServiceHelper';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export const useLocationManagement = () => {
   const [locations, setLocations] = useState<Branch[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { currentBusiness } = useAuth();
 
   const fetchLocations = useCallback(async () => {
-    if (!currentBusiness?.id) return;
+    if (!currentBusiness) return;
     
+    setLoading(true);
     try {
-      setIsLoading(true);
-      
-      const response = await fromTable('locations')
+      const response = await fromTable('branches')
         .select('*')
-        .eq('business_id', currentBusiness.id)
-        .order('created_at', { ascending: false });
+        .eq('business_id', currentBusiness.id);
       
       if (!isDataResponse(response)) {
-        throw new Error(response.error?.message || 'Failed to load locations');
+        console.error('Error fetching locations:', response.error);
+        return;
       }
       
-      // Type guard to ensure data is available
-      const locationsData = response.data || [];
+      const fetchedLocations: Branch[] = [];
       
-      const mappedLocations: Branch[] = locationsData
-        .filter(location => location !== null) 
-        .map(location => {
-          if (!location) return null;
+      if (Array.isArray(response.data)) {
+        for (const itemData of response.data) {
+          if (!itemData) continue;
           
-          return {
-            id: location.id || '',
-            name: location.name || '',
-            address: location.address || '',
-            phone: location.phone || '',
-            email: location.email || '',
-            businessId: location.business_id || '',
-            status: (location.status as 'active' | 'inactive' | 'pending') || 'active',
-            type: (location.type as 'retail' | 'warehouse' | 'office' | 'other') || 'retail',
-            isDefault: location.is_default || false,
-            locationCode: location.location_code || '',
-            createdAt: location.created_at || '',
-            updatedAt: location.updated_at || '',
-            openingHours: location.opening_hours || {}
+          // Type safely process location data
+          const typedItemData = itemData as Record<string, unknown>;
+          
+          const location: Branch = {
+            id: String(typedItemData.id || ''),
+            name: String(typedItemData.name || ''),
+            address: typedItemData.address ? String(typedItemData.address) : undefined,
+            phone: typedItemData.phone ? String(typedItemData.phone) : undefined,
+            email: typedItemData.email ? String(typedItemData.email) : undefined,
+            businessId: String(typedItemData.business_id || ''),
+            status: typedItemData.status ? String(typedItemData.status) : undefined,
+            type: typedItemData.type ? String(typedItemData.type) : undefined,
+            isDefault: typedItemData.is_default ? Boolean(typedItemData.is_default) : false,
+            locationCode: typedItemData.location_code ? String(typedItemData.location_code) : undefined,
+            createdAt: typedItemData.created_at ? String(typedItemData.created_at) : undefined,
+            updatedAt: typedItemData.updated_at ? String(typedItemData.updated_at) : undefined,
+            openingHours: typedItemData.opening_hours ? String(typedItemData.opening_hours) : undefined,
           };
-        })
-        .filter(Boolean) as Branch[]; // Filter out null values
+          
+          fetchedLocations.push(location);
+        }
+      }
       
-      setLocations(mappedLocations);
+      setLocations(fetchedLocations);
     } catch (error) {
-      console.error('Error fetching locations:', error);
+      console.error('Error in fetchLocations:', error);
       toast.error('Failed to load locations');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, [currentBusiness?.id]);
+  }, [currentBusiness]);
 
   useEffect(() => {
     fetchLocations();
   }, [fetchLocations]);
 
-  const handleAddLocation = useCallback(async (newLocation: Branch) => {
-    if (!currentBusiness?.id) {
-      toast.error('No business selected');
-      return;
+  const createLocation = async (locationData: Partial<Branch>): Promise<Branch | null> => {
+    if (!currentBusiness) {
+      toast.error('Business must be selected to create a location');
+      return null;
     }
     
+    setLoading(true);
     try {
-      const response = await fromTable('locations')
+      const { data, error } = await fromTable('branches')
         .insert({
-          name: newLocation.name,
+          ...locationData,
           business_id: currentBusiness.id,
-          address: newLocation.address,
-          phone: newLocation.phone,
-          email: newLocation.email,
-          type: newLocation.type,
-          status: newLocation.status || 'active',
-          is_default: newLocation.isDefault || false,
-          location_code: newLocation.locationCode,
-          opening_hours: newLocation.openingHours || {}
+          created_at: new Date().toISOString(),
         })
         .select()
         .single();
       
-      if (!isDataResponse(response)) {
-        throw new Error(response.error?.message || 'Failed to add location');
+      if (error) {
+        throw error;
       }
       
-      toast.success('Location added successfully');
-      fetchLocations();
-    } catch (error) {
-      console.error('Error adding location:', error);
-      toast.error('Failed to add location');
+      const newLocation: Branch = {
+        id: data.id,
+        name: data.name,
+        businessId: data.business_id,
+        ...locationData,
+      };
+      
+      setLocations(prev => [...prev, newLocation]);
+      
+      toast.success('Location created successfully');
+      return newLocation;
+    } catch (error: any) {
+      console.error('Error creating location:', error.message);
+      toast.error('Failed to create location');
+      return null;
+    } finally {
+      setLoading(false);
     }
-  }, [currentBusiness?.id, fetchLocations]);
-
-  const handleDeleteLocation = useCallback(async (locationId: string) => {
-    try {
-      const response = await fromTable('locations')
-        .delete()
-        .eq('id', locationId);
-      
-      if (!isDataResponse(response)) {
-        throw new Error(response.error?.message || 'Failed to delete location');
-      }
-      
-      setLocations(prev => prev.filter(loc => loc.id !== locationId));
-      toast.success('Location deleted successfully');
-    } catch (error) {
-      console.error('Error deleting location:', error);
-      toast.error('Failed to delete location');
-    }
-  }, []);
-
-  const handleToggleLocationStatus = useCallback(async (locationId: string, isActive: boolean) => {
-    try {
-      const newStatus = isActive ? 'active' : 'inactive';
-      
-      const response = await fromTable('locations')
-        .update({ status: newStatus })
-        .eq('id', locationId);
-      
-      if (!isDataResponse(response)) {
-        throw new Error(response.error?.message || 'Failed to update location status');
-      }
-      
-      setLocations(prev => 
-        prev.map(loc => 
-          loc.id === locationId 
-            ? { ...loc, status: newStatus as 'active' | 'inactive' | 'pending' } 
-            : loc
-        )
-      );
-      
-      toast.success(`Location ${isActive ? 'activated' : 'deactivated'} successfully`);
-    } catch (error) {
-      console.error('Error toggling location status:', error);
-      toast.error('Failed to update location status');
-    }
-  }, []);
+  };
 
   return {
     locations,
-    isLoading,
-    handleAddLocation,
-    handleDeleteLocation,
-    handleToggleLocationStatus,
-    refreshLocations: fetchLocations
+    loading,
+    fetchLocations,
+    createLocation,
   };
 };

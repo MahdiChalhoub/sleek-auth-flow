@@ -4,7 +4,7 @@ import { User, UserRole, UserStatus } from '@/types/auth';
 /**
  * Convert a Supabase auth user to our internal User type
  */
-export function mapAuthUserToUser(authUser: any, additionalData: { role?: string, status?: UserStatus } = {}): User {
+export function mapAuthUserToUser(authUser: any, additionalData: { role?: UserRole, status?: UserStatus } = {}): User {
   if (!authUser) return null as unknown as User;
   
   const email = authUser.email || '';
@@ -20,7 +20,7 @@ export function mapAuthUserToUser(authUser: any, additionalData: { role?: string
     avatarUrl: authUser.user_metadata?.avatar_url,
     avatar_url: authUser.user_metadata?.avatar_url,
     status: additionalData.status || 'active' as UserStatus,
-    role: additionalData.role as UserRole || 'cashier',
+    role: additionalData.role || 'cashier',
     lastLogin: authUser.last_sign_in_at,
     createdAt: authUser.created_at,
     isGlobalAdmin: false // Default value

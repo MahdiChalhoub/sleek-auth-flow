@@ -87,6 +87,13 @@ export const useAuthRedirect = (options: {
     user,
     isLoading,
     isAuthenticated: !!user,
+    redirectIfAuthenticated: (path: string = ROUTES.HOME) => {
+      if (user && !isLoading) {
+        navigate(path, { replace: true });
+        return true;
+      }
+      return false;
+    },
     storeIntendedRedirect,
     getIntendedRedirect: () => localStorage.getItem("intended_redirect") || ROUTES.HOME,
     clearIntendedRedirect: () => localStorage.removeItem("intended_redirect")

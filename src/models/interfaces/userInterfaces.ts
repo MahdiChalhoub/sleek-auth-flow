@@ -1,5 +1,5 @@
 
-export type UserRole = 'admin' | 'manager' | 'cashier' | 'user';
+import { UserRole, UserPermission, UserStatus, Role } from '@/types/auth';
 
 export interface User {
   id: string;
@@ -12,22 +12,9 @@ export interface User {
   isGlobalAdmin?: boolean;
   createdAt?: string;
   updatedAt?: string;
-  status?: 'active' | 'pending' | 'inactive' | 'denied';
+  status?: UserStatus;
   lastLogin?: string;
   permissions?: UserPermission[];
-}
-
-export interface UserRole {
-  id: string;
-  name: string;
-  permissions: string[];
-}
-
-export interface Permission {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
 }
 
 export interface UserPermissions {
@@ -39,19 +26,5 @@ export interface UserPermissions {
   canViewRoles: boolean;
 }
 
-export interface UserPermission {
-  id: string;
-  name: string;
-  description?: string;
-  category?: string;
-  enabled: boolean;
-}
-
-export interface Role {
-  id: string;
-  name: string;
-  description?: string;
-  permissions: UserPermission[];
-  createdAt?: string;
-  updatedAt?: string;
-}
+// Re-export for backward compatibility
+export type { UserRole, UserPermission, UserStatus, Role };
