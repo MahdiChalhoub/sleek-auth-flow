@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -141,7 +142,7 @@ const SetupWizard: React.FC = () => {
       
       if (businessObj && typeof businessObj === 'object' && 'id' in businessObj) {
         // Safe type assertion after validation
-        const businessId = (businessObj as { id: string }).id;
+        const businessId = businessObj.id as string;
         
         try {
           // 2. Create location

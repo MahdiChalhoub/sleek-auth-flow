@@ -39,7 +39,22 @@ const Login: React.FC = () => {
                   id: business.id as string,
                   name: business.name as string,
                   status: business.status as string,
-                  ownerId: business.owner_id as string
+                  ownerId: business.owner_id as string,
+                  // Safely include optional properties with null checks
+                  address: business.address ? String(business.address) : undefined,
+                  phone: business.phone ? String(business.phone) : undefined,
+                  email: business.email ? String(business.email) : undefined,
+                  taxId: business.tax_id ? String(business.tax_id) : undefined,
+                  website: business.website ? String(business.website) : undefined,
+                  createdAt: business.created_at ? String(business.created_at) : undefined,
+                  updatedAt: business.updated_at ? String(business.updated_at) : undefined,
+                  logoUrl: business.logo_url ? String(business.logo_url) : undefined,
+                  description: business.description ? String(business.description) : undefined,
+                  type: business.type ? String(business.type) : undefined,
+                  country: business.country ? String(business.country) : undefined,
+                  currency: business.currency ? String(business.currency) : undefined,
+                  active: business.active !== undefined ? Boolean(business.active) : undefined,
+                  timezone: business.timezone ? String(business.timezone) : undefined
                 };
               }
               return null;

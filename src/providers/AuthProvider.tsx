@@ -63,22 +63,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Type checking to ensure we have a valid business object
           if (item && typeof item === 'object') {
             const business: Business = {
-              id: item.id ?? 'unknown',
-              name: item.name ?? 'Unknown Business',
-              address: item.address,
-              phone: item.phone,
-              email: item.email,
-              status: item.status ?? 'inactive',
-              ownerId: item.owner_id ?? userId,
-              createdAt: item.created_at,
-              updatedAt: item.updated_at,
-              logoUrl: item.logo_url,
-              description: item.description,
-              type: item.type,
-              country: item.country,
-              currency: item.currency,
-              active: item.active,
-              timezone: item.timezone
+              id: item.id ? String(item.id) : 'unknown',
+              name: item.name ? String(item.name) : 'Unknown Business',
+              address: item.address ? String(item.address) : undefined,
+              phone: item.phone ? String(item.phone) : undefined,
+              email: item.email ? String(item.email) : undefined,
+              status: item.status ? String(item.status) : 'inactive',
+              ownerId: item.owner_id ? String(item.owner_id) : userId,
+              createdAt: item.created_at ? String(item.created_at) : undefined,
+              updatedAt: item.updated_at ? String(item.updated_at) : undefined,
+              logoUrl: item.logo_url ? String(item.logo_url) : undefined,
+              description: item.description ? String(item.description) : undefined,
+              type: item.type ? String(item.type) : undefined,
+              country: item.country ? String(item.country) : undefined,
+              currency: item.currency ? String(item.currency) : undefined,
+              active: item.active !== undefined ? Boolean(item.active) : undefined,
+              timezone: item.timezone ? String(item.timezone) : undefined
             };
             businesses.push(business);
           }

@@ -69,7 +69,7 @@ const Signup: React.FC = () => {
           // Only proceed if we definitely have a business object with an id
           if (businessObj && typeof businessObj === 'object' && 'id' in businessObj) {
             // Safe type assertion after validation
-            const businessId = (businessObj as { id: string }).id;
+            const businessId = businessObj.id as string;
             
             try {
               const locationResponse = await fromTable('locations')
