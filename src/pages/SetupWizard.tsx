@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -99,18 +100,19 @@ const SetupWizard: React.FC = () => {
         throw new Error('A business with this name already exists. Please choose a different name.');
       }
       
-      // Create business with better error handling
+      // Create business with fields that match the database schema
       const businessResult = await fromTable('businesses')
         .insert({
           name: businessData.name,
           type: businessData.type,
           email: businessData.email,
-          address: businessData.address,
+          // Do not include address as it doesn't exist in the schema
           owner_id: userData.user.id,
           status: 'active',
           active: true,
           currency: 'USD', // Default currency
           country: 'US', // Default country
+          description: `Business created during setup on ${new Date().toISOString()}`
         })
         .select();
       
@@ -148,7 +150,7 @@ const SetupWizard: React.FC = () => {
       console.log('Creating location with data:', locationData);
       console.log('Business ID:', businessId);
       
-      // Create location with better error handling
+      // Create location with fields that match the database schema
       try {
         const locationResult = await fromTable('locations')
           .insert({
@@ -156,9 +158,8 @@ const SetupWizard: React.FC = () => {
             type: locationData.type,
             address: locationData.address,
             business_id: businessId,
-            status: 'active',
-            is_default: true,
             is_active: true,
+            phone: businessData.phone, // Use business phone for location
           })
           .select();
         

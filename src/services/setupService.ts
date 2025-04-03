@@ -26,10 +26,10 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
 
       if (data && 'value' in data && data.value !== null) {
         try {
-          // Parse value if it's a string
+          // Handle both string and object value formats
           const valueObject = typeof data.value === 'string' 
             ? JSON.parse(data.value) 
-            : data.value as Record<string, unknown>;
+            : data.value;
           
           if (
             valueObject && 
@@ -89,7 +89,7 @@ export const saveSetupStatus = async (completed: boolean): Promise<void> => {
   try {
     console.log('Saving setup status:', completed);
     
-    // Ensure value is properly formatted as an object, not a string
+    // Make sure the value is properly formatted as an object for jsonb column
     const setupValue = {
       completed,
       completed_at: new Date().toISOString()

@@ -83,15 +83,15 @@ function App() {
         console.log('Setup status:', status);
         setSetupStatus(status);
         
-        // Only redirect if we're on the setup page and setup is complete
-        // or if we're not on the setup page and setup is not complete
+        // Handle redirections based on setup status and current path
         if (status.isComplete && location.pathname === ROUTES.SETUP) {
           console.log('Setup is complete, redirecting to home');
           navigate(ROUTES.HOME, { replace: true });
-        } else if (!status.isComplete && location.pathname !== ROUTES.SETUP && 
-                   location.pathname !== ROUTES.LOGIN && 
-                   location.pathname !== ROUTES.SIGNUP && 
-                   location.pathname !== ROUTES.FORGOT_PASSWORD) {
+        } else if (!status.isComplete && 
+                  location.pathname !== ROUTES.SETUP && 
+                  location.pathname !== ROUTES.LOGIN && 
+                  location.pathname !== ROUTES.SIGNUP && 
+                  location.pathname !== ROUTES.FORGOT_PASSWORD) {
           console.log('Setup is not complete, redirecting to setup');
           navigate(ROUTES.SETUP, { replace: true });
         }
