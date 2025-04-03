@@ -1,7 +1,7 @@
 
 import React, { Suspense } from "react";
 import { Outlet, Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/providers/AuthProvider"; // Updated import
 import AppSidebar from "./AppSidebar";
 import AppTopbar from "./AppTopbar";
 import { SidebarProvider } from "@/components/ui/sidebar";

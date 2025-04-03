@@ -32,3 +32,6 @@ export async function callRpcFunction<T = any, P = any>(
     throw err;
   }
 }
+
+// Add an alias for backward compatibility
+export const callRPC = callRpcFunction;

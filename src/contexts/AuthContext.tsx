@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -22,6 +23,7 @@ interface AuthContextType {
   refreshUserBusinesses: () => Promise<void>;
   updateUser: (updates: { fullName?: string; avatar_url?: string }) => Promise<void>;
   hasPermission: (permission: string) => boolean;
+  bypassAuth?: boolean; // Added bypass flag
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +36,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userBusinesses, setUserBusinesses] = useState<Business[]>([]);
   const [role, setRole] = useState<Role | null>(null);
   const navigate = useNavigate();
+  // Add bypassAuth property with a default value of false
+  const [bypassAuth] = useState<boolean>(false);
 
   useEffect(() => {
     const loadSession = async () => {
@@ -99,42 +103,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (newUserDetails) {
           console.log('Successfully created user profile:', newUserDetails);
+          // Type assertion to handle the userDetails safely
+          const typedUserDetails = newUserDetails as any;
           setUser({
-            id: newUserDetails.id,
-            email: newUserDetails.email || '',
-            fullName: newUserDetails.fullName || '',
-            avatar_url: newUserDetails.avatar_url || null,
-            role: newUserDetails.role || 'user',
-            isGlobalAdmin: newUserDetails.isGlobalAdmin || false,
-            createdAt: newUserDetails.createdAt || '',
-            updatedAt: newUserDetails.updatedAt || ''
+            id: typedUserDetails.id,
+            email: typedUserDetails.email || '',
+            fullName: typedUserDetails.fullName || '',
+            avatar_url: typedUserDetails.avatar_url || null,
+            role: typedUserDetails.role || 'user',
+            isGlobalAdmin: typedUserDetails.isGlobalAdmin || false,
+            createdAt: typedUserDetails.createdAt || '',
+            updatedAt: typedUserDetails.updatedAt || ''
           });
         }
       } else {
+        // Type assertion to handle the userDetails safely
+        const typedUserDetails = userDetails as any;
         setUser({
-          id: userDetails.id,
-          email: userDetails.email || '',
-          fullName: userDetails.fullName || '',
-          avatar_url: userDetails.avatar_url || null,
-          role: userDetails.role || 'user',
-          isGlobalAdmin: userDetails.isGlobalAdmin || false,
-          createdAt: userDetails.createdAt || '',
-          updatedAt: userDetails.updatedAt || ''
+          id: typedUserDetails.id,
+          email: typedUserDetails.email || '',
+          fullName: typedUserDetails.fullName || '',
+          avatar_url: typedUserDetails.avatar_url || null,
+          role: typedUserDetails.role || 'user',
+          isGlobalAdmin: typedUserDetails.isGlobalAdmin || false,
+          createdAt: typedUserDetails.createdAt || '',
+          updatedAt: typedUserDetails.updatedAt || ''
         });
       }
 
       const { data: roleData, error: roleError } = await fromTable('roles')
         .select('*')
-        .eq('name', userDetails?.role || 'user')
+        .eq('name', (userDetails as any)?.role || 'user')
         .single();
 
       if (roleError) {
         console.error('Error fetching user role:', roleError);
-        setRole({ name: 'user', permissions: [] });
+        setRole({ 
+          id: 'default',
+          name: 'user', 
+          permissions: [] 
+        });
       } else {
+        const typedRoleData = roleData as any;
         setRole({
-          name: roleData?.name || 'user',
-          permissions: roleData?.permissions || []
+          id: typedRoleData?.id || 'default',
+          name: typedRoleData?.name || 'user',
+          permissions: typedRoleData?.permissions || []
         });
       }
 
@@ -330,10 +344,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (updatedUser) {
+        const typedUpdatedUser = updatedUser as any;
         setUser(prevUser => ({
           ...prevUser!,
-          fullName: updatedUser.fullName || prevUser!.fullName,
-          avatar_url: updatedUser.avatar_url || prevUser!.avatar_url,
+          fullName: typedUpdatedUser.fullName || prevUser!.fullName,
+          avatar_url: typedUpdatedUser.avatar_url || prevUser!.avatar_url,
         }));
         toast.success('User profile updated successfully!');
       }
@@ -383,7 +398,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     switchBusiness,
     refreshUserBusinesses,
     updateUser,
-    hasPermission
+    hasPermission,
+    bypassAuth
   };
 
   return (

@@ -1,9 +1,9 @@
 
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/providers/AuthProvider'; // Updated import
 import { ROUTES } from '@/constants/routes';
-import { toast } from 'sonner'; // Added missing import
+import { toast } from 'sonner';
 
 /**
  * Hook for handling auth redirects based on user status and role

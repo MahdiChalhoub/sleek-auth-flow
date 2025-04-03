@@ -1,6 +1,7 @@
+
 import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/providers/AuthProvider'; // Updated import
 import { useLocationContext } from '@/contexts/LocationContext';
 import { toast } from 'sonner';
 import { UserRole } from '@/types/auth';
@@ -61,7 +62,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
       cashier: ROUTES.POS_SALES
     };
     
-    const redirectTo = roleDefaultPage[user.role] || ROUTES.HOME;
+    const redirectTo = roleDefaultPage[user.role as keyof typeof roleDefaultPage] || ROUTES.HOME;
     return <Navigate to={redirectTo} replace />;
   }
 
