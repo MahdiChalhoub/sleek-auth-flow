@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss"
 
 export default {
@@ -47,7 +46,8 @@ export default {
         muted: {
           DEFAULT: '#8E9196',
           foreground: '#2c3e50'
-        }
+        },
+        border: "hsl(var(--border))"
       },
       borderRadius: {
         DEFAULT: '8px',
@@ -81,7 +81,5 @@ export default {
       }
     }
   },
-  plugins: [
-    require("tailwindcss-animate")
-  ]
+  plugins: [require("tailwindcss-animate")]
 } satisfies Config
