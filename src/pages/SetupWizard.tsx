@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -139,9 +140,14 @@ const SetupWizard: React.FC = () => {
       
       const businessObj = businessResponse.data[0];
       
-      // Safely access business ID with null checks
-      if (!businessObj || typeof businessObj !== 'object' || !('id' in businessObj)) {
+      // Safely access business ID with null and type checks
+      if (!businessObj || typeof businessObj !== 'object') {
         throw new Error('Invalid business data returned');
+      }
+      
+      // Check if 'id' exists in the business object
+      if (!('id' in businessObj)) {
+        throw new Error('Business ID not found in response');
       }
       
       // After validating, we can safely use businessObj.id

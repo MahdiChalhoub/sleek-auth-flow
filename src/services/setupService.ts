@@ -24,6 +24,7 @@ export const checkSetupStatus = async (): Promise<SetupStatus> => {
         // Access the value object after validation
         const valueObject = dataValue.value;
                     
+        // Check if completed exists in the value object
         const setupCompleted = valueObject !== null &&
                       typeof valueObject === 'object' &&
                       'completed' in valueObject &&

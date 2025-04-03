@@ -67,8 +67,10 @@ const Signup: React.FC = () => {
           const businessObj = businessResponse.data[0];
           
           // Only proceed if we definitely have a valid business object
-          if (!businessObj || typeof businessObj !== 'object' || !('id' in businessObj)) {
+          if (!businessObj || typeof businessObj !== 'object') {
             console.warn('Invalid business data returned from database');
+          } else if (!('id' in businessObj)) {
+            console.warn('Business object is missing ID field');
           } else {
             // After validation, we can safely use businessObj.id
             const businessId = businessObj && typeof businessObj === 'object' && 'id' in businessObj ? 

@@ -34,8 +34,10 @@ const Login: React.FC = () => {
             // Skip null or non-object entries
             if (!businessData || typeof businessData !== 'object') continue;
             
-            // Ensure required fields exist
-            if (!('id' in businessData) || 
+            // Ensure required fields exist with type checking
+            if (!businessData || 
+                typeof businessData !== 'object' || 
+                !('id' in businessData) || 
                 !('name' in businessData) || 
                 !('status' in businessData) || 
                 !('owner_id' in businessData)) {
@@ -50,47 +52,60 @@ const Login: React.FC = () => {
               ownerId: String(businessData.owner_id),
             };
             
-            // Safely add optional properties if they exist
-            if (businessData && typeof businessData === 'object' && 'address' in businessData && businessData.address) {
+            // Safely add optional properties if they exist with proper type checks
+            if (businessData && typeof businessData === 'object' && 'address' in businessData && businessData.address !== null) {
               businessItem.address = String(businessData.address);
             }
-            if (businessData && typeof businessData === 'object' && 'phone' in businessData && businessData.phone) {
+            
+            if (businessData && typeof businessData === 'object' && 'phone' in businessData && businessData.phone !== null) {
               businessItem.phone = String(businessData.phone);
             }
-            if (businessData && typeof businessData === 'object' && 'email' in businessData && businessData.email) {
+            
+            if (businessData && typeof businessData === 'object' && 'email' in businessData && businessData.email !== null) {
               businessItem.email = String(businessData.email);
             }
-            if (businessData && typeof businessData === 'object' && 'tax_id' in businessData && businessData.tax_id) {
+            
+            if (businessData && typeof businessData === 'object' && 'tax_id' in businessData && businessData.tax_id !== null) {
               businessItem.taxId = String(businessData.tax_id);
             }
-            if (businessData && typeof businessData === 'object' && 'website' in businessData && businessData.website) {
+            
+            if (businessData && typeof businessData === 'object' && 'website' in businessData && businessData.website !== null) {
               businessItem.website = String(businessData.website);
             }
-            if (businessData && typeof businessData === 'object' && 'created_at' in businessData && businessData.created_at) {
+            
+            if (businessData && typeof businessData === 'object' && 'created_at' in businessData && businessData.created_at !== null) {
               businessItem.createdAt = String(businessData.created_at);
             }
-            if (businessData && typeof businessData === 'object' && 'updated_at' in businessData && businessData.updated_at) {
+            
+            if (businessData && typeof businessData === 'object' && 'updated_at' in businessData && businessData.updated_at !== null) {
               businessItem.updatedAt = String(businessData.updated_at);
             }
-            if (businessData && typeof businessData === 'object' && 'logo_url' in businessData && businessData.logo_url) {
+            
+            if (businessData && typeof businessData === 'object' && 'logo_url' in businessData && businessData.logo_url !== null) {
               businessItem.logoUrl = String(businessData.logo_url);
             }
-            if (businessData && typeof businessData === 'object' && 'description' in businessData && businessData.description) {
+            
+            if (businessData && typeof businessData === 'object' && 'description' in businessData && businessData.description !== null) {
               businessItem.description = String(businessData.description);
             }
-            if (businessData && typeof businessData === 'object' && 'type' in businessData && businessData.type) {
+            
+            if (businessData && typeof businessData === 'object' && 'type' in businessData && businessData.type !== null) {
               businessItem.type = String(businessData.type);
             }
-            if (businessData && typeof businessData === 'object' && 'country' in businessData && businessData.country) {
+            
+            if (businessData && typeof businessData === 'object' && 'country' in businessData && businessData.country !== null) {
               businessItem.country = String(businessData.country);
             }
-            if (businessData && typeof businessData === 'object' && 'currency' in businessData && businessData.currency) {
+            
+            if (businessData && typeof businessData === 'object' && 'currency' in businessData && businessData.currency !== null) {
               businessItem.currency = String(businessData.currency);
             }
+            
             if (businessData && typeof businessData === 'object' && 'active' in businessData) {
               businessItem.active = Boolean(businessData.active);
             }
-            if (businessData && typeof businessData === 'object' && 'timezone' in businessData && businessData.timezone) {
+            
+            if (businessData && typeof businessData === 'object' && 'timezone' in businessData && businessData.timezone !== null) {
               businessItem.timezone = String(businessData.timezone);
             }
             

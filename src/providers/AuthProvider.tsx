@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -62,69 +63,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Skip null or non-object entries
           if (!itemData || typeof itemData !== 'object') continue;
           
+          // Make sure all required fields exist
+          if (!('id' in itemData) || !('name' in itemData) || !('status' in itemData) || !('owner_id' in itemData)) {
+            continue;
+          }
+          
           // Create a Business object with mandatory fields
-          // checking each property exists before accessing
-          if ('id' in itemData && 'name' in itemData && 'status' in itemData && 'owner_id' in itemData) {
-            const business: Business = {
-              id: String(itemData.id || 'unknown'),
-              name: String(itemData.name || 'Unknown Business'),
-              status: String(itemData.status || 'inactive'),
-              ownerId: String(itemData.owner_id || userId),
-            };
-            
-            // Add optional properties if they exist
-            if (itemData && typeof itemData === 'object') {
-              if ('address' in itemData && itemData.address) {
-                business.address = String(itemData.address);
-              }
-              
-              if ('phone' in itemData && itemData.phone) {
-                business.phone = String(itemData.phone);
-              }
-              
-              if ('email' in itemData && itemData.email) {
-                business.email = String(itemData.email);
-              }
-              
-              if ('created_at' in itemData && itemData.created_at) {
-                business.createdAt = String(itemData.created_at);
-              }
-              
-              if ('updated_at' in itemData && itemData.updated_at) {
-                business.updatedAt = String(itemData.updated_at);
-              }
-              
-              if ('logo_url' in itemData && itemData.logo_url) {
-                business.logoUrl = String(itemData.logo_url);
-              }
-              
-              if ('description' in itemData && itemData.description) {
-                business.description = String(itemData.description);
-              }
-              
-              if ('type' in itemData && itemData.type) {
-                business.type = String(itemData.type);
-              }
-              
-              if ('country' in itemData && itemData.country) {
-                business.country = String(itemData.country);
-              }
-              
-              if ('currency' in itemData && itemData.currency) {
-                business.currency = String(itemData.currency);
-              }
-              
-              if ('active' in itemData) {
-                business.active = Boolean(itemData.active);
-              }
-              
-              if ('timezone' in itemData && itemData.timezone) {
-                business.timezone = String(itemData.timezone);
-              }
+          const business: Business = {
+            id: String(itemData.id || 'unknown'),
+            name: String(itemData.name || 'Unknown Business'),
+            status: String(itemData.status || 'inactive'),
+            ownerId: String(itemData.owner_id || userId),
+          };
+          
+          // Add optional properties if they exist with proper type checking
+          if (itemData && typeof itemData === 'object') {
+            if ('address' in itemData && itemData.address !== null) {
+              business.address = String(itemData.address);
             }
             
-            businesses.push(business);
+            if ('phone' in itemData && itemData.phone !== null) {
+              business.phone = String(itemData.phone);
+            }
+            
+            if ('email' in itemData && itemData.email !== null) {
+              business.email = String(itemData.email);
+            }
+            
+            if ('created_at' in itemData && itemData.created_at !== null) {
+              business.createdAt = String(itemData.created_at);
+            }
+            
+            if ('updated_at' in itemData && itemData.updated_at !== null) {
+              business.updatedAt = String(itemData.updated_at);
+            }
+            
+            if ('logo_url' in itemData && itemData.logo_url !== null) {
+              business.logoUrl = String(itemData.logo_url);
+            }
+            
+            if ('description' in itemData && itemData.description !== null) {
+              business.description = String(itemData.description);
+            }
+            
+            if ('type' in itemData && itemData.type !== null) {
+              business.type = String(itemData.type);
+            }
+            
+            if ('country' in itemData && itemData.country !== null) {
+              business.country = String(itemData.country);
+            }
+            
+            if ('currency' in itemData && itemData.currency !== null) {
+              business.currency = String(itemData.currency);
+            }
+            
+            if ('active' in itemData) {
+              business.active = Boolean(itemData.active);
+            }
+            
+            if ('timezone' in itemData && itemData.timezone !== null) {
+              business.timezone = String(itemData.timezone);
+            }
           }
+          
+          businesses.push(business);
         }
       }
       
