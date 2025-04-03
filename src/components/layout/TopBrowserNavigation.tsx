@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ArrowLeft, ArrowRight, Refresh, Home, Search } from 'lucide-react';
+import { ArrowLeft, ArrowRight, RefreshCw, Home, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -48,7 +48,7 @@ const TopBrowserNavigation: React.FC = () => {
           size="icon" 
           onClick={handleRefresh}
         >
-          <Refresh className="h-5 w-5" />
+          <RefreshCw className="h-5 w-5" />
         </Button>
         <Button 
           variant="ghost" 

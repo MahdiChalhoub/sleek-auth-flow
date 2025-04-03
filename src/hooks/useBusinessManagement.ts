@@ -52,22 +52,22 @@ export const useBusinessManagement = () => {
       
       // Map to our Business interface
       const mappedBusinesses: Business[] = Array.from(uniqueBusinessMap.values()).map(business => ({
-        id: business.id,
-        name: business.name,
-        address: business.address,
-        phone: business.phone,
-        email: business.email,
-        status: business.status,
-        ownerId: business.owner_id,
-        createdAt: business.created_at,
-        updatedAt: business.updated_at,
-        logoUrl: business.logo_url,
-        description: business.description,
-        type: business.type,
-        country: business.country,
-        currency: business.currency,
-        active: business.active,
-        timezone: business.timezone
+        id: business?.id || '',
+        name: business?.name || '',
+        address: business?.address || '',
+        phone: business?.phone || '',
+        email: business?.email || '',
+        status: business?.status || '',
+        ownerId: business?.owner_id || '',
+        createdAt: business?.created_at || '',
+        updatedAt: business?.updated_at || '',
+        logoUrl: business?.logo_url || '',
+        description: business?.description || '',
+        type: business?.type || '',
+        country: business?.country || '',
+        currency: business?.currency || '',
+        active: business?.active || false,
+        timezone: business?.timezone || ''
       }));
       
       setBusinesses(mappedBusinesses);
