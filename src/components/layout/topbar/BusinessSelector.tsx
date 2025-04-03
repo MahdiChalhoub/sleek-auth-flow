@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Building } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/providers/AuthProvider"; // Updated import path
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {

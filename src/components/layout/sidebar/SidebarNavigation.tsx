@@ -1,6 +1,6 @@
 
 import React from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/providers/AuthProvider"; // Updated import path
 import { SidebarContent } from "@/components/ui/sidebar";
 import { navItems } from "./nav"; 
 import FilteredNavItems from "./navigation/FilteredNavItems";

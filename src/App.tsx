@@ -74,6 +74,9 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Add debugging logs to track render flow
+  console.log('🖥️ App component rendering');
+
   return (
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <QueryProvider>
