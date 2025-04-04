@@ -1390,6 +1390,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_product_batches_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_all_product_batches: {
         Args: Record<PropertyKey, never>
         Returns: {
