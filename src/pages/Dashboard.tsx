@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Tabs } from "@/components/ui/tabs";
-import { useAuth } from "@/providers/AuthProvider"; // Updated import path
+import { useAuth } from "@/providers/AuthProvider";
 import { DateRange } from "react-day-picker";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
