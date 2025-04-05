@@ -80,27 +80,7 @@ export const useBusinessManagement = () => {
 
     if (error) throw error;
     
-    const newBusiness: Business = {
-      id: data.id,
-      name: data.name,
-      status: data.status,
-      ownerId: data.owner_id,
-      address: data.address,
-      phone: data.phone,
-      email: data.email,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      logoUrl: data.logo_url,
-      description: data.description,
-      type: data.type,
-      country: data.country,
-      currency: data.currency,
-      active: data.active,
-      timezone: data.timezone
-    };
-
-    await fetchBusinesses();
-    return newBusiness;
+    return mapBusinessFromDB(data);
   };
 
   const deleteBusiness = async (id: string): Promise<void> => {

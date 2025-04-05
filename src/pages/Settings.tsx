@@ -4,7 +4,7 @@ import { parseOpeningHours, OpeningHours } from '@/types/location';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/providers/AuthProvider";
 import { BusinessManagementTab } from "@/components/settings/BusinessManagementTab";
 import { useLocationContext } from "@/contexts/LocationContext";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +28,6 @@ const Settings: React.FC = () => {
   const getOpeningHoursDisplay = (location: any) => {
     if (!location?.openingHours) return 'Not set';
     
-    // Use the parseOpeningHours function to handle different types of openingHours data
     const hours: OpeningHours = parseOpeningHours(location.openingHours);
     
     return (
