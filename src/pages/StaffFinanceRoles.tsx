@@ -24,9 +24,11 @@ const StaffFinanceRoles: React.FC = () => {
       setLoading(true);
       try {
         const rolesData = await getAllRoles();
-        setRoles(rolesData);
-        if (rolesData.length > 0) {
-          setActiveRoleId(rolesData[0].id);
+        // Need to adapt the roles from type/auth.Role to models/role.Role
+        const adaptedRolesData = adaptRoles(rolesData);
+        setRoles(adaptedRolesData);
+        if (adaptedRolesData.length > 0) {
+          setActiveRoleId(adaptedRolesData[0].id);
         }
       } catch (error) {
         console.error('Error fetching roles:', error);
@@ -63,7 +65,7 @@ const StaffFinanceRoles: React.FC = () => {
     )
   );
   
-  const adaptedRoles = adaptRoles(staffRoles);
+  // No need to adapt staffRoles again as they're already adapted
   const canManageRoles = hasPermission('manage_roles');
 
   if (loading) {
@@ -113,8 +115,8 @@ const StaffFinanceRoles: React.FC = () => {
             
             <TabsContent value="roles" className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {adaptedRoles.length > 0 ? (
-                  adaptedRoles.map(role => (
+                {staffRoles.length > 0 ? (
+                  staffRoles.map(role => (
                     <RoleCard
                       key={role.id}
                       role={role}
@@ -138,7 +140,7 @@ const StaffFinanceRoles: React.FC = () => {
                   <thead>
                     <tr>
                       <th className="text-left p-2 border-b">Permission</th>
-                      {adaptedRoles.map(role => (
+                      {staffRoles.map(role => (
                         <th key={role.id} className="text-center p-2 border-b">{role.name}</th>
                       ))}
                     </tr>
@@ -147,7 +149,7 @@ const StaffFinanceRoles: React.FC = () => {
                     {['View Payroll', 'Process Payroll', 'View Expenses', 'Approve Expenses', 'Manage Benefits'].map((permission, idx) => (
                       <tr key={idx} className="hover:bg-muted/50">
                         <td className="p-2 border-b">{permission}</td>
-                        {adaptedRoles.map(role => {
+                        {staffRoles.map(role => {
                           const permName = permission.toLowerCase().replace(/\s/g, '_');
                           const hasPermission = role.permissions.some(
                             p => p.name === `can_${permName}` && p.enabled
