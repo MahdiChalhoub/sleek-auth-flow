@@ -1,13 +1,13 @@
 
 import { Role as ModelRole } from '@/models/role';
-import { Role as TypeRole } from '@/types/auth';
+import { Role as TypeRole, UserPermission } from '@/types/auth';
 
 /**
  * Adapt a type Role to a model Role
  */
 export function adaptTypeRoleToModelRole(typeRole: TypeRole): ModelRole {
   return {
-    id: typeRole.id,
+    id: typeRole.id || '', // Ensure id is always a string
     name: typeRole.name,
     description: typeRole.description || '', // Ensure description is never undefined
     permissions: typeRole.permissions || [],
