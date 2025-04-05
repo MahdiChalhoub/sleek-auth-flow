@@ -2,54 +2,57 @@
 import { useState, useEffect } from 'react';
 import { FinancialYear, FinancialYearFormData, FinancialYearStatus } from '@/models/interfaces/financialYearInterfaces';
 import { toast } from 'sonner';
-import { useAuth } from '@/providers/AuthProvider'; // Updated import path
+import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/lib/supabase';
-
-// Mock financial years for development
-const mockFinancialYears: FinancialYear[] = [
-  {
-    id: 'fy-2023',
-    name: 'Financial Year 2023',
-    startDate: '2023-01-01',
-    endDate: '2023-12-31',
-    status: 'closed',
-    createdBy: 'user-1',
-    createdAt: '2022-12-15T00:00:00Z',
-    updatedAt: '2023-12-31T00:00:00Z',
-    closedBy: 'user-1',
-    closedAt: '2023-12-31T00:00:00Z'
-  },
-  {
-    id: 'fy-2024',
-    name: 'Financial Year 2024',
-    startDate: '2024-01-01',
-    endDate: '2024-12-31',
-    status: 'active',
-    createdBy: 'user-1',
-    createdAt: '2023-12-15T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  }
-];
+import { v4 as uuidv4 } from 'uuid';
 
 export function useFinancialYears() {
-  const [financialYears, setFinancialYears] = useState<FinancialYear[]>(mockFinancialYears);
-  const [currentFinancialYear, setCurrentFinancialYear] = useState<FinancialYear>(
-    mockFinancialYears.find(fy => fy.status === 'active') || mockFinancialYears[0]
-  );
-  const [loading, setLoading] = useState(false);
+  const [financialYears, setFinancialYears] = useState<FinancialYear[]>([]);
+  const [currentFinancialYear, setCurrentFinancialYear] = useState<FinancialYear | null>(null);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
+  // Fetch financial years from the database
   useEffect(() => {
-    // Load financial years from API
-    // This is a placeholder - replace with actual API call
+    const fetchFinancialYears = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('financial_years')
+          .select('*')
+          .order('start_date', { ascending: false });
+
+        if (error) {
+          throw error;
+        }
+
+        if (data && data.length > 0) {
+          setFinancialYears(data);
+          // Set current financial year to the active one, or the most recent
+          const activeYear = data.find(fy => fy.status === 'active');
+          setCurrentFinancialYear(activeYear || data[0]);
+        } else {
+          // If no data is found, don't set any financial years
+          setFinancialYears([]);
+          setCurrentFinancialYear(null);
+        }
+      } catch (error) {
+        console.error('Error fetching financial years:', error);
+        toast.error('Failed to load financial years');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFinancialYears();
   }, []);
 
   const createFinancialYear = async (data: Omit<FinancialYearFormData, 'createdBy'>) => {
     try {
       setLoading(true);
-      // In a real app, this would be an API call
+      
       const newFY: FinancialYear = {
-        id: `fy-${Math.random().toString(36).substring(2, 9)}`,
+        id: uuidv4(),
         name: data.name,
         startDate: data.startDate,
         endDate: data.endDate,
@@ -59,7 +62,28 @@ export function useFinancialYears() {
         updatedAt: new Date().toISOString()
       };
       
-      setFinancialYears(prev => [...prev, newFY]);
+      const { error } = await supabase
+        .from('financial_years')
+        .insert(newFY);
+      
+      if (error) throw error;
+      
+      // Refresh financial years after creation
+      const { data: updatedData, error: fetchError } = await supabase
+        .from('financial_years')
+        .select('*')
+        .order('start_date', { ascending: false });
+        
+      if (fetchError) throw fetchError;
+      
+      if (updatedData) {
+        setFinancialYears(updatedData);
+        
+        if (newFY.status === 'active') {
+          setCurrentFinancialYear(newFY);
+        }
+      }
+      
       toast.success('Financial year created');
       return newFY;
     } catch (error) {
@@ -74,24 +98,40 @@ export function useFinancialYears() {
   const setActiveFinancialYear = async (id: string) => {
     try {
       setLoading(true);
-      // Update the status of the current active financial year to 'pending'
-      setFinancialYears(prev => 
-        prev.map(fy => 
-          fy.status === 'active' ? { ...fy, status: 'pending' as FinancialYearStatus } : fy
-        )
-      );
+      
+      // Update the status of current active financial year to 'pending'
+      const currentActive = financialYears.find(fy => fy.status === 'active');
+      if (currentActive) {
+        const { error: updateError } = await supabase
+          .from('financial_years')
+          .update({ status: 'pending' as FinancialYearStatus })
+          .eq('id', currentActive.id);
+          
+        if (updateError) throw updateError;
+      }
       
       // Set the selected financial year as active
-      setFinancialYears(prev => 
-        prev.map(fy => 
-          fy.id === id ? { ...fy, status: 'active' as FinancialYearStatus } : fy
-        )
-      );
+      const { error } = await supabase
+        .from('financial_years')
+        .update({ status: 'active' as FinancialYearStatus })
+        .eq('id', id);
+        
+      if (error) throw error;
       
-      // Update the current financial year
-      const updated = financialYears.find(fy => fy.id === id);
-      if (updated) {
-        setCurrentFinancialYear({ ...updated, status: 'active' });
+      // Refresh financial years after update
+      const { data, error: fetchError } = await supabase
+        .from('financial_years')
+        .select('*')
+        .order('start_date', { ascending: false });
+        
+      if (fetchError) throw fetchError;
+      
+      if (data) {
+        setFinancialYears(data);
+        const updated = data.find(fy => fy.id === id);
+        if (updated) {
+          setCurrentFinancialYear(updated);
+        }
       }
       
       toast.success('Financial year activated');
@@ -108,17 +148,35 @@ export function useFinancialYears() {
   const closeFinancialYear = async (id: string) => {
     try {
       setLoading(true);
-      // Close the financial year
-      setFinancialYears(prev => 
-        prev.map(fy => 
-          fy.id === id ? { 
-            ...fy, 
-            status: 'closed' as FinancialYearStatus,
-            closedBy: user?.id,
-            closedAt: new Date().toISOString()
-          } : fy
-        )
-      );
+      
+      const { error } = await supabase
+        .from('financial_years')
+        .update({ 
+          status: 'closed' as FinancialYearStatus,
+          closedBy: user?.id,
+          closedAt: new Date().toISOString()
+        })
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      // Refresh financial years after update
+      const { data, error: fetchError } = await supabase
+        .from('financial_years')
+        .select('*')
+        .order('start_date', { ascending: false });
+        
+      if (fetchError) throw fetchError;
+      
+      if (data) {
+        setFinancialYears(data);
+        
+        // If the closed year was the current one, update the current year
+        if (currentFinancialYear && currentFinancialYear.id === id) {
+          const activeYear = data.find(fy => fy.status === 'active');
+          setCurrentFinancialYear(activeYear || data[0]);
+        }
+      }
       
       toast.success('Financial year closed');
       return true;
@@ -134,17 +192,29 @@ export function useFinancialYears() {
   const reopenFinancialYear = async (id: string) => {
     try {
       setLoading(true);
-      // Reopen the financial year
-      setFinancialYears(prev => 
-        prev.map(fy => 
-          fy.id === id ? { 
-            ...fy, 
-            status: 'pending' as FinancialYearStatus,
-            closedBy: undefined,
-            closedAt: undefined
-          } : fy
-        )
-      );
+      
+      const { error } = await supabase
+        .from('financial_years')
+        .update({ 
+          status: 'pending' as FinancialYearStatus,
+          closedBy: null,
+          closedAt: null
+        })
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      // Refresh financial years after update
+      const { data, error: fetchError } = await supabase
+        .from('financial_years')
+        .select('*')
+        .order('start_date', { ascending: false });
+        
+      if (fetchError) throw fetchError;
+      
+      if (data) {
+        setFinancialYears(data);
+      }
       
       toast.success('Financial year reopened');
       return true;
@@ -160,12 +230,37 @@ export function useFinancialYears() {
   const updateFinancialYearStatus = async (id: string, status: FinancialYearStatus) => {
     try {
       setLoading(true);
-      // Update the financial year status
-      setFinancialYears(prev => 
-        prev.map(fy => 
-          fy.id === id ? { ...fy, status } : fy
-        )
-      );
+      
+      const { error } = await supabase
+        .from('financial_years')
+        .update({ status })
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      // Refresh financial years after update
+      const { data, error: fetchError } = await supabase
+        .from('financial_years')
+        .select('*')
+        .order('start_date', { ascending: false });
+        
+      if (fetchError) throw fetchError;
+      
+      if (data) {
+        setFinancialYears(data);
+        
+        // If status is 'active', update current financial year
+        if (status === 'active') {
+          const updated = data.find(fy => fy.id === id);
+          if (updated) {
+            setCurrentFinancialYear(updated);
+          }
+        } else if (currentFinancialYear && currentFinancialYear.id === id) {
+          // If the updated year was the current one and it's no longer active
+          const activeYear = data.find(fy => fy.status === 'active');
+          setCurrentFinancialYear(activeYear || data[0]);
+        }
+      }
       
       toast.success(`Financial year status updated to ${status}`);
       return true;
