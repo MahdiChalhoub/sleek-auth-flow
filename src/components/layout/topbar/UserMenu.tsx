@@ -1,7 +1,8 @@
+
 import React, { useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserCircle, Building, MapPin } from "lucide-react";
-import { useAuth } from "@/providers/AuthProvider";
+import { useAuth } from "@/providers/AuthProvider"; // Ensure consistent import
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

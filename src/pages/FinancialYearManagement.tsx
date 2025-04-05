@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { useFinancialYears } from '@/hooks/useFinancialYears';
 import { FinancialYearStatus } from '@/models/interfaces/financialYearInterfaces';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/providers/AuthProvider';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
@@ -47,7 +46,6 @@ const FinancialYearManagement: React.FC = () => {
     try {
       await createFinancialYear(newYearData);
       setIsCreateDialogOpen(false);
-      // Reset form
       setNewYearData({
         name: `Financial Year ${new Date().getFullYear()}`,
         startDate: new Date().toISOString().split('T')[0],
@@ -199,7 +197,6 @@ const FinancialYearManagement: React.FC = () => {
         </>
       )}
       
-      {/* Create Financial Year Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
