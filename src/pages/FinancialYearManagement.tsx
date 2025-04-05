@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,7 +35,7 @@ const FinancialYearManagement: React.FC = () => {
     name: `Financial Year ${new Date().getFullYear()}`,
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-    status: 'pending'
+    status: FinancialYearStatus.PENDING
   });
   
   const handleCreateYear = async () => {
@@ -50,7 +51,7 @@ const FinancialYearManagement: React.FC = () => {
         name: `Financial Year ${new Date().getFullYear()}`,
         startDate: new Date().toISOString().split('T')[0],
         endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-        status: 'pending'
+        status: FinancialYearStatus.PENDING
       });
     } catch (error) {
       console.error('Error creating financial year:', error);
@@ -59,7 +60,7 @@ const FinancialYearManagement: React.FC = () => {
   
   const handleStatusChange = async (id: string, status: FinancialYearStatus) => {
     try {
-      if (status === 'closed') {
+      if (status === FinancialYearStatus.CLOSED) {
         await closeFinancialYear(id);
       } else {
         await reopenFinancialYear(id);
@@ -90,8 +91,8 @@ const FinancialYearManagement: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Active Financial Year</span>
-                  <Badge variant={currentFinancialYear.status === 'pending' ? 'success' : 'destructive'}>
-                    {currentFinancialYear.status === 'pending' ? 'Open' : 'Closed'}
+                  <Badge variant={currentFinancialYear.status === FinancialYearStatus.PENDING ? 'success' : 'destructive'}>
+                    {currentFinancialYear.status === FinancialYearStatus.PENDING ? 'Open' : 'Closed'}
                   </Badge>
                 </CardTitle>
               </CardHeader>
@@ -116,11 +117,11 @@ const FinancialYearManagement: React.FC = () => {
                 </div>
                 
                 <div className="mt-4 flex justify-end">
-                  {currentFinancialYear.status === 'pending' ? (
+                  {currentFinancialYear.status === FinancialYearStatus.PENDING ? (
                     <Button 
                       variant="destructive" 
                       size="sm" 
-                      onClick={() => handleStatusChange(currentFinancialYear.id, 'closed')}
+                      onClick={() => handleStatusChange(currentFinancialYear.id, FinancialYearStatus.CLOSED)}
                     >
                       <Lock className="h-4 w-4 mr-2" />
                       Close Year
@@ -129,7 +130,7 @@ const FinancialYearManagement: React.FC = () => {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => handleStatusChange(currentFinancialYear.id, 'pending')}
+                      onClick={() => handleStatusChange(currentFinancialYear.id, FinancialYearStatus.PENDING)}
                     >
                       <Unlock className="h-4 w-4 mr-2" />
                       Reopen Year
@@ -148,8 +149,8 @@ const FinancialYearManagement: React.FC = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span>{year.name}</span>
-                    <Badge variant={year.status === 'pending' || year.status === 'active' ? 'success' : 'secondary'}>
-                      {year.status === 'pending' || year.status === 'active' ? 'Open' : 'Closed'}
+                    <Badge variant={year.status === FinancialYearStatus.PENDING || year.status === FinancialYearStatus.ACTIVE ? 'success' : 'secondary'}>
+                      {year.status === FinancialYearStatus.PENDING || year.status === FinancialYearStatus.ACTIVE ? 'Open' : 'Closed'}
                     </Badge>
                   </CardTitle>
                 </CardHeader>
@@ -160,7 +161,7 @@ const FinancialYearManagement: React.FC = () => {
                       <span>{format(new Date(year.startDate), 'MMM dd, yyyy')} - {format(new Date(year.endDate), 'MMM dd, yyyy')}</span>
                     </div>
                     
-                    {year.status === 'closed' && year.closedAt && (
+                    {year.status === FinancialYearStatus.CLOSED && year.closedAt && (
                       <div className="flex items-center text-sm text-gray-500">
                         <Lock className="h-4 w-4 mr-2" />
                         <span>Closed on {format(new Date(year.closedAt), 'MMM dd, yyyy')}</span>
@@ -169,11 +170,11 @@ const FinancialYearManagement: React.FC = () => {
                   </div>
                   
                   <div className="mt-4 flex justify-end">
-                    {year.status === 'pending' || year.status === 'active' ? (
+                    {year.status === FinancialYearStatus.PENDING || year.status === FinancialYearStatus.ACTIVE ? (
                       <Button 
                         variant="destructive" 
                         size="sm" 
-                        onClick={() => handleStatusChange(year.id, 'closed')}
+                        onClick={() => handleStatusChange(year.id, FinancialYearStatus.CLOSED)}
                       >
                         <Lock className="h-4 w-4 mr-2" />
                         Close
@@ -182,8 +183,8 @@ const FinancialYearManagement: React.FC = () => {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => handleStatusChange(year.id, 'pending')}
-                        disabled={currentFinancialYear && (currentFinancialYear.status === 'pending' || currentFinancialYear.status === 'active') && currentFinancialYear.id !== year.id}
+                        onClick={() => handleStatusChange(year.id, FinancialYearStatus.PENDING)}
+                        disabled={currentFinancialYear && (currentFinancialYear.status === FinancialYearStatus.PENDING || currentFinancialYear.status === FinancialYearStatus.ACTIVE) && currentFinancialYear.id !== year.id}
                       >
                         <Unlock className="h-4 w-4 mr-2" />
                         Reopen
@@ -245,8 +246,8 @@ const FinancialYearManagement: React.FC = () => {
                 <label className="flex items-center space-x-2">
                   <input
                     type="radio"
-                    checked={newYearData.status === 'pending'}
-                    onChange={() => setNewYearData({...newYearData, status: 'pending'})}
+                    checked={newYearData.status === FinancialYearStatus.PENDING}
+                    onChange={() => setNewYearData({...newYearData, status: FinancialYearStatus.PENDING})}
                   />
                   <span>Open</span>
                 </label>
@@ -254,8 +255,8 @@ const FinancialYearManagement: React.FC = () => {
                 <label className="flex items-center space-x-2">
                   <input
                     type="radio"
-                    checked={newYearData.status === 'closed'}
-                    onChange={() => setNewYearData({...newYearData, status: 'closed'})}
+                    checked={newYearData.status === FinancialYearStatus.CLOSED}
+                    onChange={() => setNewYearData({...newYearData, status: FinancialYearStatus.CLOSED})}
                   />
                   <span>Closed</span>
                 </label>
