@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { LocationManagement } from '@/components/settings/LocationManagement';
 import { parseOpeningHours, OpeningHours } from '@/types/location';
@@ -12,13 +13,15 @@ import { Building, MapPin, Phone, Mail, CalendarDays, Check, X } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { AddLocationModal } from "@/components/settings/AddLocationModal";
 import { toast } from "sonner";
+import { User } from '@/types/auth';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const { currentLocation, availableLocations, switchLocation } = useLocationContext();
   const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false);
   
-  const isSuperAdmin = user?.isGlobalAdmin;
+  // Cast user to our custom User type and safely access isGlobalAdmin
+  const isSuperAdmin = (user as User)?.isGlobalAdmin;
   
   const handleAddLocation = (newLocation: any) => {
     toast.success(`New location "${newLocation.name}" created successfully!`);
@@ -140,13 +143,13 @@ const Settings: React.FC = () => {
                     <div className="rounded-lg border p-4">
                       <div className="grid grid-cols-2 gap-2">
                         <div className="text-muted-foreground">Name:</div>
-                        <div>{user?.name || "Not set"}</div>
+                        <div>{(user as User)?.fullName || (user as User)?.name || "Not set"}</div>
                         
                         <div className="text-muted-foreground">Email:</div>
                         <div>{user?.email || "Not set"}</div>
                         
                         <div className="text-muted-foreground">Role:</div>
-                        <div className="capitalize">{user?.role || "Not set"}</div>
+                        <div className="capitalize">{(user as User)?.role || "Not set"}</div>
                       </div>
                     </div>
                   </div>
