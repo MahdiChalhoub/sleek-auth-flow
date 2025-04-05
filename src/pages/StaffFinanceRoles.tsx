@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import RoleCard from "@/components/RoleCard";
 import { Role } from "@/models/role";
 import { getAllRoles } from '@/services/roleService';
+import { StaffFinancePermission } from '@/models/interfaces/permissionInterfaces';
 import { useAuth } from "@/providers/AuthProvider";
 import { adaptRoles } from '@/utils/roleAdapter';
 
@@ -23,11 +24,9 @@ const StaffFinanceRoles: React.FC = () => {
       setLoading(true);
       try {
         const rolesData = await getAllRoles();
-        // Use the roleAdapter to ensure we convert from TypeRole to ModelRole
-        const modelRoles = adaptRoles(rolesData);
-        setRoles(modelRoles);
-        if (modelRoles.length > 0) {
-          setActiveRoleId(modelRoles[0].id);
+        setRoles(rolesData);
+        if (rolesData.length > 0) {
+          setActiveRoleId(rolesData[0].id);
         }
       } catch (error) {
         console.error('Error fetching roles:', error);
@@ -64,7 +63,7 @@ const StaffFinanceRoles: React.FC = () => {
     )
   );
   
-  const adaptedRoles = staffRoles;
+  const adaptedRoles = adaptRoles(staffRoles);
   const canManageRoles = hasPermission('manage_roles');
 
   if (loading) {
