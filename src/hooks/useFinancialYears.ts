@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { FinancialYear, FinancialYearFormData, FinancialYearStatus } from '@/models/interfaces/financialYearInterfaces';
 import { toast } from 'sonner';
@@ -38,6 +37,9 @@ const mapFinancialYearToDatabaseRecord = (fy: FinancialYear) => {
   };
 };
 
+// Log the allowed status values for debugging
+console.log('Allowed FinancialYearStatus values:', Object.values(FinancialYearStatus));
+
 export function useFinancialYears() {
   const [financialYears, setFinancialYears] = useState<FinancialYear[]>([]);
   const [currentFinancialYear, setCurrentFinancialYear] = useState<FinancialYear | null>(null);
@@ -49,6 +51,10 @@ export function useFinancialYears() {
     const fetchFinancialYears = async () => {
       try {
         setLoading(true);
+        
+        // Log the SQL query we're about to execute
+        console.log('Fetching financial years...');
+        
         const { data, error } = await supabase
           .from('financial_years')
           .select('*')
@@ -60,12 +66,15 @@ export function useFinancialYears() {
 
         if (data && data.length > 0) {
           const mappedData = data.map(mapDatabaseRecordToFinancialYear);
+          console.log('Fetched financial years:', mappedData);
           setFinancialYears(mappedData);
+          
           // Set current financial year to the active one, or the most recent
           const activeYear = mappedData.find(fy => fy.status === 'active');
           setCurrentFinancialYear(activeYear || mappedData[0]);
         } else {
           // If no data is found, don't set any financial years
+          console.log('No financial years found');
           setFinancialYears([]);
           setCurrentFinancialYear(null);
         }
@@ -96,6 +105,9 @@ export function useFinancialYears() {
       };
       
       const dbRecord = mapFinancialYearToDatabaseRecord(newFY);
+      
+      // Log the record being inserted
+      console.log('Creating financial year with data:', dbRecord);
       
       const { error } = await supabase
         .from('financial_years')
@@ -165,6 +177,7 @@ export function useFinancialYears() {
       if (data) {
         const mappedData = data.map(mapDatabaseRecordToFinancialYear);
         setFinancialYears(mappedData);
+        
         const updated = mappedData.find(fy => fy.id === id);
         if (updated) {
           setCurrentFinancialYear(updated);

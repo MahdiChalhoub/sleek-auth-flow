@@ -4,7 +4,7 @@ export interface FinancialYear {
   name: string;
   startDate: string; // ISO date string
   endDate: string; // ISO date string
-  status: 'active' | 'closed' | 'pending';
+  status: FinancialYearStatus;
   createdBy?: string;
   closedBy?: string;
   closedAt?: string;
@@ -12,7 +12,12 @@ export interface FinancialYear {
   updatedAt?: string;
 }
 
-export type FinancialYearStatus = 'active' | 'closed' | 'pending';
+// Define this as an enum to ensure we have consistent values
+export enum FinancialYearStatus {
+  ACTIVE = 'active',
+  CLOSED = 'closed',
+  PENDING = 'pending'
+}
 
 export interface FinancialYearFormData {
   name: string;
@@ -28,7 +33,7 @@ export const mapToFinancialYear = (data: any): FinancialYear => {
     name: data.name,
     startDate: data.start_date || data.startDate,
     endDate: data.end_date || data.endDate,
-    status: data.status || 'pending',
+    status: data.status || FinancialYearStatus.PENDING,
     createdBy: data.created_by || data.createdBy,
     closedBy: data.closed_by || data.closedBy,
     closedAt: data.closed_at || data.closedAt,
