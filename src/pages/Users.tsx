@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ import {
 import { toast } from 'sonner';
 import { User, UserStatus, Role } from '@/types/auth';
 import { getAllUsers, updateUser, deleteUser } from '@/services/userService';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/providers/AuthProvider';  // <-- Changed from '@/contexts/AuthContext'
 import { UserFormDialog } from '@/components/users/UserFormDialog';
 import { UserViewDialog } from '@/components/users/UserViewDialog';
 import { UserDeleteDialog } from '@/components/users/UserDeleteDialog';
