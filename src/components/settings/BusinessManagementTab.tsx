@@ -16,8 +16,8 @@ import { useBusinessManagement } from '@/hooks/useBusinessManagement';
 export const BusinessManagementTab: React.FC = () => {
   const {
     businesses,
-    isLoading, // Using isLoading directly
-    handleAddBusiness, // Using the correct property names
+    isLoading,
+    handleAddBusiness,
     handleDeleteBusiness,
     handleToggleBusinessStatus,
     refreshBusinesses

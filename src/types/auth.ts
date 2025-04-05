@@ -13,9 +13,9 @@ export interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
-  bypassAuth: boolean; // Added bypass flag
-  userBusinesses?: Business[]; // Added userBusinesses
-  switchBusiness?: (businessId: string) => Promise<void>; // Added switchBusiness
+  bypassAuth: boolean;
+  userBusinesses?: Business[];
+  switchBusiness?: (businessId: string) => Promise<void>;
 }
 
 // Define UserRole type
@@ -26,9 +26,9 @@ export interface User {
   id: string;
   email: string;
   fullName?: string;
-  name?: string; // Adding name property for backward compatibility
+  name?: string;
   avatar_url?: string;
-  avatarUrl?: string; // Adding avatarUrl property for backward compatibility
+  avatarUrl?: string;
   role?: UserRole;
   isGlobalAdmin?: boolean;
   createdAt?: string;

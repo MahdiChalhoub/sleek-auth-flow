@@ -12,7 +12,7 @@ import {
   Store,
   ShoppingCart
 } from "lucide-react";
-import { useAuth } from "@/providers/AuthProvider"; // Fix: Ensure correct import path
+import { useAuth } from "@/providers/AuthProvider";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

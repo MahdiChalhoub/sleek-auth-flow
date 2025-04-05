@@ -21,16 +21,16 @@ interface LocationManagementProps {
 export const LocationManagement: React.FC<LocationManagementProps> = ({ businessId }) => {
   const {
     locations,
-    handleAddLocation,
-    handleDeleteLocation,
-    handleToggleLocationStatus
+    createLocation,
+    deleteLocation,
+    toggleLocationStatus
   } = useLocationManagement();
   
   const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false);
 
   // This wrapper ensures type compatibility
   const onSaveLocation = (location: Location) => {
-    handleAddLocation(location);
+    createLocation(location);
   };
   
   return (
@@ -59,8 +59,8 @@ export const LocationManagement: React.FC<LocationManagementProps> = ({ business
       <CardContent className="p-0">
         <LocationList 
           locations={locations}
-          onDeleteLocation={handleDeleteLocation}
-          onToggleLocationStatus={(id, isActive) => handleToggleLocationStatus(id, isActive)}
+          onDeleteLocation={deleteLocation}
+          onToggleLocationStatus={(id, isActive) => toggleLocationStatus(id, isActive)}
         />
       </CardContent>
       

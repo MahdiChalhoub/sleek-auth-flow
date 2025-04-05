@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Tabs } from "@/components/ui/tabs";
 import { useAuth } from "@/providers/AuthProvider";
@@ -35,6 +34,12 @@ const Dashboard: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  const userGreeting = user ? (
+    <p className="text-muted-foreground">
+      Welcome back, <span className="font-medium">{user.fullName || user.email?.split('@')[0] || 'User'}</span>!
+    </p>
+  ) : null;
 
   if (!currentBusiness) {
     return (

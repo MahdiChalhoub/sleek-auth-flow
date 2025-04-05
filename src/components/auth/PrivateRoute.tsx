@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/providers/AuthProvider'; // Updated import
+import { useAuth } from '@/providers/AuthProvider';
 import { useLocationContext } from '@/contexts/LocationContext';
 import { toast } from 'sonner';
 import { UserRole } from '@/types/auth';
@@ -66,8 +66,8 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
     return <Navigate to={ROUTES.LOGIN} state={{ from: location }} replace />;
   }
 
-  if (user.status === 'pending' || user.status === 'denied' || user.status === 'inactive') {
-    console.log('❌ PrivateRoute: User status not active:', user.status);
+  if (user?.status === 'pending' || user?.status === 'denied' || user?.status === 'inactive') {
+    console.log('❌ PrivateRoute: User status not active:', user?.status);
     return <Navigate to="/waiting-approval" replace />;
   }
 
