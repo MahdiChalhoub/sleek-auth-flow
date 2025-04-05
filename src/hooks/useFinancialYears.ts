@@ -6,6 +6,38 @@ import { useAuth } from '@/providers/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 
+// Helper function to map database records to our application model
+const mapDatabaseRecordToFinancialYear = (record: any): FinancialYear => {
+  return {
+    id: record.id,
+    name: record.name,
+    startDate: record.start_date,
+    endDate: record.end_date,
+    status: record.status as FinancialYearStatus,
+    createdBy: record.created_by,
+    closedBy: record.closed_by,
+    closedAt: record.closed_at,
+    createdAt: record.created_at,
+    updatedAt: record.updated_at
+  };
+};
+
+// Helper function to map our application model to database record format
+const mapFinancialYearToDatabaseRecord = (fy: FinancialYear) => {
+  return {
+    id: fy.id,
+    name: fy.name,
+    start_date: fy.startDate,
+    end_date: fy.endDate,
+    status: fy.status,
+    created_by: fy.createdBy,
+    closed_by: fy.closedBy,
+    closed_at: fy.closedAt,
+    created_at: fy.createdAt,
+    updated_at: fy.updatedAt
+  };
+};
+
 export function useFinancialYears() {
   const [financialYears, setFinancialYears] = useState<FinancialYear[]>([]);
   const [currentFinancialYear, setCurrentFinancialYear] = useState<FinancialYear | null>(null);
@@ -27,10 +59,11 @@ export function useFinancialYears() {
         }
 
         if (data && data.length > 0) {
-          setFinancialYears(data);
+          const mappedData = data.map(mapDatabaseRecordToFinancialYear);
+          setFinancialYears(mappedData);
           // Set current financial year to the active one, or the most recent
-          const activeYear = data.find(fy => fy.status === 'active');
-          setCurrentFinancialYear(activeYear || data[0]);
+          const activeYear = mappedData.find(fy => fy.status === 'active');
+          setCurrentFinancialYear(activeYear || mappedData[0]);
         } else {
           // If no data is found, don't set any financial years
           setFinancialYears([]);
@@ -62,9 +95,11 @@ export function useFinancialYears() {
         updatedAt: new Date().toISOString()
       };
       
+      const dbRecord = mapFinancialYearToDatabaseRecord(newFY);
+      
       const { error } = await supabase
         .from('financial_years')
-        .insert(newFY);
+        .insert(dbRecord);
       
       if (error) throw error;
       
@@ -77,7 +112,8 @@ export function useFinancialYears() {
       if (fetchError) throw fetchError;
       
       if (updatedData) {
-        setFinancialYears(updatedData);
+        const mappedData = updatedData.map(mapDatabaseRecordToFinancialYear);
+        setFinancialYears(mappedData);
         
         if (newFY.status === 'active') {
           setCurrentFinancialYear(newFY);
@@ -127,8 +163,9 @@ export function useFinancialYears() {
       if (fetchError) throw fetchError;
       
       if (data) {
-        setFinancialYears(data);
-        const updated = data.find(fy => fy.id === id);
+        const mappedData = data.map(mapDatabaseRecordToFinancialYear);
+        setFinancialYears(mappedData);
+        const updated = mappedData.find(fy => fy.id === id);
         if (updated) {
           setCurrentFinancialYear(updated);
         }
@@ -153,8 +190,8 @@ export function useFinancialYears() {
         .from('financial_years')
         .update({ 
           status: 'closed' as FinancialYearStatus,
-          closedBy: user?.id,
-          closedAt: new Date().toISOString()
+          closed_by: user?.id,
+          closed_at: new Date().toISOString()
         })
         .eq('id', id);
         
@@ -169,12 +206,13 @@ export function useFinancialYears() {
       if (fetchError) throw fetchError;
       
       if (data) {
-        setFinancialYears(data);
+        const mappedData = data.map(mapDatabaseRecordToFinancialYear);
+        setFinancialYears(mappedData);
         
         // If the closed year was the current one, update the current year
         if (currentFinancialYear && currentFinancialYear.id === id) {
-          const activeYear = data.find(fy => fy.status === 'active');
-          setCurrentFinancialYear(activeYear || data[0]);
+          const activeYear = mappedData.find(fy => fy.status === 'active');
+          setCurrentFinancialYear(activeYear || mappedData[0]);
         }
       }
       
@@ -197,8 +235,8 @@ export function useFinancialYears() {
         .from('financial_years')
         .update({ 
           status: 'pending' as FinancialYearStatus,
-          closedBy: null,
-          closedAt: null
+          closed_by: null,
+          closed_at: null
         })
         .eq('id', id);
         
@@ -213,7 +251,8 @@ export function useFinancialYears() {
       if (fetchError) throw fetchError;
       
       if (data) {
-        setFinancialYears(data);
+        const mappedData = data.map(mapDatabaseRecordToFinancialYear);
+        setFinancialYears(mappedData);
       }
       
       toast.success('Financial year reopened');
@@ -247,18 +286,19 @@ export function useFinancialYears() {
       if (fetchError) throw fetchError;
       
       if (data) {
-        setFinancialYears(data);
+        const mappedData = data.map(mapDatabaseRecordToFinancialYear);
+        setFinancialYears(mappedData);
         
         // If status is 'active', update current financial year
         if (status === 'active') {
-          const updated = data.find(fy => fy.id === id);
+          const updated = mappedData.find(fy => fy.id === id);
           if (updated) {
             setCurrentFinancialYear(updated);
           }
         } else if (currentFinancialYear && currentFinancialYear.id === id) {
           // If the updated year was the current one and it's no longer active
-          const activeYear = data.find(fy => fy.status === 'active');
-          setCurrentFinancialYear(activeYear || data[0]);
+          const activeYear = mappedData.find(fy => fy.status === 'active');
+          setCurrentFinancialYear(activeYear || mappedData[0]);
         }
       }
       
