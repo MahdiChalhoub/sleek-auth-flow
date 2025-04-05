@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { FinancialYear, FinancialYearFormData, FinancialYearStatus } from '@/models/interfaces/financialYearInterfaces';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/providers/AuthProvider'; // Updated import path
 import { supabase } from '@/lib/supabase';
 
 // Mock financial years for development
