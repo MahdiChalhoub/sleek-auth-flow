@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { Branch } from '@/types/location';
 import { toast } from 'sonner';
@@ -26,7 +27,10 @@ export const useLocationManagement = () => {
         throw new Error(error.message);
       }
       
-      setLocations(data || []);
+      // Type assertion to ensure data is treated as an array of valid Branch objects
+      const validData = (data || []) as unknown as Branch[];
+      
+      setLocations(validData);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -34,7 +38,7 @@ export const useLocationManagement = () => {
     }
   }, [currentBusiness]);
   
-  const createLocation = async (data: Omit<Branch, 'id' | 'created_at' | 'updated_at'>) => {
+  const createLocation = async (data: Omit<Branch, 'id' | 'createdAt' | 'updatedAt'>) => {
     setIsLoading(true);
     try {
       if (!currentBusiness) {
@@ -44,9 +48,9 @@ export const useLocationManagement = () => {
       const locationData = {
         ...data,
         business_id: currentBusiness?.id || '',
-        opening_hours: typeof data.opening_hours === 'object' 
-          ? JSON.stringify(data.opening_hours) 
-          : data.opening_hours
+        opening_hours: typeof data.openingHours === 'object' 
+          ? JSON.stringify(data.openingHours) 
+          : data.openingHours
       };
 
       const { data: newLocation, error } = await fromTable('locations')
@@ -58,7 +62,10 @@ export const useLocationManagement = () => {
         throw new Error(error.message);
       }
       
-      setLocations(prev => [...prev, newLocation]);
+      // Type assertion to ensure safety
+      const typedNewLocation = newLocation as unknown as Branch;
+      
+      setLocations(prev => [...prev, typedNewLocation]);
       toast.success('Location created successfully');
     } catch (error: any) {
       toast.error(error.message);
@@ -80,8 +87,11 @@ export const useLocationManagement = () => {
         throw new Error(error.message);
       }
       
+      // Type assertion for safety
+      const typedUpdatedLocation = updatedLocation as unknown as Branch;
+      
       setLocations(prev =>
-        prev.map(location => (location.id === id ? updatedLocation : location))
+        prev.map(location => (location.id === id ? typedUpdatedLocation : location))
       );
       toast.success('Location updated successfully');
     } catch (error: any) {

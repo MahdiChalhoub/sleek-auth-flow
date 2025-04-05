@@ -16,6 +16,7 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { User } from "@/types/auth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +34,7 @@ const AppTopbar: React.FC = () => {
   const { isMobile } = useScreenSize();
   const navigate = useNavigate();
 
+  const typedUser = user as User;
   console.log('🔝 AppTopbar rendering with user:', !!user);
 
   return (
@@ -108,7 +110,7 @@ const AppTopbar: React.FC = () => {
               {!isMobile && (
                 <>
                   <span className="line-clamp-1 text-sm font-medium">
-                    {user?.fullName || user?.email?.split("@")[0] || "User"}
+                    {typedUser?.fullName || typedUser?.email?.split("@")[0] || "User"}
                   </span>
                   <ChevronDown className="h-4 w-4 opacity-50" />
                 </>
@@ -119,10 +121,10 @@ const AppTopbar: React.FC = () => {
             <div className="flex items-center gap-2 p-2">
               <div className="flex flex-col space-y-0.5">
                 <span className="text-sm font-medium">
-                  {user?.fullName || user?.email?.split("@")[0] || "User"}
+                  {typedUser?.fullName || typedUser?.email?.split("@")[0] || "User"}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {user?.email}
+                  {typedUser?.email}
                 </span>
               </div>
             </div>

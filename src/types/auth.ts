@@ -40,7 +40,7 @@ export interface User {
 
 // Define UserPermission interface
 export interface UserPermission {
-  id?: string; // Made optional to fix type errors
+  id?: string;
   name: string;
   description?: string;
   category?: string;
@@ -49,7 +49,7 @@ export interface UserPermission {
 
 // Define Role interface
 export interface Role {
-  id?: string; // Made optional to fix TS error
+  id?: string;
   name: string;
   description?: string;
   permissions: UserPermission[];

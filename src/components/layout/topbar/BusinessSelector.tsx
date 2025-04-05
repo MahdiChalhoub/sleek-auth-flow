@@ -4,6 +4,7 @@ import { Building } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { User } from "@/types/auth";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,8 @@ const BusinessSelector: React.FC<BusinessSelectorProps> = ({ isOpen, onOpenChang
   const { currentBusiness, userBusinesses = [], switchBusiness, user } = useAuth();
   
   // Check if user is admin (compatible with both properties)
-  const isAdmin = user?.isGlobalAdmin || user?.role === 'admin';
+  const typedUser = user as User;
+  const isAdmin = typedUser?.isGlobalAdmin || typedUser?.role === 'admin';
   
   if (!currentBusiness || !isAdmin) return null;
   

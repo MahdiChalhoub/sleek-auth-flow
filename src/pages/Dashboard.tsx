@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Tabs } from "@/components/ui/tabs";
 import { useAuth } from "@/providers/AuthProvider";
@@ -12,6 +13,7 @@ import { LoyaltyTab } from "@/components/dashboard/tabs/LoyaltyTab";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { User } from "@/types/auth";
 
 const Dashboard: React.FC = () => {
   const { user, currentBusiness } = useAuth();
@@ -37,7 +39,7 @@ const Dashboard: React.FC = () => {
 
   const userGreeting = user ? (
     <p className="text-muted-foreground">
-      Welcome back, <span className="font-medium">{user.fullName || user.email?.split('@')[0] || 'User'}</span>!
+      Welcome back, <span className="font-medium">{user?.fullName || user?.email?.split('@')[0] || 'User'}</span>!
     </p>
   ) : null;
 
@@ -69,7 +71,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="container mx-auto space-y-6">
-      <DashboardHeader user={user} />
+      <DashboardHeader user={user as User | null} />
 
       <Tabs defaultValue="overview" onValueChange={setActiveTab}>
         <DashboardTabs />

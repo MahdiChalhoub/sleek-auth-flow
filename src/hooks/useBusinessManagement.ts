@@ -1,14 +1,36 @@
 import { useState, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/providers/AuthProvider';
 
 export const useBusinessManagement = () => {
   const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const mapBusinessFromDB = (business: any): Business => {
+    return {
+      id: business.id,
+      name: business.name,
+      address: business.address || '',
+      phone: business.phone || '',
+      email: business.email,
+      status: business.status,
+      ownerId: business.owner_id,
+      createdAt: business.created_at,
+      updatedAt: business.updated_at,
+      logoUrl: business.logo_url,
+      description: business.description,
+      type: business.type,
+      country: business.country,
+      currency: business.currency,
+      active: business.active,
+      timezone: business.timezone || ''
+    };
+  };
 
   const fetchBusinesses = useCallback(async () => {
-    setLoading(true);
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('businesses')
@@ -20,24 +42,7 @@ export const useBusinessManagement = () => {
       }
 
       if (data) {
-        const mappedBusinesses: Business[] = data.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          address: item.address || '',
-          phone: item.phone || '',
-          email: item.email || '',
-          status: item.status,
-          ownerId: item.owner_id,
-          createdAt: item.created_at,
-          updatedAt: item.updated_at,
-          logoUrl: item.logo_url,
-          description: item.description || '',
-          type: item.type,
-          country: item.country || '',
-          currency: item.currency,
-          active: item.active,
-          timezone: item.timezone || 'UTC'
-        }));
+        const mappedBusinesses: Business[] = data.map(mapBusinessFromDB);
         
         setBusinesses(mappedBusinesses);
       }
@@ -45,7 +50,7 @@ export const useBusinessManagement = () => {
       console.error('Error fetching businesses:', error);
       toast.error('Failed to load businesses');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   }, []);
 
@@ -119,7 +124,7 @@ export const useBusinessManagement = () => {
 
   return {
     businesses,
-    isLoading: loading,
+    isLoading,
     fetchBusinesses,
     handleAddBusiness: createBusiness,
     handleDeleteBusiness: deleteBusiness,
