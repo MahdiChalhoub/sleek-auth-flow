@@ -37,9 +37,12 @@ const Dashboard: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Safe access to user properties
+  const userName = user ? (user as User)?.fullName || user?.email?.split('@')[0] || 'User' : 'User';
+
   const userGreeting = user ? (
     <p className="text-muted-foreground">
-      Welcome back, <span className="font-medium">{user?.fullName || user?.email?.split('@')[0] || 'User'}</span>!
+      Welcome back, <span className="font-medium">{userName}</span>!
     </p>
   ) : null;
 

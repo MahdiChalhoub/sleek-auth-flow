@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { Business } from '@/models/interfaces/businessInterfaces';
 import { toast } from 'sonner';
@@ -14,17 +15,17 @@ export const useBusinessManagement = () => {
       name: business.name,
       address: business.address || '',
       phone: business.phone || '',
-      email: business.email,
+      email: business.email || '',
       status: business.status,
       ownerId: business.owner_id,
       createdAt: business.created_at,
       updatedAt: business.updated_at,
       logoUrl: business.logo_url,
-      description: business.description,
-      type: business.type,
-      country: business.country,
-      currency: business.currency,
-      active: business.active,
+      description: business.description || '',
+      type: business.type || '',
+      country: business.country || '',
+      currency: business.currency || '',
+      active: business.active !== undefined ? business.active : true,
       timezone: business.timezone || ''
     };
   };

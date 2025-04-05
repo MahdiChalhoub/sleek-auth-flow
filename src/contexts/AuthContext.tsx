@@ -35,7 +35,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userBusinesses, setUserBusinesses] = useState<Business[]>([]);
   const [role, setRole] = useState<Role | null>(null);
   const navigate = useNavigate();
-  // Add bypassAuth property with a default value of false
   const [bypassAuth] = useState<boolean>(false);
 
   useEffect(() => {
@@ -71,6 +70,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadSession();
   }, []);
 
+  const fetchUserBusinesses = async (userId: string) => {
+    try {
+      console.log('Fetching businesses for user:', userId);
+      
+      const { data: businessData, error: businessError } = await fromTable('businesses')
+        .select('*')
+        .eq('owner_id', userId);
+      
+      if (businessError) {
+        console.error('Error fetching user businesses:', businessError);
+        return;
+      }
+      
+      if (businessData && Array.isArray(businessData)) {
+        console.log('Found businesses:', businessData.length);
+        
+        const mappedBusinesses: Business[] = businessData.map((business: any) => ({
+          id: business.id,
+          name: business.name,
+          description: business.description || '',
+          email: business.email || '',
+          status: business.status || 'active',
+          ownerId: business.owner_id,
+          logoUrl: business.logo_url,
+          active: business.active !== undefined ? business.active : true,
+          createdAt: business.created_at,
+          updatedAt: business.updated_at,
+          address: business.address || '',
+          phone: business.phone || '',
+          country: business.country,
+          currency: business.currency,
+          type: business.type,
+          timezone: business.timezone || ''
+        }));
+        
+        setUserBusinesses(mappedBusinesses);
+        
+        if (!currentBusiness && mappedBusinesses.length > 0) {
+          const storedBusinessId = localStorage.getItem('currentBusinessId');
+          const businessToActivate = storedBusinessId
+            ? mappedBusinesses.find(b => b.id === storedBusinessId) 
+            : mappedBusinesses[0];
+            
+          if (businessToActivate) {
+            setCurrentBusiness(businessToActivate);
+            localStorage.setItem('currentBusinessId', businessToActivate.id);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error in fetchUserBusinesses:', error);
+    }
+  };
+
   const fetchUserDetails = async (supabaseUser: SupabaseUser) => {
     setIsLoading(true);
     try {
@@ -102,7 +155,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (newUserDetails) {
           console.log('Successfully created user profile:', newUserDetails);
-          // Type assertion to handle the userDetails safely
           const typedUserDetails = newUserDetails as any;
           setUser({
             id: typedUserDetails.id,
@@ -116,7 +168,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           });
         }
       } else {
-        // Type assertion to handle the userDetails safely
         const typedUserDetails = userDetails as any;
         setUser({
           id: typedUserDetails.id,
@@ -203,7 +254,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!password) {
         toast.success('Check your email for the sign-in link.');
       }
-      // The auth state change listener in useEffect will handle the session update and navigation
     } catch (error: any) {
       toast.error(error.message);
     } finally {
