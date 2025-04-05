@@ -1,5 +1,5 @@
 
-import { UserCircle, Users, ShieldCheck, UserCog } from "lucide-react";
+import { UserCircle, Users, ShieldCheck, UserCog, FileText } from "lucide-react";
 import { NavItem } from "./index";
 
 export const userItems: NavItem[] = [
@@ -25,6 +25,12 @@ export const userItems: NavItem[] = [
         title: "Agents de la Commission",
         path: "/staff-finance",
         icon: UserCog,
+        roles: ["admin", "manager"]
+      },
+      {
+        title: "Rôles Financiers",
+        path: "/staff-finance-roles",
+        icon: FileText,
         roles: ["admin", "manager"]
       }
     ]
