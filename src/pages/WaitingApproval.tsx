@@ -5,6 +5,7 @@ import { useAuth } from '@/providers/AuthProvider'; // Updated import path
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, AlertTriangle, CheckCircle } from 'lucide-react';
+import { User as AuthUser } from '@/types/auth';
 
 const WaitingApproval: React.FC = () => {
   const { user, logout } = useAuth();
@@ -15,23 +16,26 @@ const WaitingApproval: React.FC = () => {
     return null;
   }
   
+  // Cast the user to our application's User type which includes status
+  const typedUser = user as AuthUser;
+  
   let icon = <Clock className="h-12 w-12 text-muted-foreground" />;
   let title = "Waiting for Approval";
   let description = "Your account is pending approval from an administrator. You'll be notified when your account is approved.";
   let actionText = "Check Again";
   
   // Different messages based on status
-  if (user.status === 'denied') {
+  if (typedUser.status === 'denied') {
     icon = <AlertTriangle className="h-12 w-12 text-destructive" />;
     title = "Account Access Denied";
     description = "Your account access has been denied. Please contact an administrator for more information.";
     actionText = "Back to Login";
-  } else if (user.status === 'active') {
+  } else if (typedUser.status === 'active') {
     icon = <CheckCircle className="h-12 w-12 text-primary" />;
     title = "Account Approved";
     description = "Your account has been approved! You can now access the system.";
     actionText = "Go to Dashboard";
-  } else if (user.status === 'inactive') {
+  } else if (typedUser.status === 'inactive') {
     icon = <AlertTriangle className="h-12 w-12 text-destructive" />;
     title = "Account Inactive";
     description = "Your account is currently inactive. Please contact an administrator to reactivate your account.";
@@ -39,9 +43,9 @@ const WaitingApproval: React.FC = () => {
   }
   
   const handleAction = () => {
-    if (user.status === 'active') {
+    if (typedUser.status === 'active') {
       navigate('/home');
-    } else if (user.status === 'denied' || user.status === 'inactive') {
+    } else if (typedUser.status === 'denied' || typedUser.status === 'inactive') {
       logout();
     } else {
       // Refresh the page to check again
@@ -63,12 +67,12 @@ const WaitingApproval: React.FC = () => {
           <div className="space-y-4">
             <div className="rounded-lg bg-muted p-4">
               <h3 className="mb-2 font-medium">Account Information</h3>
-              <p className="text-sm text-muted-foreground">Email: {user.email}</p>
+              <p className="text-sm text-muted-foreground">Email: {typedUser.email}</p>
               <p className="text-sm text-muted-foreground">
-                Status: <span className="font-medium capitalize">{user.status}</span>
+                Status: <span className="font-medium capitalize">{typedUser.status}</span>
               </p>
               <p className="text-sm text-muted-foreground">
-                Registration Date: {new Date(user.createdAt || '').toLocaleDateString()}
+                Registration Date: {new Date(typedUser.createdAt || '').toLocaleDateString()}
               </p>
             </div>
           </div>
