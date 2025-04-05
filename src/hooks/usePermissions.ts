@@ -1,5 +1,13 @@
 
 import { UserPermission } from "@/types/auth";
+import { v4 as uuidv4 } from 'uuid';
+
+// Helper to create permission with UUID
+const createPermission = (name: string, enabled: boolean = true): UserPermission => ({
+  id: uuidv4(),
+  name,
+  enabled
+});
 
 /**
  * Returns a set of mock permissions based on the user role
@@ -10,28 +18,28 @@ export const getMockPermissions = (role: string): UserPermission[] => {
   
   // Common permissions for all roles
   const commonPermissions: UserPermission[] = [
-    { name: 'can_view_dashboard', enabled: true },
-    { name: 'can_view_profile', enabled: true },
+    createPermission('can_view_dashboard'),
+    createPermission('can_view_profile'),
   ];
   
   // Admin has all permissions
   if (role === 'admin') {
     return [
       ...commonPermissions,
-      { name: 'can_manage_users', enabled: true },
-      { name: 'can_manage_roles', enabled: true },
-      { name: 'can_view_transactions', enabled: true },
-      { name: 'can_edit_transactions', enabled: true },
-      { name: 'can_delete_transactions', enabled: true },
-      { name: 'can_manage_inventory', enabled: true },
-      { name: 'can_manage_settings', enabled: true },
-      { name: 'can_view_reports', enabled: true },
-      { name: 'can_export_data', enabled: true },
-      { name: 'can_manage_clients', enabled: true },
-      { name: 'can_manage_suppliers', enabled: true },
-      { name: 'can_manage_locations', enabled: true },
-      { name: 'can_view_financial_data', enabled: true },
-      { name: 'can_manage_pos', enabled: true },
+      createPermission('can_manage_users'),
+      createPermission('can_manage_roles'),
+      createPermission('can_view_transactions'),
+      createPermission('can_edit_transactions'),
+      createPermission('can_delete_transactions'),
+      createPermission('can_manage_inventory'),
+      createPermission('can_manage_settings'),
+      createPermission('can_view_reports'),
+      createPermission('can_export_data'),
+      createPermission('can_manage_clients'),
+      createPermission('can_manage_suppliers'),
+      createPermission('can_manage_locations'),
+      createPermission('can_view_financial_data'),
+      createPermission('can_manage_pos'),
     ];
   }
   
@@ -39,14 +47,14 @@ export const getMockPermissions = (role: string): UserPermission[] => {
   if (role === 'manager') {
     return [
       ...commonPermissions,
-      { name: 'can_view_transactions', enabled: true },
-      { name: 'can_edit_transactions', enabled: true },
-      { name: 'can_manage_inventory', enabled: true },
-      { name: 'can_view_reports', enabled: true },
-      { name: 'can_export_data', enabled: true },
-      { name: 'can_manage_clients', enabled: true },
-      { name: 'can_manage_suppliers', enabled: true },
-      { name: 'can_manage_pos', enabled: true },
+      createPermission('can_view_transactions'),
+      createPermission('can_edit_transactions'),
+      createPermission('can_manage_inventory'),
+      createPermission('can_view_reports'),
+      createPermission('can_export_data'),
+      createPermission('can_manage_clients'),
+      createPermission('can_manage_suppliers'),
+      createPermission('can_manage_pos'),
     ];
   }
   
@@ -54,10 +62,10 @@ export const getMockPermissions = (role: string): UserPermission[] => {
   if (role === 'cashier') {
     return [
       ...commonPermissions,
-      { name: 'can_view_transactions', enabled: true },
-      { name: 'can_edit_transactions', enabled: true },
-      { name: 'can_manage_pos', enabled: true },
-      { name: 'can_view_inventory', enabled: true },
+      createPermission('can_view_transactions'),
+      createPermission('can_edit_transactions'),
+      createPermission('can_manage_pos'),
+      createPermission('can_view_inventory'),
     ];
   }
   

@@ -27,15 +27,18 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user }) => {
       greeting = "Good afternoon";
     }
     
-    const userName = user?.fullName || user?.name || user?.email?.split('@')[0] || 'User';
+    const userName = user?.fullName || user?.name || user?.email?.split('@')?.[0] || 'User';
     
-    const roleSpecificMessage = {
+    const roleSpecificMessage: Record<string, string> = {
       admin: "Here's an overview of your business performance.",
       manager: "Here's how your team is performing today.",
       cashier: "Here's your performance summary."
     };
     
-    return `${greeting}, ${userName}! ${roleSpecificMessage[user?.role || "cashier"]}`;
+    const role = user?.role || "user";
+    const message = roleSpecificMessage[role] || "Welcome to your dashboard.";
+    
+    return `${greeting}, ${userName}! ${message}`;
   };
 
   // Get current date in nice format
@@ -60,9 +63,11 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user }) => {
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <div className="flex items-center gap-2 mt-1">
           <p className="text-muted-foreground">{getWelcomeMessage()}</p>
-          <Badge variant="outline" className="ml-2">
-            {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
-          </Badge>
+          {user?.role && (
+            <Badge variant="outline" className="ml-2">
+              {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+            </Badge>
+          )}
         </div>
         <p className="text-xs text-muted-foreground mt-1">{getCurrentDate()}</p>
       </div>

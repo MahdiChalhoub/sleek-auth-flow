@@ -16,11 +16,11 @@ import { useBusinessManagement } from '@/hooks/useBusinessManagement';
 export const BusinessManagementTab: React.FC = () => {
   const {
     businesses,
-    loading: isLoading, // Map loading to isLoading for consistency
-    createBusiness: handleAddBusiness,
-    deleteBusiness: handleDeleteBusiness,
-    toggleBusinessStatus: handleToggleBusinessStatus,
-    fetchBusinesses: refreshBusinesses
+    isLoading, // Using isLoading directly
+    handleAddBusiness, // Using the correct property names
+    handleDeleteBusiness,
+    handleToggleBusinessStatus,
+    refreshBusinesses
   } = useBusinessManagement();
   
   const [expandedBusinessId, setExpandedBusinessId] = useState<string | null>(null);

@@ -14,6 +14,8 @@ export interface AuthContextType {
   logout: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
   bypassAuth: boolean; // Added bypass flag
+  userBusinesses?: Business[]; // Added userBusinesses
+  switchBusiness?: (businessId: string) => Promise<void>; // Added switchBusiness
 }
 
 // Define UserRole type
@@ -38,7 +40,7 @@ export interface User {
 
 // Define UserPermission interface
 export interface UserPermission {
-  id: string;
+  id?: string; // Made optional to fix type errors
   name: string;
   description?: string;
   category?: string;

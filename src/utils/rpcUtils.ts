@@ -6,7 +6,13 @@ export type RpcFunctionName =
   | 'check_table_exists' 
   | 'get_all_product_batches' 
   | 'can_delete_user'
-  | 'get_product_batches';
+  | 'get_product_batches'
+  | 'insert_product_batch'
+  | 'update_product_batch'
+  | 'delete_product_batch'
+  | 'open_register'
+  | 'close_register'
+  | 'resolve_register_discrepancy';
 
 /**
  * Utility function to call Supabase RPC functions with parameters and proper typing

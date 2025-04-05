@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Business } from '@/models/interfaces/businessInterfaces';
@@ -21,23 +20,23 @@ export const useBusinessManagement = () => {
       }
 
       if (data) {
-        const mappedBusinesses: Business[] = data.map((business: any) => ({
-          id: business.id,
-          name: business.name,
-          address: business.address,
-          phone: business.phone,
-          email: business.email,
-          status: business.status,
-          ownerId: business.owner_id,
-          createdAt: business.created_at,
-          updatedAt: business.updated_at,
-          logoUrl: business.logo_url,
-          description: business.description,
-          type: business.type,
-          country: business.country,
-          currency: business.currency,
-          active: business.active,
-          timezone: business.timezone
+        const mappedBusinesses: Business[] = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          address: item.address || '',
+          phone: item.phone || '',
+          email: item.email || '',
+          status: item.status,
+          ownerId: item.owner_id,
+          createdAt: item.created_at,
+          updatedAt: item.updated_at,
+          logoUrl: item.logo_url,
+          description: item.description || '',
+          type: item.type,
+          country: item.country || '',
+          currency: item.currency,
+          active: item.active,
+          timezone: item.timezone || 'UTC'
         }));
         
         setBusinesses(mappedBusinesses);
@@ -51,7 +50,6 @@ export const useBusinessManagement = () => {
   }, []);
 
   const createBusiness = async (businessData: Partial<Business>): Promise<Business> => {
-    // Map the businessData from frontend model to database schema
     const dbBusinessData = {
       name: businessData.name,
       address: businessData.address,
@@ -76,7 +74,6 @@ export const useBusinessManagement = () => {
 
     if (error) throw error;
     
-    // Map the response back to our frontend model
     const newBusiness: Business = {
       id: data.id,
       name: data.name,
@@ -96,7 +93,7 @@ export const useBusinessManagement = () => {
       timezone: data.timezone
     };
 
-    await fetchBusinesses(); // Refresh the list
+    await fetchBusinesses();
     return newBusiness;
   };
 
@@ -107,7 +104,7 @@ export const useBusinessManagement = () => {
       .eq('id', id);
 
     if (error) throw error;
-    await fetchBusinesses(); // Refresh the list
+    await fetchBusinesses();
   };
 
   const toggleBusinessStatus = async (id: string, active: boolean): Promise<void> => {
@@ -117,7 +114,7 @@ export const useBusinessManagement = () => {
       .eq('id', id);
 
     if (error) throw error;
-    await fetchBusinesses(); // Refresh the list
+    await fetchBusinesses();
   };
 
   return {

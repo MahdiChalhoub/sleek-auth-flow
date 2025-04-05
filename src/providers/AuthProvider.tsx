@@ -3,6 +3,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { User, Session } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+import { Business } from '@/models/interfaces/businessInterfaces';
+import { UserStatus } from '@/types/auth';
+import { usePermissions } from '@/hooks/usePermissions';
 
 // Create a type for the context value
 interface AuthContextType {
@@ -10,9 +13,12 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   bypassAuth: boolean;
+  currentBusiness: Business | null;
+  userBusinesses: Business[];
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   hasPermission: (permissionName: string) => boolean;
+  switchBusiness: (businessId: string) => Promise<void>;
 }
 
 // Create the context with a default value
@@ -21,10 +27,28 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   isLoading: true,
   bypassAuth: false,
+  currentBusiness: null,
+  userBusinesses: [],
   login: async () => false,
   logout: async () => {},
-  hasPermission: () => false
+  hasPermission: () => false,
+  switchBusiness: async () => {}
 });
+
+// Mock business for bypass mode
+const mockBusinesses: Business[] = [
+  {
+    id: 'mock-business-id',
+    name: 'Mock Business',
+    status: 'active',
+    ownerId: 'bypass-user-id',
+    description: 'A mock business for development',
+    email: 'mock@example.com',
+    active: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
 
 // Provider component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -32,7 +56,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const bypassAuth = true; // Enable bypass mode for debugging
-
+  const [currentBusiness, setCurrentBusiness] = useState<Business | null>(mockBusinesses[0]);
+  const [userBusinesses, setUserBusinesses] = useState<Business[]>(mockBusinesses);
+  
   useEffect(() => {
     console.log('🔐 AuthProvider initializing...');
     
@@ -91,6 +117,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Mock switchBusiness for bypass mode
+  const switchBusiness = async (businessId: string) => {
+    if (bypassAuth) {
+      const business = mockBusinesses.find(b => b.id === businessId);
+      if (business) {
+        setCurrentBusiness(business);
+        console.log('🔐 Switched to business:', business.name);
+        return;
+      }
+    }
+    
+    // Actual implementation would go here
+    console.log('🔐 Switching to business:', businessId);
+  };
+
   // Logout method
   const logout = async () => {
     try {
@@ -101,12 +142,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Simplified permission check for bypass mode
-  const hasPermission = (permissionName: string) => {
-    if (bypassAuth) return true;
-    // Implement actual permission logic here
-    return false;
-  };
+  // Get permissions based on user role
+  const { hasPermission } = usePermissions(user?.role || 'user');
 
   // Provide mock user and session in bypass mode
   const contextValue: AuthContextType = bypassAuth 
@@ -114,23 +151,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user: {
           id: 'bypass-user-id',
           email: 'admin@example.com',
-          role: 'admin'
-        } as User,
+          role: 'admin',
+          fullName: 'Admin User',
+          name: 'Admin User',
+          avatarUrl: null,
+          status: 'active' as UserStatus,
+          isGlobalAdmin: true
+        } as unknown as User,
         session: {} as Session,
         isLoading: false,
         bypassAuth,
+        currentBusiness,
+        userBusinesses,
         login,
         logout,
-        hasPermission
+        hasPermission,
+        switchBusiness
       }
     : { 
         user, 
         session, 
         isLoading, 
         bypassAuth, 
+        currentBusiness,
+        userBusinesses,
         login, 
         logout, 
-        hasPermission 
+        hasPermission,
+        switchBusiness
       };
 
   return (

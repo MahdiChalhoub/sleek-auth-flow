@@ -46,7 +46,7 @@ const UserMenu: React.FC<UserMenuProps> = ({
   }, [isOpen, onOpenChange]);
   
   // Get user display name safely
-  const userDisplayName = user?.fullName || user?.name || user?.email?.split('@')[0] || 'User';
+  const userDisplayName = user?.fullName || user?.name || (user?.email ? user.email.split('@')[0] : 'User');
   
   // Check if user is admin (compatible with both properties)
   const isAdmin = user?.isGlobalAdmin || user?.role === 'admin';
@@ -62,13 +62,13 @@ const UserMenu: React.FC<UserMenuProps> = ({
           aria-expanded={isOpen}
         >
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.avatarUrl} alt={userDisplayName} />
+            <AvatarImage src={user?.avatarUrl || user?.avatar_url} alt={userDisplayName} />
             <AvatarFallback>{userDisplayName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="hidden md:block text-left">
             <div className="text-sm font-medium">{userDisplayName}</div>
             <div className="flex items-center gap-1">
-              <Badge variant="outline" className="text-[10px]">{user?.role}</Badge>
+              <Badge variant="outline" className="text-[10px]">{user?.role || 'user'}</Badge>
               {currentBusiness && (
                 <Badge variant="secondary" className="text-[10px]">
                   {currentBusiness.name}
