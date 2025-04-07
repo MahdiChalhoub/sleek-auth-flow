@@ -1,26 +1,23 @@
 
 import React from "react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Edit, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Role } from "@/models/role";
-import { cn } from "@/lib/utils";
+import { Progress } from "@/components/ui/progress";
 
 interface RoleCardProps {
   role: Role;
   onEdit: (roleId: string) => void;
   onView: (roleId: string) => void;
   onDelete: (roleId: string) => void;
-  active?: boolean;
 }
 
 const RoleCard: React.FC<RoleCardProps> = ({ 
   role, 
   onEdit, 
   onView, 
-  onDelete, 
-  active = false 
+  onDelete 
 }) => {
   // Count enabled permissions
   const enabledPermissions = role.permissions.filter(p => p.enabled).length;
@@ -28,19 +25,16 @@ const RoleCard: React.FC<RoleCardProps> = ({
   const permissionPercentage = Math.round((enabledPermissions / totalPermissions) * 100);
 
   return (
-    <Card className={cn(
-      "transition-all duration-200 hover:shadow-md", 
-      active ? "ring-2 ring-primary ring-offset-2" : ""
-    )}>
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
+    <Card className="hover:shadow-md transition-shadow duration-200">
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start mb-2">
           <div>
-            <CardTitle>{role.name}</CardTitle>
-            <CardDescription>{role.description}</CardDescription>
+            <h3 className="font-bold text-xl">{role.name}</h3>
+            <p className="text-muted-foreground text-sm">{role.description}</p>
           </div>
-          <div className="flex space-x-1">
+          <div className="flex gap-1">
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="icon" 
               onClick={() => onEdit(role.id)}
               className="h-8 w-8"
@@ -49,39 +43,39 @@ const RoleCard: React.FC<RoleCardProps> = ({
               <span className="sr-only">Edit Role</span>
             </Button>
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="icon" 
               onClick={() => onDelete(role.id)}
-              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+              className="h-8 w-8 text-destructive"
             >
               <Trash2 className="h-4 w-4" />
               <span className="sr-only">Delete Role</span>
             </Button>
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col space-y-2">
-          <div className="flex items-center justify-between">
-            <Badge variant="outline" className="px-2 py-0.5">
-              {enabledPermissions} of {totalPermissions} permissions ({permissionPercentage}%)
-            </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs font-normal px-2 h-7"
-              onClick={() => onView(role.id)}
-            >
-              View Details
-              <ChevronRight className="ml-1 h-3 w-3" />
-            </Button>
+        
+        <div className="mt-4">
+          <div className="flex justify-between items-center mb-1 text-sm">
+            <span className="font-medium">
+              {enabledPermissions} of {totalPermissions} permissions
+            </span>
+            <span className="text-muted-foreground">
+              ({permissionPercentage}%)
+            </span>
           </div>
           
-          <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
-            <div 
-              className="bg-primary h-full rounded-full" 
-              style={{ width: `${permissionPercentage}%` }}
-            />
+          <Progress value={permissionPercentage} className="h-2 mb-4" />
+
+          <div className="flex justify-end mt-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => onView(role.id)}
+              className="text-xs gap-1"
+            >
+              View Details
+              <ChevronRight className="h-3 w-3" />
+            </Button>
           </div>
         </div>
       </CardContent>

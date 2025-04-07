@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
@@ -40,26 +39,7 @@ import Transactions from './pages/Transactions';
 import TransactionsPage from './pages/TransactionsPage';
 import AuditTrail from './pages/AuditTrail';
 import UserActivity from './pages/UserActivity';
-import RoleManagement from './pages/RoleManagement';
-import Users from './pages/Users';
-import RegisterSessions from './pages/RegisterSessions';
-import Loyalty from './pages/Loyalty';
-import StaffFinance from './pages/StaffFinance';
-import ShiftReports from './pages/ShiftReports';
-import Notifications from './pages/Notifications';
-import BackupRestore from './pages/BackupRestore';
-import Exports from './pages/Exports';
-import FinanceDashboard from './pages/FinanceDashboard';
-import GeneralLedger from './pages/accounting/GeneralLedger';
-import JournalEntries from './pages/accounting/JournalEntries';
-import AccountsReceivable from './pages/accounting/AccountsReceivable';
-import AccountsPayable from './pages/accounting/AccountsPayable';
-import ProfitLoss from './pages/accounting/ProfitLoss';
-import PackagingManagement from './pages/PackagingManagement';
-import BarcodePrinting from './pages/BarcodePrinting';
-import ExpirationManagement from './pages/ExpirationManagement';
-import RecurringExpenses from './pages/RecurringExpenses';
-import TransactionPermissions from './pages/TransactionPermissions';
+import Roles from './pages/Roles';
 import ClientEditForm from './pages/ClientEditForm';
 import FinancialYearManagement from './pages/FinancialYearManagement';
 import BusinessSelection from './pages/BusinessSelection';
@@ -111,8 +91,7 @@ function App() {
                 <Route path="/transactions-page" element={<TransactionsPage />} />
                 <Route path={ROUTES.AUDIT_TRAIL} element={<AuditTrail />} />
                 <Route path={ROUTES.USER_ACTIVITY} element={<UserActivity />} />
-                <Route path={ROUTES.ROLES} element={<RoleManagement />} />
-                <Route path="/role-management" element={<RoleManagement />} />
+                <Route path="/roles" element={<Roles />} />
                 <Route path={ROUTES.USERS} element={<Users />} />
                 <Route path={ROUTES.REGISTER_SESSIONS} element={<RegisterSessions />} />
                 <Route path={ROUTES.LOYALTY} element={<Loyalty />} />
