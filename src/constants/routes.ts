@@ -55,6 +55,7 @@ export const ROUTES = {
   
   // Admin
   ROLES: '/role-management',
+  ROLES_LIST: '/roles',
   USERS: '/users',
   SETTINGS: '/settings',
   NOTIFICATIONS: '/notifications',

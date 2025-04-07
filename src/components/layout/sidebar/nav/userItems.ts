@@ -22,6 +22,12 @@ export const userItems: NavItem[] = [
         roles: ["admin"]
       },
       {
+        title: "Gestion des rôles",
+        path: "/role-management",
+        icon: ShieldCheck,
+        roles: ["admin"]
+      },
+      {
         title: "Agents de la Commission",
         path: "/staff-finance",
         icon: UserCog,

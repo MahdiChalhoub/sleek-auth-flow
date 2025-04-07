@@ -5,17 +5,18 @@ import { mockRoles } from "@/models/role";
 import RoleCard from "@/components/RoleCard";
 import { Button } from "@/components/ui/button";
 import { Plus, Users } from "lucide-react";
+import { ROUTES } from "@/constants/routes";
 
 const Roles: React.FC = () => {
   const [roles, setRoles] = useState(mockRoles);
   const navigate = useNavigate();
 
   const handleViewRole = (roleId: string) => {
-    navigate(`/role-management?role=${roleId}`);
+    navigate(`${ROUTES.ROLES}?role=${roleId}`);
   };
 
   const handleEditRole = (roleId: string) => {
-    navigate(`/role-management?role=${roleId}&edit=true`);
+    navigate(`${ROUTES.ROLES}?role=${roleId}&edit=true`);
   };
 
   const handleDeleteRole = (roleId: string) => {
@@ -33,7 +34,7 @@ const Roles: React.FC = () => {
           <h1 className="text-2xl font-semibold">User Roles</h1>
         </div>
         
-        <Button onClick={() => navigate("/role-management")}>
+        <Button onClick={() => navigate(ROUTES.ROLES)}>
           <Plus className="h-4 w-4 mr-2" />
           Create New Role
         </Button>

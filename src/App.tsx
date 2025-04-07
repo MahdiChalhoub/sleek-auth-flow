@@ -74,7 +74,6 @@ function App() {
               
               <Route path="/" element={<AppLayout />}>
                 <Route path={ROUTES.HOME} element={<Dashboard />} />
-                {/* <Route path={ROUTES.DASHBOARD} element={<FinanceDashboard />} /> */}
                 <Route path={ROUTES.INVENTORY} element={<Inventory />} />
                 <Route path={ROUTES.PURCHASE_ORDERS} element={<PurchaseOrders />} />
                 <Route path={ROUTES.PURCHASE_REQUESTS} element={<PurchaseRequestManagement />} />

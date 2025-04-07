@@ -83,6 +83,7 @@ const getComponentNameFromPath = (path: string): string => {
     case 'purchase-requests': return 'PurchaseRequestManagement';
     case 'purchase-analytics': return 'PurchaseAnalytics';
     case 'role-management': return 'RoleManagement';
+    case 'roles': return 'Roles';
     default:
       // Convert kebab-case to PascalCase
       return pathWithoutSlash
