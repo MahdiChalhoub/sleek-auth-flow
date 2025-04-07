@@ -8,16 +8,18 @@ import { Progress } from "@/components/ui/progress";
 
 interface RoleCardProps {
   role: Role;
-  onEdit: (roleId: string) => void;
+  onEdit?: (roleId: string) => void;
   onView: (roleId: string) => void;
-  onDelete: (roleId: string) => void;
+  onDelete?: (roleId: string) => void;
+  active?: boolean;
 }
 
 const RoleCard: React.FC<RoleCardProps> = ({ 
   role, 
   onEdit, 
   onView, 
-  onDelete 
+  onDelete,
+  active = false
 }) => {
   // Count enabled permissions
   const enabledPermissions = role.permissions.filter(p => p.enabled).length;
@@ -25,7 +27,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
   const permissionPercentage = Math.round((enabledPermissions / totalPermissions) * 100);
 
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200">
+    <Card className={`hover:shadow-md transition-shadow duration-200 ${active ? 'border-primary' : ''}`}>
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-2">
           <div>
@@ -33,24 +35,28 @@ const RoleCard: React.FC<RoleCardProps> = ({
             <p className="text-muted-foreground text-sm">{role.description}</p>
           </div>
           <div className="flex gap-1">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => onEdit(role.id)}
-              className="h-8 w-8"
-            >
-              <Edit className="h-4 w-4" />
-              <span className="sr-only">Edit Role</span>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => onDelete(role.id)}
-              className="h-8 w-8 text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Delete Role</span>
-            </Button>
+            {onEdit && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => onEdit(role.id)}
+                className="h-8 w-8"
+              >
+                <Edit className="h-4 w-4" />
+                <span className="sr-only">Edit Role</span>
+              </Button>
+            )}
+            {onDelete && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => onDelete(role.id)}
+                className="h-8 w-8 text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="sr-only">Delete Role</span>
+              </Button>
+            )}
           </div>
         </div>
         
