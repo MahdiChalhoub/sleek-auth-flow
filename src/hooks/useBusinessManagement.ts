@@ -56,10 +56,15 @@ export const useBusinessManagement = () => {
   }, []);
 
   const createBusiness = async (businessData: Partial<Business>): Promise<Business> => {
+    // Convert phone to a number if present, or null if it can't be converted
+    const phoneValue = businessData.phone ? 
+      (isNaN(Number(businessData.phone)) ? null : Number(businessData.phone)) : 
+      null;
+    
     const dbBusinessData = {
       name: businessData.name,
       address: businessData.address,
-      phone: businessData.phone,
+      phone: phoneValue, // Now correctly typed as number or null
       email: businessData.email,
       status: businessData.status || 'active',
       owner_id: businessData.ownerId,
