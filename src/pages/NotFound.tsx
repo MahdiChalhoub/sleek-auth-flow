@@ -39,11 +39,13 @@ const NotFound: React.FC = () => {
             <ArrowLeft className="mr-2 h-4 w-4" />
             Retour à la page précédente
           </Button>
-          <Link to={ROUTES.ROLES} className="w-full">
-            <Button className="w-full" variant="outline">
-              Accéder à la gestion des rôles
-            </Button>
-          </Link>
+          {location.pathname === '/roles' && (
+            <Link to="/role-management" className="w-full">
+              <Button className="w-full" variant="outline">
+                Accéder à la gestion des rôles
+              </Button>
+            </Link>
+          )}
         </CardFooter>
       </Card>
     </div>

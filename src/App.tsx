@@ -34,6 +34,7 @@ import Units from './pages/Units';
 import Contacts from './pages/Contacts';
 import ClientsList from './pages/ClientsList';
 import ClientProfile from './pages/ClientProfile'; 
+import ClientEditForm from './pages/ClientEditForm';
 import Expenses from './pages/Expenses';
 import Returns from './pages/Returns';
 import Transactions from './pages/Transactions';
@@ -41,7 +42,7 @@ import TransactionsPage from './pages/TransactionsPage';
 import AuditTrail from './pages/AuditTrail';
 import UserActivity from './pages/UserActivity';
 import Roles from './pages/Roles';
-import ClientEditForm from './pages/ClientEditForm';
+import RoleManagement from './pages/RoleManagement';
 import FinancialYearManagement from './pages/FinancialYearManagement';
 import BusinessSelection from './pages/BusinessSelection';
 import WaitingApproval from './pages/WaitingApproval';
@@ -98,26 +99,13 @@ function App() {
                 <Route path={ROUTES.AUDIT_TRAIL} element={<AuditTrail />} />
                 <Route path={ROUTES.USER_ACTIVITY} element={<UserActivity />} />
                 <Route path="/roles" element={<Roles />} />
-                {/* <Route path={ROUTES.USERS} element={<Users />} /> */}
-                {/* <Route path={ROUTES.REGISTER_SESSIONS} element={<RegisterSessions />} /> */}
-                {/* <Route path={ROUTES.LOYALTY} element={<Loyalty />} /> */}
-                {/* <Route path={ROUTES.STAFF_FINANCE} element={<StaffFinance />} /> */}
+                <Route path={ROUTES.ROLES} element={<RoleManagement />} />
                 <Route path={ROUTES.SHIFT_REPORTS} element={<ShiftReports />} />
-                {/* <Route path={ROUTES.NOTIFICATIONS} element={<Notifications />} /> */}
                 <Route path={ROUTES.BACKUP_RESTORE} element={<BackupRestore />} />
                 <Route path={ROUTES.EXPORTS} element={<Exports />} />
                 <Route path={ROUTES.SETTINGS} element={<Settings />} />
-                {/* <Route path={ROUTES.GENERAL_LEDGER} element={<GeneralLedger />} /> */}
-                {/* <Route path={ROUTES.LEDGER} element={<GeneralLedger />} /> */}
-                {/* <Route path="/journal-entries" element={<JournalEntries />} /> */}
-                {/* <Route path={ROUTES.ACCOUNTS_RECEIVABLE} element={<AccountsReceivable />} /> */}
-                {/* <Route path={ROUTES.ACCOUNTS_PAYABLE} element={<AccountsPayable />} /> */}
-                {/* <Route path={ROUTES.PROFIT_LOSS} element={<ProfitLoss />} /> */}
-                {/* <Route path={ROUTES.PACKAGING_MANAGEMENT} element={<PackagingManagement />} /> */}
                 <Route path={ROUTES.BARCODE_PRINTING} element={<BarcodePrinting />} />
                 <Route path={ROUTES.EXPIRATION_MANAGEMENT} element={<ExpirationManagement />} />
-                {/* <Route path={ROUTES.TRANSACTION_PERMISSIONS} element={<TransactionPermissions />} /> */}
-                {/* <Route path={ROUTES.RECURRING_EXPENSES} element={<RecurringExpenses />} /> */}
                 
                 <Route path="*" element={<NotFound />} />
               </Route>
