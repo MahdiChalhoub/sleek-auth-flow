@@ -15,6 +15,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ROUTES } from "@/constants/routes";
+import { User as UserType } from "@/models/interfaces/userInterfaces";
 
 interface NavItem {
   label: string;
@@ -59,15 +60,29 @@ const MobileSidebar: React.FC = () => {
     ));
   };
   
+  // Get display name from name, fullName, or email
+  const getDisplayName = () => {
+    if (user?.name) return user.name;
+    if (user?.email) return user.email.split('@')[0];
+    return 'User';
+  };
+  
+  // Get avatar initial from name or email
+  const getAvatarInitial = () => {
+    if (user?.name) return user.name.charAt(0).toUpperCase();
+    if (user?.email) return user.email.charAt(0).toUpperCase();
+    return 'U';
+  };
+  
   return (
     <div className="flex flex-col h-full bg-background">
       <div className="flex items-center gap-3 p-4">
         <Avatar>
-          <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
-          {user?.avatarUrl && <AvatarImage src={user.avatarUrl} />}
+          <AvatarFallback>{getAvatarInitial()}</AvatarFallback>
+          {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
         </Avatar>
         <div className="flex flex-col">
-          <span className="font-medium">{user?.fullName || 'User'}</span>
+          <span className="font-medium">{getDisplayName()}</span>
           <span className="text-sm text-muted-foreground">{user?.email}</span>
         </div>
       </div>

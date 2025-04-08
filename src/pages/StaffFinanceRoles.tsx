@@ -121,8 +121,8 @@ const StaffFinanceRoles: React.FC = () => {
                       key={role.id}
                       role={role}
                       onView={handleViewRole}
-                      onEdit={canManageRoles ? handleEditRole : undefined}
-                      onDelete={canManageRoles ? handleDeleteRole : undefined}
+                      onEdit={canManageRoles ? handleEditRole : handleDeleteRole}
+                      onDelete={canManageRoles ? handleDeleteRole : () => {}}
                       active={role.id === activeRoleId}
                     />
                   ))

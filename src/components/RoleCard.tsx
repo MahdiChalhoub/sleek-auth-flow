@@ -12,6 +12,7 @@ interface RoleCardProps {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   compact?: boolean;
+  active?: boolean; // Add the active property
 }
 
 const RoleCard: React.FC<RoleCardProps> = ({ 
@@ -19,7 +20,8 @@ const RoleCard: React.FC<RoleCardProps> = ({
   onView, 
   onEdit, 
   onDelete,
-  compact = false
+  compact = false,
+  active = false
 }) => {
   if (compact) {
     return (
@@ -64,12 +66,12 @@ const RoleCard: React.FC<RoleCardProps> = ({
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card className={`overflow-hidden ${active ? 'ring-2 ring-primary' : ''}`}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg">{role.name}</CardTitle>
-          <Badge variant={role.isDefault ? "default" : "outline"}>
-            {role.isDefault ? "Default" : "Custom"}
+          <Badge variant={role.name.toLowerCase() === 'admin' ? "default" : "outline"}>
+            {role.name.toLowerCase() === 'admin' ? "Default" : "Custom"}
           </Badge>
         </div>
       </CardHeader>

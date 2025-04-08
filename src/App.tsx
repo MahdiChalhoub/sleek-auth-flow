@@ -1,4 +1,3 @@
-
 import React from 'react';
 import './App.css';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
@@ -55,7 +54,7 @@ import BarcodePrinting from './pages/BarcodePrinting';
 import ExpirationManagement from './pages/ExpirationManagement';
 
 // Layout Resolver component to decide which layout to use based on device
-const LayoutResolver: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const LayoutResolver: React.FC = () => {
   const isMobile = useIsMobile();
   return isMobile ? <MobileLayout /> : <AppLayout />;
 };
