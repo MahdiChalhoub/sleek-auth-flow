@@ -37,7 +37,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
 
   if (compact) {
     return (
-      <Card className="overflow-hidden hover:bg-accent/5 transition-colors">
+      <Card className="overflow-hidden hover:bg-accent/5 transition-colors hover:shadow-sm">
         <div className="flex items-center justify-between p-3">
           <div className="flex flex-col">
             <h3 className="font-medium">{role.name}</h3>
@@ -78,7 +78,10 @@ const RoleCard: React.FC<RoleCardProps> = ({
   }
 
   return (
-    <Card className={`overflow-hidden h-full flex flex-col ${active ? 'ring-2 ring-primary' : ''} hover:shadow-md transition-shadow`}>
+    <Card 
+      className={`overflow-hidden h-full flex flex-col ${active ? 'ring-2 ring-primary' : ''} 
+        hover:shadow-md hover:border-primary/30 transition-all duration-200`}
+    >
       <div className="p-4 md:p-5 space-y-3 flex-grow">
         {/* Role name and actions */}
         <div className="flex items-start justify-between">
@@ -133,7 +136,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
         {/* View details button */}
         <Button 
           variant="ghost" 
-          className="w-full flex items-center justify-between text-sm p-2 h-auto mt-2"
+          className="w-full flex items-center justify-between text-sm p-2 h-auto mt-2 hover:bg-primary/10"
           onClick={() => onView(role.id)}
         >
           <span>View Details</span>

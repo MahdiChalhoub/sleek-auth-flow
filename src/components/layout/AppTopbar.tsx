@@ -10,7 +10,10 @@ import {
   CircleUser,
   ChevronDown,
   Store,
-  ShoppingCart
+  ShoppingCart,
+  Home,
+  Package,
+  Users
 } from "lucide-react";
 import { useAuth } from "@/providers/AuthProvider";
 import { useTheme } from "@/components/theme-provider";
@@ -26,30 +29,78 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useScreenSize } from "@/hooks/use-mobile";
+import { ROUTES } from "@/constants/routes";
+import { NavigationMenu, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
 
 const AppTopbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { toggleSidebar } = useSidebar();
   const { setTheme } = useTheme();
-  const { isMobile } = useScreenSize();
+  const { isMobile, isTablet, isLaptop } = useScreenSize();
   const navigate = useNavigate();
 
   const typedUser = user as User;
   console.log('🔝 AppTopbar rendering with user:', !!user);
 
+  const showTopNav = isLaptop || (!isMobile && !isTablet);
+
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+    <header className="sticky top-0 z-20 flex h-16 w-full items-center gap-2 border-b bg-background px-2 md:px-4 lg:px-6">
       <Button
         variant="outline"
         size="icon"
-        className="mr-2"
+        className="mr-2 flex-shrink-0"
         onClick={toggleSidebar}
       >
         <Menu className="h-5 w-5" />
         <span className="sr-only">Toggle Menu</span>
       </Button>
 
-      <div className="hidden md:flex md:flex-1">
+      {showTopNav && (
+        <NavigationMenu className="hidden md:flex">
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuLink 
+                className={navigationMenuTriggerStyle()} 
+                onClick={() => navigate(ROUTES.HOME)}
+              >
+                <Home className="mr-2 h-4 w-4" />
+                Dashboard
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink 
+                className={navigationMenuTriggerStyle()} 
+                onClick={() => navigate(ROUTES.INVENTORY)}
+              >
+                <Package className="mr-2 h-4 w-4" />
+                Inventory
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink 
+                className={navigationMenuTriggerStyle()} 
+                onClick={() => navigate(ROUTES.POS_SALES)}
+              >
+                <ShoppingCart className="mr-2 h-4 w-4" />
+                Sales
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink 
+                className={navigationMenuTriggerStyle()} 
+                onClick={() => navigate(ROUTES.ROLES)}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                Roles
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      )}
+
+      <div className={cn("flex-1", showTopNav ? "md:mx-4 lg:mx-6" : "")}>
         <form className="w-full max-w-lg">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -62,12 +113,12 @@ const AppTopbar: React.FC = () => {
         </form>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 md:gap-2">
         <Button
           variant="outline"
           size="icon"
-          className="mr-1"
-          onClick={() => navigate("/pos-sales")}
+          className="mr-1 hidden md:flex"
+          onClick={() => navigate(ROUTES.POS_SALES)}
         >
           <ShoppingCart className="h-5 w-5" />
           <span className="sr-only">Open POS</span>
@@ -77,7 +128,7 @@ const AppTopbar: React.FC = () => {
           variant="outline"
           size="icon"
           onClick={() => setTheme("light")}
-          className="mr-1"
+          className="mr-1 hidden sm:flex"
         >
           <Sun className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">Light Mode</span>
@@ -87,7 +138,7 @@ const AppTopbar: React.FC = () => {
           variant="outline"
           size="icon"
           onClick={() => setTheme("dark")}
-          className="mr-1"
+          className="mr-1 hidden sm:flex"
         >
           <Moon className="h-[1.2rem] w-[1.2rem]" />
           <span className="sr-only">Dark Mode</span>
@@ -109,7 +160,7 @@ const AppTopbar: React.FC = () => {
               <CircleUser className="h-5 w-5" />
               {!isMobile && (
                 <>
-                  <span className="line-clamp-1 text-sm font-medium">
+                  <span className="line-clamp-1 text-sm font-medium max-w-[100px] hidden md:inline">
                     {typedUser?.fullName || typedUser?.email?.split("@")[0] || "User"}
                   </span>
                   <ChevronDown className="h-4 w-4 opacity-50" />
