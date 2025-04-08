@@ -33,13 +33,13 @@ export function useResponsiveLayout(): ResponsiveConfig {
       setConfig({
         containerClass: 'container mx-auto p-4',
         headerSize: 'md',
-        cardLayout: 'list',
+        cardLayout: 'grid', // Changed from 'list' to 'grid' for better tablet experience
         showActions: true,
-        showFilters: false
+        showFilters: true
       });
     } else if (isLaptop) {
       setConfig({
-        containerClass: 'container mx-auto p-5',
+        containerClass: 'container mx-auto p-5 max-w-6xl',
         headerSize: 'lg',
         cardLayout: 'grid',
         showActions: true,
@@ -48,7 +48,7 @@ export function useResponsiveLayout(): ResponsiveConfig {
     } else {
       // Desktop
       setConfig({
-        containerClass: 'container mx-auto p-6',
+        containerClass: 'container mx-auto p-6 max-w-7xl',
         headerSize: 'lg',
         cardLayout: 'grid',
         showActions: true,
