@@ -62,14 +62,14 @@ const MobileSidebar: React.FC = () => {
   
   // Get display name from name, fullName, or email
   const getDisplayName = () => {
-    if (user?.fullName) return user.fullName;
+    if (user?.name) return user.name;
     if (user?.email) return user.email.split('@')[0];
     return 'User';
   };
   
   // Get avatar initial from name or email
   const getAvatarInitial = () => {
-    if (user?.fullName) return user.fullName.charAt(0).toUpperCase();
+    if (user?.name) return user.name.charAt(0).toUpperCase();
     if (user?.email) return user.email.charAt(0).toUpperCase();
     return 'U';
   };
@@ -79,7 +79,7 @@ const MobileSidebar: React.FC = () => {
       <div className="flex items-center gap-3 p-4">
         <Avatar>
           <AvatarFallback>{getAvatarInitial()}</AvatarFallback>
-          {user?.avatarUrl && <AvatarImage src={user.avatarUrl} />}
+          {user?.avatar_url && <AvatarImage src={user.avatar_url} />}
         </Avatar>
         <div className="flex flex-col">
           <span className="font-medium">{getDisplayName()}</span>
@@ -121,3 +121,4 @@ const MobileSidebar: React.FC = () => {
 };
 
 export default MobileSidebar;
+
