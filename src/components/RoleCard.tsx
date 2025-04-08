@@ -3,7 +3,7 @@ import React from "react";
 import { Role } from "@/models/role";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface RoleCardProps {
@@ -12,7 +12,7 @@ interface RoleCardProps {
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
   compact?: boolean;
-  active?: boolean; // Add the active property
+  active?: boolean;
 }
 
 const RoleCard: React.FC<RoleCardProps> = ({ 
@@ -69,7 +69,10 @@ const RoleCard: React.FC<RoleCardProps> = ({
     <Card className={`overflow-hidden ${active ? 'ring-2 ring-primary' : ''}`}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{role.name}</CardTitle>
+          <div className="flex items-center gap-2">
+            <UserCheck className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg">{role.name}</CardTitle>
+          </div>
           <Badge variant={role.name.toLowerCase() === 'admin' ? "default" : "outline"}>
             {role.name.toLowerCase() === 'admin' ? "Default" : "Custom"}
           </Badge>
@@ -80,11 +83,11 @@ const RoleCard: React.FC<RoleCardProps> = ({
         <p className="text-sm text-muted-foreground">
           {role.description || "No description provided"}
         </p>
-        <div className="mt-2">
+        <div className="mt-2 flex items-center gap-1">
           <span className="text-sm font-medium">
             Permissions:
           </span>
-          <span className="text-sm text-muted-foreground ml-1">
+          <span className="text-sm text-muted-foreground">
             {role.permissions?.length || 0}
           </span>
         </div>
