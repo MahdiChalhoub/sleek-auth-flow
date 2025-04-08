@@ -12,7 +12,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 const TabNavigation = () => {
-  const { tabs, activeTabId, closeTab, setActiveTab, addTab } = useTabs();
+  const { tabs, activeTabId, closeTab, activateTab, openTab } = useTabs();
   const [scrollPosition, setScrollPosition] = useState(0);
   const scrollAreaRef = React.useRef<HTMLDivElement>(null);
 
@@ -67,7 +67,7 @@ const TabNavigation = () => {
                 : 'border-b-transparent hover:bg-accent/50 text-muted-foreground'
               }
             `}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => activateTab(tab.id)}
           >
             <div className="truncate flex-1 text-left">{tab.title}</div>
             <Button
@@ -90,7 +90,7 @@ const TabNavigation = () => {
               variant="ghost"
               size="icon"
               className="h-full px-2 border-r"
-              onClick={() => addTab({ 
+              onClick={() => openTab({ 
                 title: 'New Tab', 
                 path: '/dashboard',
                 icon: 'Plus'
