@@ -18,7 +18,7 @@ const TabsLayout: React.FC = () => {
   const location = useLocation();
   
   return (
-    <>
+    <div className="flex flex-col flex-1 h-full">
       <TabNavigation />
       {activeTabId ? (
         // When we have active tabs, render the TabContent component
@@ -35,7 +35,7 @@ const TabsLayout: React.FC = () => {
           </Suspense>
         </main>
       )}
-    </>
+    </div>
   );
 };
 
@@ -98,9 +98,9 @@ const AppLayout: React.FC = () => {
   return (
     <TabsProvider>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
+        <div className="flex min-h-screen w-full h-screen bg-background">
           <AppSidebar />
-          <div className="flex flex-1 flex-col">
+          <div className="flex flex-1 flex-col h-full">
             <AppTopbar />
             <TabsLayout />
           </div>
