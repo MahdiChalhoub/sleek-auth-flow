@@ -15,7 +15,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ROUTES } from "@/constants/routes";
-import { User as UserType } from "@/models/interfaces/userInterfaces";
+import { User as UserType } from "@/types/auth";
 
 interface NavItem {
   label: string;
@@ -44,7 +44,7 @@ const MobileSidebar: React.FC = () => {
   
   const filterItemsByRole = (items: NavItem[]) => {
     if (!user) return items;
-    return items.filter(item => !item.roles || item.roles.includes(user.role));
+    return items.filter(item => !item.roles || item.roles.includes(user.role as string));
   };
   
   const renderNavItems = (items: NavItem[]) => {
@@ -60,25 +60,16 @@ const MobileSidebar: React.FC = () => {
     ));
   };
   
-  // Get display name from name, fullName, or email
+  // Get display name from email
   const getDisplayName = () => {
-    if (user?.fullName) return user.fullName;
-    if (user?.name) return user.name;
     if (user?.email) return user.email.split('@')[0];
     return 'User';
   };
   
-  // Get avatar initial from name or email
+  // Get avatar initial from email
   const getAvatarInitial = () => {
-    if (user?.fullName) return user.fullName.charAt(0).toUpperCase();
-    if (user?.name) return user.name.charAt(0).toUpperCase();
     if (user?.email) return user.email.charAt(0).toUpperCase();
     return 'U';
-  };
-  
-  // Get avatar URL considering both properties that might be present
-  const getAvatarUrl = () => {
-    return user?.avatarUrl || user?.avatar_url;
   };
   
   return (
@@ -86,7 +77,6 @@ const MobileSidebar: React.FC = () => {
       <div className="flex items-center gap-3 p-4">
         <Avatar>
           <AvatarFallback>{getAvatarInitial()}</AvatarFallback>
-          {getAvatarUrl() && <AvatarImage src={getAvatarUrl() as string} />}
         </Avatar>
         <div className="flex flex-col">
           <span className="font-medium">{getDisplayName()}</span>
