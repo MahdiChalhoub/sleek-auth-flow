@@ -6,10 +6,14 @@ import RoleCard from "@/components/RoleCard";
 import { Button } from "@/components/ui/button";
 import { Plus, Users } from "lucide-react";
 import { ROUTES } from "@/constants/routes";
+import { useResponsiveLayout } from "@/hooks/useResponsiveLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Roles: React.FC = () => {
   const [roles, setRoles] = useState(mockRoles);
   const navigate = useNavigate();
+  const { containerClass, cardLayout } = useResponsiveLayout();
+  const isMobile = useIsMobile();
 
   const handleViewRole = (roleId: string) => {
     navigate(`${ROUTES.ROLES}?role=${roleId}`);
@@ -27,20 +31,29 @@ const Roles: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className={containerClass}>
+      <div className="flex items-center justify-between mb-4 md:mb-6">
         <div className="flex items-center gap-2">
-          <Users className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-semibold">User Roles</h1>
+          <Users className="h-5 w-5 md:h-6 md:w-6 text-primary" />
+          <h1 className="text-xl md:text-2xl font-semibold">User Roles</h1>
         </div>
         
-        <Button onClick={() => navigate(ROUTES.ROLES)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create New Role
+        <Button 
+          onClick={() => navigate(ROUTES.ROLES)}
+          size={isMobile ? "sm" : "default"}
+        >
+          <Plus className="h-4 w-4 mr-1 md:mr-2" />
+          {isMobile ? "New" : "Create New Role"}
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className={
+        cardLayout === 'compact' 
+          ? "space-y-3"
+          : cardLayout === 'list'
+          ? "flex flex-col gap-4"
+          : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"
+      }>
         {roles.map(role => (
           <RoleCard
             key={role.id}
@@ -48,6 +61,7 @@ const Roles: React.FC = () => {
             onEdit={handleEditRole}
             onView={handleViewRole}
             onDelete={handleDeleteRole}
+            compact={cardLayout === 'compact'}
           />
         ))}
       </div>

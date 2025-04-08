@@ -1,16 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './App.css';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './components/theme-provider';
 import { toast } from 'sonner';
 import AppLayout from './components/layout/AppLayout';
-import { SetupStatus } from './services/setupService';
+import MobileLayout from './components/layout/MobileLayout';
 import { ROUTES } from './constants/routes';
 import { QueryProvider } from './providers/QueryProvider';
 import { Loader2 } from 'lucide-react';
 import { AuthProvider } from './providers/AuthProvider';
 import { LocationProvider } from './contexts/LocationContext';
+import { useIsMobile } from './hooks/use-mobile';
 
 // Import page components
 import Dashboard from './pages/Dashboard';
@@ -53,6 +54,12 @@ import Exports from './pages/Exports';
 import BarcodePrinting from './pages/BarcodePrinting';
 import ExpirationManagement from './pages/ExpirationManagement';
 
+// Layout Resolver component to decide which layout to use based on device
+const LayoutResolver: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const isMobile = useIsMobile();
+  return isMobile ? <MobileLayout /> : <AppLayout />;
+};
+
 function App() {
   console.log('🖥️ App component rendering');
 
@@ -72,7 +79,7 @@ function App() {
               <Route path={ROUTES.BUSINESS_SELECTION} element={<Navigate to={ROUTES.HOME} replace />} />
               <Route path="/waiting-approval" element={<Navigate to={ROUTES.HOME} replace />} />
               
-              <Route path="/" element={<AppLayout />}>
+              <Route element={<LayoutResolver />}>
                 <Route path={ROUTES.HOME} element={<Dashboard />} />
                 <Route path={ROUTES.INVENTORY} element={<Inventory />} />
                 <Route path={ROUTES.PURCHASE_ORDERS} element={<PurchaseOrders />} />
@@ -97,7 +104,7 @@ function App() {
                 <Route path="/transactions-page" element={<TransactionsPage />} />
                 <Route path={ROUTES.AUDIT_TRAIL} element={<AuditTrail />} />
                 <Route path={ROUTES.USER_ACTIVITY} element={<UserActivity />} />
-                <Route path="/roles" element={<Roles />} />
+                <Route path={ROUTES.ROLES_LIST} element={<Roles />} />
                 <Route path={ROUTES.ROLES} element={<RoleManagement />} />
                 <Route path={ROUTES.SHIFT_REPORTS} element={<ShiftReports />} />
                 <Route path={ROUTES.BACKUP_RESTORE} element={<BackupRestore />} />

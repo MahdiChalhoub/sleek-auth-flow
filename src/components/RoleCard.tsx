@@ -1,90 +1,111 @@
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ChevronRight, Edit, Trash2 } from "lucide-react";
 import { Role } from "@/models/role";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface RoleCardProps {
   role: Role;
-  onEdit?: (roleId: string) => void;
-  onView: (roleId: string) => void;
-  onDelete?: (roleId: string) => void;
-  active?: boolean;
+  onView: (id: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  compact?: boolean;
 }
 
 const RoleCard: React.FC<RoleCardProps> = ({ 
   role, 
-  onEdit, 
   onView, 
+  onEdit, 
   onDelete,
-  active = false
+  compact = false
 }) => {
-  // Count enabled permissions
-  const enabledPermissions = role.permissions.filter(p => p.enabled).length;
-  const totalPermissions = role.permissions.length;
-  const permissionPercentage = Math.round((enabledPermissions / totalPermissions) * 100);
-
-  return (
-    <Card className={`hover:shadow-md transition-shadow duration-200 ${active ? 'border-primary' : ''}`}>
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start mb-2">
-          <div>
-            <h3 className="font-bold text-xl">{role.name}</h3>
-            <p className="text-muted-foreground text-sm">{role.description}</p>
-          </div>
-          <div className="flex gap-1">
-            {onEdit && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => onEdit(role.id)}
-                className="h-8 w-8"
-              >
-                <Edit className="h-4 w-4" />
-                <span className="sr-only">Edit Role</span>
-              </Button>
-            )}
-            {onDelete && (
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => onDelete(role.id)}
-                className="h-8 w-8 text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Delete Role</span>
-              </Button>
-            )}
-          </div>
-        </div>
-        
-        <div className="mt-4">
-          <div className="flex justify-between items-center mb-1 text-sm">
-            <span className="font-medium">
-              {enabledPermissions} of {totalPermissions} permissions
-            </span>
-            <span className="text-muted-foreground">
-              ({permissionPercentage}%)
-            </span>
+  if (compact) {
+    return (
+      <Card className="overflow-hidden hover:bg-accent/5 transition-colors">
+        <div className="flex items-center justify-between p-3">
+          <div className="flex flex-col">
+            <h3 className="font-medium">{role.name}</h3>
+            <p className="text-xs text-muted-foreground">
+              {role.permissions?.length || 0} permissions
+            </p>
           </div>
           
-          <Progress value={permissionPercentage} className="h-2 mb-4" />
-
-          <div className="flex justify-end mt-2">
+          <div className="flex items-center gap-1">
             <Button 
               variant="ghost" 
               size="sm" 
+              className="h-8 w-8 p-0"
               onClick={() => onView(role.id)}
-              className="text-xs gap-1"
             >
-              View Details
-              <ChevronRight className="h-3 w-3" />
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="h-8 w-8 p-0" 
+              onClick={() => onEdit(role.id)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="h-8 w-8 p-0 text-destructive" 
+              onClick={() => onDelete(role.id)}
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="overflow-hidden">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-lg">{role.name}</CardTitle>
+          <Badge variant={role.isDefault ? "default" : "outline"}>
+            {role.isDefault ? "Default" : "Custom"}
+          </Badge>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="pb-2">
+        <p className="text-sm text-muted-foreground">
+          {role.description || "No description provided"}
+        </p>
+        <div className="mt-2">
+          <span className="text-sm font-medium">
+            Permissions:
+          </span>
+          <span className="text-sm text-muted-foreground ml-1">
+            {role.permissions?.length || 0}
+          </span>
+        </div>
       </CardContent>
+      
+      <CardFooter className="flex justify-between pt-2">
+        <Button variant="outline" size="sm" onClick={() => onView(role.id)}>
+          <Eye className="h-4 w-4 mr-1" /> View
+        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => onEdit(role.id)}>
+            <Pencil className="h-4 w-4 mr-1" /> Edit
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => onDelete(role.id)}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4 mr-1" /> Delete
+          </Button>
+        </div>
+      </CardFooter>
     </Card>
   );
 };
