@@ -38,7 +38,7 @@ const AppTopbar: React.FC = () => {
   console.log('🔝 AppTopbar rendering with user:', !!user);
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+    <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 w-full">
       <Button
         variant="outline"
         size="icon"
@@ -49,7 +49,7 @@ const AppTopbar: React.FC = () => {
         <span className="sr-only">Toggle Menu</span>
       </Button>
 
-      <div className="hidden md:flex md:flex-1">
+      <div className="flex flex-1 justify-center">
         <form className="w-full max-w-lg">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

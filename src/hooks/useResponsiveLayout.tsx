@@ -8,6 +8,7 @@ export interface ResponsiveConfig {
   cardLayout: 'grid' | 'list' | 'compact';
   showActions: boolean;
   showFilters: boolean;
+  mainContentPadding: string;
 }
 
 export function useResponsiveLayout(): ResponsiveConfig {
@@ -17,7 +18,8 @@ export function useResponsiveLayout(): ResponsiveConfig {
     headerSize: 'lg',
     cardLayout: 'grid',
     showActions: true,
-    showFilters: true
+    showFilters: true,
+    mainContentPadding: 'p-6'
   });
   
   useEffect(() => {
@@ -27,7 +29,8 @@ export function useResponsiveLayout(): ResponsiveConfig {
         headerSize: 'sm',
         cardLayout: 'compact',
         showActions: false,
-        showFilters: false
+        showFilters: false,
+        mainContentPadding: 'p-3'
       });
     } else if (isTablet) {
       setConfig({
@@ -35,7 +38,8 @@ export function useResponsiveLayout(): ResponsiveConfig {
         headerSize: 'md',
         cardLayout: 'grid', // Changed from 'list' to 'grid' for better tablet experience
         showActions: true,
-        showFilters: true
+        showFilters: true,
+        mainContentPadding: 'p-4'
       });
     } else if (isLaptop) {
       setConfig({
@@ -43,7 +47,8 @@ export function useResponsiveLayout(): ResponsiveConfig {
         headerSize: 'lg',
         cardLayout: 'grid',
         showActions: true,
-        showFilters: true
+        showFilters: true,
+        mainContentPadding: 'p-5'
       });
     } else {
       // Desktop
@@ -52,7 +57,8 @@ export function useResponsiveLayout(): ResponsiveConfig {
         headerSize: 'lg',
         cardLayout: 'grid',
         showActions: true,
-        showFilters: true
+        showFilters: true,
+        mainContentPadding: 'p-6'
       });
     }
   }, [isMobile, isTablet, isLaptop, isDesktop]);

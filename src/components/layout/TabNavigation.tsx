@@ -107,10 +107,9 @@ const TabNavigation: React.FC = () => {
     return null;
   }
 
-  // Use defensive programming to prevent crashes during loading
-  // By adding a fixed width container as a fallback
+  // Updated navigation bar with red highlight line at the bottom
   return (
-    <div className="border-b bg-background/90 backdrop-blur-sm">
+    <div className="border-b bg-background/90 backdrop-blur-sm relative">
       <ScrollArea className="w-full">
         <div 
           ref={scrollContainerRef}
@@ -134,6 +133,8 @@ const TabNavigation: React.FC = () => {
           )}
         </div>
       </ScrollArea>
+      {/* Red highlight line at the bottom */}
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-red-500"></div>
     </div>
   );
 };
