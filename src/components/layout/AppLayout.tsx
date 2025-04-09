@@ -16,9 +16,10 @@ import { Loader2 } from "lucide-react";
 const TabsLayout: React.FC = () => {
   const { tabs, activeTabId } = useTabs();
   const location = useLocation();
+  const { isMobile, isTablet } = useScreenSize();
   
   return (
-    <div className="flex flex-col flex-1 h-full">
+    <>
       <TabNavigation />
       {activeTabId ? (
         // When we have active tabs, render the TabContent component
@@ -29,13 +30,13 @@ const TabsLayout: React.FC = () => {
         />
       ) : (
         // When no tabs are active, use the router's outlet directly
-        <main className="flex-1 overflow-auto p-4 md:p-6">
+        <main className="flex-1 overflow-auto p-3 md:p-4 lg:p-5">
           <Suspense fallback={<LoadingIndicator />}>
             <Outlet />
           </Suspense>
         </main>
       )}
-    </div>
+    </>
   );
 };
 
@@ -98,11 +99,13 @@ const AppLayout: React.FC = () => {
   return (
     <TabsProvider>
       <SidebarProvider>
-        <div className="flex min-h-screen w-full h-screen bg-background">
+        <div className="flex min-h-screen w-full bg-background">
           <AppSidebar />
-          <div className="flex flex-1 flex-col h-full">
+          <div className="flex flex-1 flex-col">
             <AppTopbar />
-            <TabsLayout />
+            <div className="flex-1 overflow-hidden grid grid-cols-1">
+              <TabsLayout />
+            </div>
           </div>
         </div>
         <Toaster />
