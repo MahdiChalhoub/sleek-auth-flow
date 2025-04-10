@@ -98,7 +98,7 @@ const DynamicComponent = ({ componentPath }: { componentPath: string }) => {
     try {
       switch (componentPath) {
         case "Dashboard":
-          return lazy(() => import("../../../src/pages/Dashboard"));
+          return lazy(() => import("../../pages/Dashboard"));
         case "FinanceDashboard":
           return lazy(() => import("../../../src/pages/FinanceDashboard"));
         case "Inventory":
@@ -176,7 +176,7 @@ const DynamicComponent = ({ componentPath }: { componentPath: string }) => {
         case "FinancialYearManagement":
           return lazy(() => import("../../../src/pages/FinancialYearManagement"));
         case "Roles":
-          return lazy(() => import("../../../src/pages/Roles"));
+          return lazy(() => import("../../pages/Roles"));
         default:
           return lazy(() => import("../../../src/pages/NotFound"));
       }

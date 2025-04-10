@@ -18,11 +18,11 @@ const Roles: React.FC = () => {
   const isMobile = useIsMobile();
 
   const handleViewRole = (roleId: string) => {
-    navigate(`${ROUTES.ROLES}?role=${roleId}`);
+    navigate(`${ROUTES.ROLES_LIST}?role=${roleId}`);
   };
 
   const handleEditRole = (roleId: string) => {
-    navigate(`${ROUTES.ROLES}?role=${roleId}&edit=true`);
+    navigate(`${ROUTES.ROLES_LIST}?role=${roleId}&edit=true`);
   };
 
   const handleDeleteRole = (roleId: string) => {
@@ -60,7 +60,7 @@ const Roles: React.FC = () => {
           </div>
           
           <Button 
-            onClick={() => navigate(ROUTES.ROLES)}
+            onClick={() => navigate(`${ROUTES.ROLES_LIST}/new`)}
             size={isMobile ? "sm" : "default"}
             className="flex items-center gap-1"
           >
