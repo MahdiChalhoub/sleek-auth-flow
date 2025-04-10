@@ -54,8 +54,7 @@ export const ROUTES = {
   EXPORTS: '/exports',
   
   // Admin
-  ROLES: '/roles', // Changed to match the actual page component name
-  ROLES_LIST: '/roles',
+  ROLES: '/roles',
   USERS: '/users',
   SETTINGS: '/settings',
   NOTIFICATIONS: '/notifications',

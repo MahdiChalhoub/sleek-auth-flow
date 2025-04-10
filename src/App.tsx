@@ -103,8 +103,7 @@ function App() {
                 <Route path="/transactions-page" element={<TransactionsPage />} />
                 <Route path={ROUTES.AUDIT_TRAIL} element={<AuditTrail />} />
                 <Route path={ROUTES.USER_ACTIVITY} element={<UserActivity />} />
-                <Route path={ROUTES.ROLES_LIST} element={<Roles />} />
-                <Route path={ROUTES.ROLES} element={<RoleManagement />} />
+                <Route path={ROUTES.ROLES} element={<Roles />} />
                 <Route path={ROUTES.SHIFT_REPORTS} element={<ShiftReports />} />
                 <Route path={ROUTES.BACKUP_RESTORE} element={<BackupRestore />} />
                 <Route path={ROUTES.EXPORTS} element={<Exports />} />

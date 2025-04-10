@@ -33,8 +33,7 @@ const mainNavItems: NavItem[] = [
 ];
 
 const settingsNavItems: NavItem[] = [
-  { label: "User Roles", icon: Users, route: ROUTES.ROLES_LIST, roles: ["admin"] },
-  { label: "Role Management", icon: Users, route: ROUTES.ROLES, roles: ["admin"] },
+  { label: "User Roles", icon: Users, route: ROUTES.ROLES, roles: ["admin"] },
   { label: "Settings", icon: Settings, route: ROUTES.SETTINGS, roles: ["admin"] }
 ];
 
