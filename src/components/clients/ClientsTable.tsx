@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Client } from '@/models/client';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +32,21 @@ export const ClientsTable: React.FC<ClientsTableProps> = ({
   isLoading,
   onViewClient
 }) => {
+  const getClientTypeBadge = (client: Client) => {
+    if (client.isVip) {
+      return <Badge className="bg-amber-100 text-amber-800 border-amber-300">VIP</Badge>;
+    }
+    
+    switch (client.type) {
+      case 'wholesale':
+        return <Badge className="bg-indigo-100 text-indigo-800 border-indigo-300">Wholesale</Badge>;
+      case 'credit':
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-300">Credit</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-800 border-gray-300">Regular</Badge>;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -88,21 +102,6 @@ export const ClientsTable: React.FC<ClientsTableProps> = ({
       </div>
     );
   }
-
-  const getClientTypeBadge = (client: Client) => {
-    if (client.isVip) {
-      return <Badge className="bg-amber-100 text-amber-800 border-amber-300">VIP</Badge>;
-    }
-    
-    switch (client.type) {
-      case 'wholesale':
-        return <Badge className="bg-indigo-100 text-indigo-800 border-indigo-300">Wholesale</Badge>;
-      case 'credit':
-        return <Badge className="bg-blue-100 text-blue-800 border-blue-300">Credit</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-300">Regular</Badge>;
-    }
-  };
 
   return (
     <div>
@@ -166,19 +165,4 @@ export const ClientsTable: React.FC<ClientsTableProps> = ({
       </Pagination>
     </div>
   );
-  
-  function getClientTypeBadge(client: Client) {
-    if (client.isVip) {
-      return <Badge className="bg-amber-100 text-amber-800 border-amber-300">VIP</Badge>;
-    }
-    
-    switch (client.type) {
-      case 'wholesale':
-        return <Badge className="bg-indigo-100 text-indigo-800 border-indigo-300">Wholesale</Badge>;
-      case 'credit':
-        return <Badge className="bg-blue-100 text-blue-800 border-blue-300">Credit</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-300">Regular</Badge>;
-    }
-  }
 };
