@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ClientsTable } from '@/components/clients/ClientsTable';
 import { ClientsFilters } from '@/components/clients/ClientsFilters';
 import { useClientsData } from '@/hooks/useClientsData';
+import { ClientLoadingSkeleton } from '@/components/clients/ClientLoadingSkeleton';
 
 const ClientsList = () => {
   const navigate = useNavigate();
@@ -98,11 +99,20 @@ const ClientsList = () => {
                 <ClientsFilters currentFilters={filters} onApplyFilters={applyFilters} />
               )}
               
-              <ClientsTable 
-                clients={filteredClients || []} 
-                isLoading={isLoading}
-                onViewClient={handleViewClient}
-              />
+              {isLoading ? (
+                <ClientLoadingSkeleton type="list" />
+              ) : error ? (
+                <div className="py-8 text-center">
+                  <p className="text-muted-foreground">An error occurred while loading clients.</p>
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
+              ) : (
+                <ClientsTable 
+                  clients={filteredClients || []} 
+                  isLoading={false}
+                  onViewClient={handleViewClient}
+                />
+              )}
             </div>
           </CardContent>
         </Card>

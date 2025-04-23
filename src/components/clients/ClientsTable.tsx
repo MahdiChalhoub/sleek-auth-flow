@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Client } from '@/models/client';
 import { Badge } from '@/components/ui/badge';
@@ -35,9 +36,47 @@ export const ClientsTable: React.FC<ClientsTableProps> = ({
   if (isLoading) {
     return (
       <div className="space-y-4">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-12 bg-muted animate-pulse rounded-md"></div>
-        ))}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Contact</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Last Visit</TableHead>
+                <TableHead className="text-right">Balance</TableHead>
+                <TableHead className="w-[100px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array(5).fill(0).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <div className="h-5 bg-muted animate-pulse rounded-md w-32"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-muted animate-pulse rounded-md w-28"></div>
+                      <div className="h-4 bg-muted animate-pulse rounded-md w-24"></div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-5 bg-muted animate-pulse rounded-md w-16"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-5 bg-muted animate-pulse rounded-md w-24"></div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="h-5 bg-muted animate-pulse rounded-md w-16 ml-auto"></div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-8 bg-muted animate-pulse rounded-md w-8 mx-auto"></div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     );
   }
@@ -127,4 +166,19 @@ export const ClientsTable: React.FC<ClientsTableProps> = ({
       </Pagination>
     </div>
   );
+  
+  function getClientTypeBadge(client: Client) {
+    if (client.isVip) {
+      return <Badge className="bg-amber-100 text-amber-800 border-amber-300">VIP</Badge>;
+    }
+    
+    switch (client.type) {
+      case 'wholesale':
+        return <Badge className="bg-indigo-100 text-indigo-800 border-indigo-300">Wholesale</Badge>;
+      case 'credit':
+        return <Badge className="bg-blue-100 text-blue-800 border-blue-300">Credit</Badge>;
+      default:
+        return <Badge className="bg-gray-100 text-gray-800 border-gray-300">Regular</Badge>;
+    }
+  }
 };

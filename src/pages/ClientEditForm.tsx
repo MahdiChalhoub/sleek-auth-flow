@@ -6,6 +6,7 @@ import { ClientForm } from '@/components/clients/ClientForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { ClientLoadingSkeleton } from '@/components/clients/ClientLoadingSkeleton';
 
 const ClientEditForm = () => {
   const { form, onSubmit, isLoading, isEditMode } = useClientForm();
@@ -27,19 +28,23 @@ const ClientEditForm = () => {
         </h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{isEditMode ? 'Edit Client Information' : 'New Client Information'}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ClientForm 
-            form={form} 
-            onSubmit={onSubmit} 
-            isLoading={isLoading} 
-            onCancel={handleCancel}
-          />
-        </CardContent>
-      </Card>
+      {isLoading ? (
+        <ClientLoadingSkeleton type="form" />
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>{isEditMode ? 'Edit Client Information' : 'New Client Information'}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ClientForm 
+              form={form} 
+              onSubmit={onSubmit} 
+              isLoading={isLoading} 
+              onCancel={handleCancel}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
