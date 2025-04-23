@@ -6,13 +6,15 @@ const Contacts = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Redirect to the new Clients List page
-    navigate("/clients");
+    // Redirect to the clients page immediately
+    console.log("Redirecting from /contacts to /clients");
+    navigate("/clients", { replace: true });
   }, [navigate]);
   
+  // Show a loading message while redirecting
   return (
     <div className="flex items-center justify-center h-96">
-      <p>Redirecting to clients page...</p>
+      <p className="text-lg">Redirecting to clients page...</p>
     </div>
   );
 };

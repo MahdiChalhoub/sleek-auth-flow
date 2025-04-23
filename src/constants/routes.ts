@@ -44,6 +44,7 @@ export const ROUTES = {
   
   // Customers
   CONTACTS: '/contacts',
+  CLIENTS: '/clients', // Added a specific route for clients
   LOYALTY: '/loyalty',
   RETURNS: '/returns',
   

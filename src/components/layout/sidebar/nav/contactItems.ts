@@ -5,7 +5,7 @@ import { NavItem } from "./index";
 export const contactItems: NavItem[] = [
   {
     title: "Clients",
-    path: "/contacts",
+    path: "/clients", // Updated path to point directly to /clients
     icon: Contact,
     roles: ["admin", "manager"]
   },

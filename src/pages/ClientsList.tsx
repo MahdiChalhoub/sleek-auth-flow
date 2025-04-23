@@ -23,8 +23,9 @@ const ClientsList = () => {
   
   // Ensure data is loaded on first render
   useEffect(() => {
+    console.log('ClientsList: Loading clients data');
     refreshClients();
-  }, []);
+  }, [refreshClients]);
   
   // Filter clients based on search term and filters
   const filteredClients = clients?.filter(client => {

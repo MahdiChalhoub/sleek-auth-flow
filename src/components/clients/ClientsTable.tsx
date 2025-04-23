@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Client } from '@/models/client';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +33,7 @@ export const ClientsTable: React.FC<ClientsTableProps> = ({
   isLoading,
   onViewClient
 }) => {
+  // Helper function to generate client type badge
   const getClientTypeBadge = (client: Client) => {
     if (client.isVip) {
       return <Badge className="bg-amber-100 text-amber-800 border-amber-300">VIP</Badge>;
