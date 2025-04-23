@@ -1,3 +1,4 @@
+
 import React from 'react';
 import './App.css';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
@@ -92,7 +93,7 @@ function App() {
                 <Route path={ROUTES.STOCK_ADJUSTMENTS} element={<StockAdjustments />} />
                 <Route path={ROUTES.UNITS} element={<Units />} />
                 <Route path={ROUTES.CONTACTS} element={<Contacts />} />
-                <Route path="/clients" element={<ClientsList />} />
+                <Route path={ROUTES.CLIENTS} element={<ClientsList />} />
                 <Route path="/clients/:clientId" element={<ClientProfile />} />
                 <Route path="/clients/:clientId/edit" element={<ClientEditForm />} />
                 <Route path="/clients/new" element={<ClientEditForm />} />

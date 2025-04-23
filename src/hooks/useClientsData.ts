@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Client } from '@/models/client';
 import { clientsApi } from '@/api/database';
 import { supabase } from '@/lib/supabase';
@@ -9,17 +9,19 @@ export const useClientsData = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchClients = async () => {
+  const fetchClients = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
+      console.log("Fetching clients data...");
       // Try to fetch from Supabase first
       const { data: supabaseClients, error: supabaseError } = await supabase
         .from('clients')
         .select('*');
       
       if (!supabaseError && supabaseClients?.length > 0) {
+        console.log("Successfully fetched clients from Supabase:", supabaseClients.length);
         // Transform data to match our Client model if needed
         const transformedClients = supabaseClients.map(client => ({
           id: client.id,
@@ -42,7 +44,9 @@ export const useClientsData = () => {
         setClients(transformedClients);
       } else {
         // Fallback to mock API if Supabase fails
+        console.log("Falling back to mock API");
         const clientsData = await clientsApi.getAll();
+        console.log("Mock API returned:", clientsData?.length || 0, "clients");
         setClients(clientsData);
       }
     } catch (err) {
@@ -51,6 +55,7 @@ export const useClientsData = () => {
       
       // Try to fallback to mock data
       try {
+        console.log("Error occurred, trying fallback to mock data");
         const clientsData = await clientsApi.getAll();
         setClients(clientsData);
       } catch (fallbackErr) {
@@ -59,7 +64,7 @@ export const useClientsData = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const createClient = async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
@@ -135,9 +140,10 @@ export const useClientsData = () => {
     }
   };
 
+  // Initial load
   useEffect(() => {
     fetchClients();
-  }, []);
+  }, [fetchClients]);
 
   return { 
     clients, 
