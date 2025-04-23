@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +19,12 @@ const ClientsList = () => {
     clientType: 'all'
   });
   
-  const { clients, isLoading, error } = useClientsData();
+  const { clients, isLoading, error, refreshClients } = useClientsData();
+  
+  // Ensure data is loaded on first render
+  useEffect(() => {
+    refreshClients();
+  }, []);
   
   // Filter clients based on search term and filters
   const filteredClients = clients?.filter(client => {
