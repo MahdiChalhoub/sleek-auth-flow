@@ -1,3 +1,4 @@
+
 import React, { Suspense, lazy } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Tab } from "@/contexts/tabs";
@@ -84,6 +85,7 @@ const getComponentNameFromPath = (path: string): string => {
     case 'purchase-analytics': return 'PurchaseAnalytics';
     case 'role-management': return 'RoleManagement';
     case 'roles': return 'Roles';
+    case 'clients': return 'ClientsList';
     default:
       // Convert kebab-case to PascalCase
       return pathWithoutSlash
@@ -151,6 +153,8 @@ const DynamicComponent = ({ componentPath }: { componentPath: string }) => {
           return lazy(() => import("../../../src/pages/Users"));
         case "Contacts":
           return lazy(() => import("../../../src/pages/Contacts"));
+        case "ClientsList":
+          return lazy(() => import("../../../src/pages/ClientsList"));
         case "Notifications":
           return lazy(() => import("../../../src/pages/Notifications"));
         case "GeneralLedger":
