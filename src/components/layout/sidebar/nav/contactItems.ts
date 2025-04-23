@@ -1,11 +1,12 @@
 
 import { Contact, Users } from "lucide-react";
 import { NavItem } from "./index";
+import { ROUTES } from "@/constants/routes";
 
 export const contactItems: NavItem[] = [
   {
     title: "Clients",
-    path: "/clients", // Updated path to point directly to /clients
+    path: ROUTES.CLIENTS,
     icon: Contact,
     roles: ["admin", "manager"]
   },

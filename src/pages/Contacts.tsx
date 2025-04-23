@@ -1,14 +1,15 @@
 
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "@/constants/routes";
 
 const Contacts = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
     // Redirect to the clients page immediately
-    console.log("Redirecting from /contacts to /clients");
-    navigate("/clients", { replace: true });
+    console.log("Redirecting from /contacts to " + ROUTES.CLIENTS);
+    navigate(ROUTES.CLIENTS, { replace: true });
   }, [navigate]);
   
   // Show a loading message while redirecting

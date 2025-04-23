@@ -49,54 +49,6 @@ export const ClientsTable: React.FC<ClientsTableProps> = ({
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Last Visit</TableHead>
-                <TableHead className="text-right">Balance</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array(5).fill(0).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    <div className="h-5 bg-muted animate-pulse rounded-md w-32"></div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-muted animate-pulse rounded-md w-28"></div>
-                      <div className="h-4 bg-muted animate-pulse rounded-md w-24"></div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="h-5 bg-muted animate-pulse rounded-md w-16"></div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="h-5 bg-muted animate-pulse rounded-md w-24"></div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="h-5 bg-muted animate-pulse rounded-md w-16 ml-auto"></div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="h-8 bg-muted animate-pulse rounded-md w-8 mx-auto"></div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    );
-  }
-
   if (clients.length === 0) {
     return (
       <div className="text-center py-8">
