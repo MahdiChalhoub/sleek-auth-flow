@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import ProductCard from '@/components/ProductCard';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Product } from '@/models/product';
+import ProductCardPOS from '@/components/POS/ProductCardPOS';
 
 const POSSales = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -50,13 +52,15 @@ const POSSales = () => {
     }
   }, [products]);
 
-  const handleCategorySelect = (category: string | null) => {
-    setSelectedCategory(category);
-    if (category === null) {
+  const handleCategorySelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const categoryId = event.target.value === '' ? null : event.target.value;
+    setSelectedCategory(categoryId);
+    
+    if (categoryId === null) {
       setFilteredProducts(products);
     } else {
       const filtered = products.filter((product) => 
-        product.category && product.category.id === category
+        product.category && product.category.id === categoryId
       );
       setFilteredProducts(filtered);
     }
@@ -125,7 +129,7 @@ const POSSales = () => {
             <select
               className="border p-2 rounded"
               value={selectedCategory || ''}
-              onChange={(e) => handleCategorySelect(e.target.value === '' ? null : e.target.value)}
+              onChange={handleCategorySelect}
             >
               <option value="">All Categories</option>
               {categories && categories.map((category) => (
@@ -140,10 +144,14 @@ const POSSales = () => {
               {isLoadingProducts ? (
                 <p>Loading products...</p>
               ) : productsError ? (
-                <div>Error: {productsError.toString()}</div>
+                <div>Error: {String(productsError)}</div>
               ) : filteredProducts.length > 0 ? (
                 filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCardPOS 
+                    key={product.id} 
+                    product={product}
+                    onAddToCart={() => console.log('Add to cart:', product.id)}
+                  />
                 ))
               ) : (
                 <p>No products found.</p>

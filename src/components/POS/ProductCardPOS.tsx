@@ -4,10 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Product } from '@/models/interfaces/productInterfaces';
+import { Product } from '@/models/product';
 
 interface ProductCardPOSProps {
-  product: Product | any; // Allow any for compatibility with different Product types
+  product: Product;
   onAddToCart?: () => void;
 }
 
@@ -36,7 +36,7 @@ const ProductCardPOS = ({ product, onAddToCart }: ProductCardPOSProps) => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-3">
           <div className="text-white">
             <p className="font-medium text-xs truncate">{product.name}</p>
-            <p className="text-white/80 text-xs truncate">{product.barcode}</p>
+            <p className="text-white/80 text-xs truncate">{product.barcode || ''}</p>
           </div>
         </div>
       </div>
