@@ -6,7 +6,6 @@ import { ArrowLeft, Maximize, Minimize } from 'lucide-react';
 import { toast } from 'sonner';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
-import ProductCard from '@/components/ProductCard';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Product } from '@/models/product';
@@ -134,7 +133,7 @@ const POSSales = () => {
               <option value="">All Categories</option>
               {categories && categories.map((category) => (
                 <option key={category.id} value={category.id}>
-                  {category.name}
+                  {String(category.name)}
                 </option>
               ))}
             </select>
